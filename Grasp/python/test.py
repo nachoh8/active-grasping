@@ -1,5 +1,5 @@
 import numpy as np
-from pygrasp.pygrasp import *
+from pygrasp import *
 
 print("----TEST EIGEN/NUMPY----")
 eigen_v3f = test_eigen_numpy_type()
@@ -22,7 +22,7 @@ q3.append(0.28)
 q3.append(0.14)
 
 for q in [q1, q2, q3]:
-    res: GraspResult = grmacy.executeQueryGrasp(q)
+    res = grmacy.executeQueryGrasp(q)
     print(res.measure, res.volume, res.force_closure)
 
 print()
@@ -54,5 +54,5 @@ q2 = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 q3 = vectord(6, 0.0)
 
 for q in [q1, q2, q3]:
-    res: GraspResult = planner.executeQueryGrasp(q)
+    res = planner.executeQueryGrasp(q)
     print(res.measure, res.volume, res.force_closure)

@@ -7,7 +7,7 @@ set(name "pygrasp")
 find_package(SWIG REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Simox REQUIRED)
-find_package(PythonLibs 3.6 REQUIRED)
+find_package(PythonLibs 2.7 REQUIRED) # 3.6 or 2.7
 
 ## INCLUDE ##
 include(${SWIG_USE_FILE})
@@ -21,6 +21,7 @@ include_directories("../include")
 set(CMAKE_C_COMPILER "gcc-8")
 set(CMAKE_CXX_COMPILER "g++-8")
 set(CMAKE_CXX_STANDARD_DEFAULT)
+set(CMAKE_SWIG_FLAGS -c++) # -Wall
 add_definitions(-std=c++2a)
 
 ## LINK ##

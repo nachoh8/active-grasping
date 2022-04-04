@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PYTHON_2=$1
+
 # Compile
 
 if [! -d build ]
@@ -28,8 +30,14 @@ fi
 PYGRASP_FILE="pygrasp.py"
 PYGRASP_LIB="_pygrasp.so"
 
-PYGRASP_MODULE_DIR="${HOME}/.local/lib/python3.6/site-packages/pygrasp"
+PYGRASP_MODULE_DIR="/usr/lib/python2.7/dist-packages"
 
-mkdir $PYGRASP_MODULE_DIR
+if [ $PYTHON_2 -eq 0 ] # is Python3
+then
+    PYGRASP_MODULE_DIR="${HOME}/.local/lib/python3.6/site-packages"
+    # mkdir $PYGRASP_MODULE_DIR
+fi
 
-cp $PYGRASP_FILE $PYGRASP_LIB -t $PYGRASP_MODULE_DIR
+echo "Copying pygrasp module to ${PYGRASP_MODULE_DIR}"
+
+sudo cp $PYGRASP_FILE $PYGRASP_LIB -t $PYGRASP_MODULE_DIR
