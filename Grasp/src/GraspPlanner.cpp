@@ -1,4 +1,4 @@
-#include "grasp/GraspPlanner.hpp"
+#include "../include/grasp/GraspPlanner.hpp"
 
 #include <iomanip>
 
@@ -6,7 +6,9 @@
 #include <VirtualRobot/XML/ObjectIO.h>
 #include <VirtualRobot/XML/RobotIO.h>
 
-#include "utils/GraspVars.hpp"
+#include "../include/grasp/GraspVars.hpp"
+
+namespace Grasp {
 
 /// Init
 
@@ -82,10 +84,11 @@ void GraspPlanner::loadScene() {
 
 /// Public
 
-GraspResult GraspPlanner::executeQueryGrasp(const vectord& query) {
+GraspResult GraspPlanner::executeQueryGrasp(const std::vector<double>& query) {
     // 1. query to position
-    Eigen::Vector3f xyz(query(GRASP_VAR::TRANS_X), query(GRASP_VAR::TRANS_Y), query(GRASP_VAR::TRANS_Z));
-    Eigen::Vector3f rpy(query(GRASP_VAR::ROT_ROLL), query(GRASP_VAR::ROT_PITCH), query(GRASP_VAR::ROT_YAW));
+    
+    Eigen::Vector3f xyz(query[GRASP_VAR::TRANS_X], query[GRASP_VAR::TRANS_Y], query[GRASP_VAR::TRANS_Z]);
+    Eigen::Vector3f rpy(query[GRASP_VAR::ROT_ROLL], query[GRASP_VAR::ROT_PITCH], query[GRASP_VAR::ROT_YAW]);
 
     // 2. Execute grasp
 
@@ -176,3 +179,4 @@ void GraspPlanner::openEE()
     }
 }
 
+}

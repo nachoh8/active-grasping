@@ -3,34 +3,33 @@
 
 #include <bayesopt/parameters.hpp>
 
-#include "include/bayes/ActiveGraspingOptParams.h"
-#include "include/bayes/ActiveGraspingOpt.h"
+#include <grasp/Grasp.hpp>
 
-#include "include/utils/GraspVars.hpp"
-
-#include "include/bayes/TestGramacyExecutor.hpp"
-#include "include/grasp/GraspPlanner.hpp"
-#include "include/grasp/GraspPlannerWindow.h"
+#include <ActiveGrasping/ActiveGraspingOptParams.h>
+#include <ActiveGrasping/ActiveGraspingOpt.h>
 
 void test_gramacy() {
     std::cout << "Test Gramacy\n";
 
-    ActiveGraspingOptParams params;
-    params.active_variables[0] = true;
-    params.active_variables[1] = true;
-    params.object = "Pepino";
+    ActiveGrasping::ActiveGraspingOptParams params;
+    params.active_variables.push_back(0);
+    params.active_variables.push_back(1);
     params.n_grasp_trials = 1;
-    params.lower_bound = vectord(2, 0);
-    params.upper_bound = vectord(2, 1);
 
-    std::shared_ptr<GraspExecutor> executor = std::make_shared<TestGramacyExecutor>();
+    const int opt_dim = params.active_variables.size();
+    params.lower_bound = vectord(opt_dim, 0);
+    params.upper_bound = vectord(opt_dim, 1);
+
+    params.default_query = vectord(2, 0);
+
+    std::shared_ptr<Grasp::GraspExecutor> executor = std::make_shared<Grasp::TestGramacyExecutor>();
     params.executor = executor;
 
     // bopt_params bo_params = ActiveGraspingOpt::initBoptParams();
     bopt_params opt_param;
     opt_param       = initialize_parameters_to_default();
 
-    ActiveGraspingOpt opt(params, opt_param);
+    ActiveGrasping::ActiveGraspingOpt opt(params, opt_param);
 
     vectord best_point(2);
 
@@ -43,15 +42,17 @@ void test_gramacy() {
     std::cout << "END TEST\n";
 }
 
-void test_eef_xy() {
+
+void test_simox() {
+
     std::cout << "Test Bayes EEF\n";
 
     /// Set params
 
-    ActiveGraspingOptParams params;
+    ActiveGrasping::ActiveGraspingOptParams params;
     //params.active_variables.push_back(GRASP_VAR::TRANS_X);
-    params.active_variables.push_back(GRASP_VAR::TRANS_Y);
-    params.active_variables.push_back(GRASP_VAR::TRANS_Z);
+    params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_Y);
+    params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_Z);
     /*params.active_variables.push_back(GRASP_VAR::ROT_ROLL);
     params.active_variables.push_back(GRASP_VAR::ROT_PITCH);
     params.active_variables.push_back(GRASP_VAR::ROT_YAW);*/
@@ -74,13 +75,12 @@ void test_eef_xy() {
     // params.upper_bound[3] = 3.14;
     // params.upper_bound[4] = 3.14;
     // params.upper_bound[5] = 3.14;
-    params.default_query = vectord(NUM_GRASP_VARS, 0);
-
+    params.default_query = vectord(Grasp::NUM_GRASP_VARS, 0);
 
     Eigen::Vector3f obj_position(93, 34, 45);
     Eigen::Vector3f obj_orientation(1.4, 2.84, -3.1);
     
-    GraspPlannerParams plannerParams(
+    Grasp::GraspPlannerParams plannerParams(
         "/home/nacho/ActiveGrasping/simox/VirtualRobot/data/robots/iCub/iCub.xml",
         "Left Hand",
         "Grasp Preshape",
@@ -92,7 +92,7 @@ void test_eef_xy() {
     plannerParams.obj_position = obj_position;
     plannerParams.obj_orientation = obj_orientation;
 
-    std::shared_ptr<GraspExecutor> executor = std::make_shared<GraspPlanner>(plannerParams);
+    std::shared_ptr<Grasp::GraspExecutor> executor = std::make_shared<Grasp::GraspPlanner>(plannerParams);
     params.executor = executor;
 
     /// Optimize
@@ -100,7 +100,7 @@ void test_eef_xy() {
     bopt_params opt_param;
     opt_param       = initialize_parameters_to_default();
 
-    ActiveGraspingOpt opt(params, opt_param);
+    ActiveGrasping::ActiveGraspingOpt opt(params, opt_param);
 
     vectord best_grasp(opt_dim);
 
@@ -112,26 +112,6 @@ void test_eef_xy() {
     for (auto& pt : best_grasp) {
         std::cout << pt << std::endl;
     }
-
-    Eigen::Vector3f eef_position(params.default_query[0], params.default_query[1], params.default_query[2]);
-    Eigen::Vector3f eef_orientation(params.default_query[3], params.default_query[4], params.default_query[5]);
-
-    for (int i = 0; i < opt_dim; i++) {
-        int idx = params.active_variables[i];
-        if (idx < 3) {
-            eef_position[idx] = best_grasp[i];
-        } else {
-            eef_orientation[idx-3] = best_grasp[i];
-        }
-    }
-
-    plannerParams.eef_pose = true;
-    plannerParams.eef_position = eef_position;
-    plannerParams.eef_orientation = eef_orientation;
-
-    GraspPlannerWindow graspPlanner(plannerParams);
-
-    graspPlanner.main();
     
 
     std::cout << "END TEST\n";
@@ -139,10 +119,9 @@ void test_eef_xy() {
 
 
 int main(int argc, char *argv[]) {
-    
-    VirtualRobot::init(argc, argv, "Simox Grasp Planner");
 
-    test_eef_xy();
+    // test_gramacy();
+    test_simox();
 
     return 0;
 }

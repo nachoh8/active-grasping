@@ -1,7 +1,11 @@
-#include "bayes/ActiveGraspingOpt.h"
+#include "ActiveGrasping/ActiveGraspingOpt.h"
 
 #include <algorithm>
-#include <chrono>
+// #include <chrono>
+
+#include <grasp/GraspResult.hpp>
+
+namespace ActiveGrasping {
 
 ActiveGraspingOpt::ActiveGraspingOpt(const ActiveGraspingOptParams& _params, const bopt_params& bo_params)
 : params(_params), work_dim(_params.default_query.size()), ymin(0.0f), ymax(1.0f),
@@ -14,7 +18,7 @@ double ActiveGraspingOpt::evaluateSample(const vectord& query) {
     
     vectord opt_query = mDims < work_dim ? createOptQuery(query) : query;
 
-    std::vector<GraspResult> qualities = applyQueryToHand(opt_query);
+    std::vector<Grasp::GraspResult> qualities = applyQueryToHand(opt_query);
 
     double res = evaluateGraspQuality(qualities);
 
@@ -32,16 +36,15 @@ vectord ActiveGraspingOpt::createOptQuery(const vectord& query) {
     return opt_query;
 }
 
-std::vector<GraspResult> ActiveGraspingOpt::applyQueryToHand(const vectord& query) {
-    std::vector<GraspResult> results;
+std::vector<Grasp::GraspResult> ActiveGraspingOpt::applyQueryToHand(const vectord& query) {
+    std::vector<Grasp::GraspResult> results;
     
-    unsigned rand_seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::default_random_engine generator(rand_seed);
+    // unsigned rand_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    // std::default_random_engine generator(rand_seed);
 
+    std::vector q = {query[0], query[1]};
     for (int trial = 0; trial < params.n_grasp_trials; trial++) {
-        vectord q = query;
-
-        GraspResult res = params.executor->executeQueryGrasp(q);
+        Grasp::GraspResult res = params.executor->executeQueryGrasp(q);
 
         results.push_back(res);
     }
@@ -49,7 +52,7 @@ std::vector<GraspResult> ActiveGraspingOpt::applyQueryToHand(const vectord& quer
     return results;
 }
 
-double ActiveGraspingOpt::evaluateGraspQuality(const std::vector<GraspResult>& qualities) {
+double ActiveGraspingOpt::evaluateGraspQuality(const std::vector<Grasp::GraspResult>& qualities) {
     const int n = qualities.size();
 
     if (n == 0) return 0.0;
@@ -67,4 +70,6 @@ double ActiveGraspingOpt::evaluateGraspQuality(const std::vector<GraspResult>& q
     force_closure   /= n;
 
     return measure;
+}
+
 }

@@ -11,15 +11,17 @@
 #include <VirtualRobot/EndEffector/EndEffector.h>
 #include "VirtualRobot/Grasping/GraspSet.h"
 
-#include <GraspPlanning/GraspStudio.h>
+//#include <GraspPlanning/GraspStudio.h>
 #include <GraspPlanning/GraspQuality/GraspQualityMeasureWrenchSpace.h>
 #include <GraspPlanning/GraspPlanner/GenericGraspPlanner.h>
 #include <GraspPlanning/ApproachMovementSurfaceNormal.h>
 
 #include <Eigen/Geometry>
 
-#include "bayes/GraspExecutor.hpp"
+#include "GraspExecutor.hpp"
 #include "GraspPlannerParams.hpp"
+
+namespace Grasp {
 
 struct GraspData {
     Eigen::Matrix4f pose;
@@ -36,7 +38,7 @@ public:
      * @param query EEF Position
      * @return Grasp quality 
      */
-    GraspResult executeQueryGrasp(const vectord& query);
+    GraspResult executeQueryGrasp(const std::vector<double>& query);
 
     /**
      * @brief Execute grasp for an eef pose
@@ -104,3 +106,5 @@ protected:
 
     GraspStudio::GraspQualityMeasureWrenchSpacePtr qualityMeasure;
 };
+
+}

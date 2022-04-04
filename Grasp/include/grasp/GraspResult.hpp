@@ -1,5 +1,6 @@
 #pragma once
 
+namespace Grasp {
 struct GraspResult
 {
     double measure;
@@ -20,3 +21,4 @@ struct GraspResult
         force_closure = _force_closure;
     }
 };
+}

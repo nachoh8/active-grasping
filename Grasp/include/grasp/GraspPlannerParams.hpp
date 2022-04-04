@@ -4,6 +4,8 @@
 
 #include <Eigen/Geometry>
 
+namespace Grasp {
+
 struct GraspPlannerParams {
     std::string robot_file;
     std::string eef_name;
@@ -20,7 +22,8 @@ struct GraspPlannerParams {
     float min_quality;
     bool force_closure;
 
-    
+    GraspPlannerParams() {}
+
     GraspPlannerParams(
         const std::string& _robot_file,
         const std::string& _eef_name,
@@ -38,3 +41,5 @@ struct GraspPlannerParams {
         force_closure = _force_closure;
     }
 };
+
+}

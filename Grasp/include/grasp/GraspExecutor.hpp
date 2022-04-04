@@ -1,9 +1,11 @@
 #pragma once
 
-#include <specialtypes.hpp>
+#include <vector>
 
-#include "utils/GraspResult.hpp"
+#include "GraspResult.hpp"
 
+namespace Grasp {
+    
 class GraspExecutor {
 public:
     /**
@@ -12,5 +14,7 @@ public:
      * @param query EEF position (x,y,z,r,p,y)
      * @return Grasp quality 
      */
-    virtual GraspResult executeQueryGrasp(const vectord& query) = 0;
+    virtual GraspResult executeQueryGrasp(const std::vector<double>& query) = 0;
 };
+
+}

@@ -1,5 +1,7 @@
 #pragma once
 
+namespace Grasp {
+
 enum GRASP_VAR
 {
     TRANS_X = 0,
@@ -12,3 +14,5 @@ enum GRASP_VAR
 };
 
 const unsigned int NUM_GRASP_VARS = 6;
+
+}

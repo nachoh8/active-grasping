@@ -7,9 +7,11 @@
 #include <bayesopt/parameters.hpp>
 #include <specialtypes.hpp>
 
+#include <grasp/GraspResult.hpp>
+
 #include "ActiveGraspingOptParams.h"
 
-#include "utils/GraspResult.hpp"
+namespace ActiveGrasping {
 
 class ActiveGraspingOpt : public bayesopt::ContinuousModel {
 public:
@@ -43,7 +45,7 @@ private:
      * @param query point to be evaluated, with size = work_dim
      * @return Results for each trial
      */
-    std::vector<GraspResult> applyQueryToHand(const vectord& query);
+    std::vector<Grasp::GraspResult> applyQueryToHand(const vectord& query);
 
     /**
      * @brief Computes the grasp quality
@@ -51,7 +53,7 @@ private:
      * @param qualities Result of all trials
      * @return Average grasp quality measure
      */
-    double evaluateGraspQuality(const std::vector<GraspResult>& qualities);
+    double evaluateGraspQuality(const std::vector<Grasp::GraspResult>& qualities);
 
     /// Attributes
 
@@ -60,3 +62,5 @@ private:
     unsigned int work_dim;
     double      ymax, ymin;
 };
+
+}

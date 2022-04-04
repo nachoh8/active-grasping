@@ -6,9 +6,11 @@
 
 #include <specialtypes.hpp>
 
-#include "GraspExecutor.hpp"
+#include <grasp/GraspExecutor.hpp>
 
-typedef std::shared_ptr<GraspExecutor> GraspExecutorPtr;
+namespace ActiveGrasping {
+
+typedef std::shared_ptr<Grasp::GraspExecutor> GraspExecutorPtr;
 
 struct ActiveGraspingOptParams
 {
@@ -26,3 +28,5 @@ struct ActiveGraspingOptParams
 
     GraspExecutorPtr executor;
 };
+
+}
