@@ -85,6 +85,11 @@ void GraspPlanner::loadScene() {
 /// Public
 
 GraspResult GraspPlanner::executeQueryGrasp(const std::vector<double>& query) {
+    if (query.size() != NUM_GRASP_VARS) {
+        std::cerr << "Error: query size is different of " << NUM_GRASP_VARS << "!!!\n";
+        exit(1);
+    }
+
     // 1. query to position
     
     Eigen::Vector3f xyz(query[GRASP_VAR::TRANS_X], query[GRASP_VAR::TRANS_Y], query[GRASP_VAR::TRANS_Z]);

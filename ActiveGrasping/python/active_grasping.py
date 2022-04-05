@@ -1,56 +1,82 @@
 import numpy as np
 
-from pygrasp import *
+from pygrasp import GraspExecutor, GraspResult
 from bayesoptmodule import BayesOptContinuous
 
 class ActiveGraspingParams:
-    def __init__(self, default_query, active_variables, lower_bound, upper_bound, executor):
-        self.default_query = default_query
-        self.active_variables = active_variables
-        self.lower_bound = lower_bound
-        self.upper_bound = upper_bound
-        self.executor = executor
+    def __init__(self, default_query: np.ndarray, active_variables: "list[int]",
+                lower_bound: np.ndarray, upper_bound: np.ndarray,
+                n_grasp_trials: int, executor: GraspExecutor):
+
+        self.default_query: np.ndarray = default_query
+        self.active_variables: list[int] = active_variables
+        self.lower_bound: np.ndarray = lower_bound
+        self.upper_bound: np.ndarray = upper_bound
+        self.n_grasp_trials = n_grasp_trials
+        self.executor: GraspExecutor = executor
 
 class ActiveGrasping(BayesOptContinuous):
-    def __init__(self, params, bo_params):
-        super(ActiveGrasping, self).__init__(len(params.active_variables))
-        self.my_params = params
-        self.work_dim = params.default_query.shape[0]
+    def __init__(self, params: ActiveGraspingParams, bo_params: dict):
+        super().__init__(len(params.active_variables))
+
+        self.default_query: np.ndarray = params.default_query
+        self.work_dim: int = params.default_query.shape[0]
+        self.active_variables: list[int] = params.active_variables
+        self.n_grasp_trials: int = params.n_grasp_trials
+        self.executor: GraspExecutor = params.executor
 
         self.params = bo_params
         self.lower_bound = params.lower_bound
         self.upper_bound = params.upper_bound
 
-        self.executor = TestGramacyExecutor()
 
-    def evaluateSample(self, x_in):
-        res = self.my_params.executor.executeQueryGrasp(x_in) # GraspResult
+    def evaluateSample(self, x_in) -> float:
+        if self.n_dim < self.work_dim:
+            query = self.createOptQuery(x_in)
+        else:
+            query = x_in
         
-        return res.measure
+        qualities = self.applyQueryToHand(query)
+
+        res = self.evaluateGraspQuality(qualities)
+        
+        return res
 
     ### PRIVATE METHODS
 
-    def createOptQuery(self, query):
-        pass
+    def createOptQuery(self, query: np.ndarray) -> np.ndarray:
+        opt_query = self.default_query
+        for i in range(self.n_dim):
+            idx = self.active_variables[i]
+            opt_query[idx] = query[i]
+        
+        return opt_query
 
-    def applyQueryToHand(self, query):
-        pass
+    def applyQueryToHand(self, query: np.ndarray) -> "list[GraspResult]":
+        res: list[GraspResult] = []
+        for _ in range(self.n_grasp_trials):
+            r = self.executor.executeQueryGrasp(query)
 
-    def evaluateGraspQuality(self, qualities):
-        pass
+            res.append(r)
+        
+        return res
 
+    def evaluateGraspQuality(self, qualities: "list[GraspResult]") -> float:
+        n = len(qualities)
 
-default_query = np.zeros((2,))
-active_variables = [0, 1]
-lower_bound = np.zeros((2,))
-upper_bound = np.ones((2,))
-executor = TestGramacyExecutor()
+        if n == 0: return 0.0
+        
+        measure = 0.0
+        volume = 0.0
+        force_closure = 0.0
 
-params = ActiveGraspingParams(default_query, active_variables, lower_bound, upper_bound, executor)
+        for res in qualities:
+            measure += res.measure
+            volume += res.volume
+            force_closure += float(res.force_closure)
+        
+        measure         /= n
+        volume          /= n
+        force_closure   /= n
 
-opt = ActiveGrasping(params, {})
-
-mvalue, x_out, error = opt.optimize()
-print("Result:", x_out)
-print("Mvalue:", mvalue)
-print("Error:", error)
+        return measure

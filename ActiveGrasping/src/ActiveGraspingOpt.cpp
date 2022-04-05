@@ -1,7 +1,6 @@
 #include "ActiveGrasping/ActiveGraspingOpt.h"
 
 #include <algorithm>
-// #include <chrono>
 
 #include <grasp/GraspResult.hpp>
 
@@ -38,11 +37,12 @@ vectord ActiveGraspingOpt::createOptQuery(const vectord& query) {
 
 std::vector<Grasp::GraspResult> ActiveGraspingOpt::applyQueryToHand(const vectord& query) {
     std::vector<Grasp::GraspResult> results;
-    
-    // unsigned rand_seed = std::chrono::system_clock::now().time_since_epoch().count();
-    // std::default_random_engine generator(rand_seed);
 
-    std::vector q = {query[0], query[1]};
+    std::vector<double> q;
+    for (auto qi : query) {
+        q.push_back(qi);
+    }
+
     for (int trial = 0; trial < params.n_grasp_trials; trial++) {
         Grasp::GraspResult res = params.executor->executeQueryGrasp(q);
 

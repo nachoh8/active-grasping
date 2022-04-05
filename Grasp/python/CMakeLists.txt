@@ -7,7 +7,7 @@ set(name "pygrasp")
 find_package(SWIG REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Simox REQUIRED)
-find_package(PythonLibs 2.7 REQUIRED) # 3.6 or 2.7
+find_package(PythonLibs 3.6 REQUIRED)
 
 ## INCLUDE ##
 include(${SWIG_USE_FILE})
