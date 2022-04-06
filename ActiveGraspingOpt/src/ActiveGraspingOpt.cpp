@@ -1,10 +1,10 @@
-#include "ActiveGrasping/ActiveGraspingOpt.h"
+#include "../include/ActiveGraspingOpt/ActiveGraspingOpt.hpp"
 
 #include <algorithm>
 
-#include <grasp/GraspResult.hpp>
+#include <Grasp/GraspResult.hpp>
 
-namespace ActiveGrasping {
+namespace ActiveGraspingOpt {
 
 ActiveGraspingOpt::ActiveGraspingOpt(const ActiveGraspingOptParams& _params, const bopt_params& bo_params)
 : params(_params), work_dim(_params.default_query.size()), ymin(0.0f), ymax(1.0f),

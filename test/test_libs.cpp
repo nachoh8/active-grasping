@@ -3,15 +3,16 @@
 
 #include <bayesopt/parameters.hpp>
 
-#include <grasp/Grasp.hpp>
+#include <Grasp/Grasp.hpp>
 
-#include <ActiveGrasping/ActiveGraspingOptParams.h>
-#include <ActiveGrasping/ActiveGraspingOpt.h>
+#include <ActiveGraspingOpt/ActiveGraspingOptParams.hpp>
+#include <ActiveGraspingOpt/ActiveGraspingOpt.hpp>
+
 
 void test_gramacy() {
     std::cout << "Test Gramacy\n";
 
-    ActiveGrasping::ActiveGraspingOptParams params;
+    ActiveGraspingOpt::ActiveGraspingOptParams params;
     params.active_variables.push_back(0);
     params.active_variables.push_back(1);
     params.n_grasp_trials = 1;
@@ -29,7 +30,7 @@ void test_gramacy() {
     bopt_params opt_param;
     opt_param       = initialize_parameters_to_default();
 
-    ActiveGrasping::ActiveGraspingOpt opt(params, opt_param);
+    ActiveGraspingOpt::ActiveGraspingOpt opt(params, opt_param);
 
     vectord best_point(2);
 
@@ -49,7 +50,7 @@ void test_simox() {
 
     /// Set params
 
-    ActiveGrasping::ActiveGraspingOptParams params;
+    ActiveGraspingOpt::ActiveGraspingOptParams params;
     //params.active_variables.push_back(GRASP_VAR::TRANS_X);
     params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_Y);
     params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_Z);
@@ -100,7 +101,7 @@ void test_simox() {
     bopt_params opt_param;
     opt_param       = initialize_parameters_to_default();
 
-    ActiveGrasping::ActiveGraspingOpt opt(params, opt_param);
+    ActiveGraspingOpt::ActiveGraspingOpt opt(params, opt_param);
 
     vectord best_grasp(opt_dim);
 

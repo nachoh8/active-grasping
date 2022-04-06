@@ -1,34 +1,37 @@
 cmake_minimum_required(VERSION 3.0.2)
 
-project(PyGrasp)
-
-set(name "pygrasp")
+set(LIB_NAME "pygrasp")
 
 find_package(SWIG REQUIRED)
-find_package(Eigen3 REQUIRED)
-find_package(Simox REQUIRED)
 find_package(PythonLibs 3.6 REQUIRED)
+find_package( Boost REQUIRED )
+
+## SET CMAKE FLAGS ##
+set(CMAKE_SWIG_FLAGS -c++) # -Wall
 
 ## INCLUDE ##
 include(${SWIG_USE_FILE})
-include_directories(${EIGEN3_INCLUDE_DIR})
-include_directories(${Simox_INCLUDE_DIRS})
-include_directories(${PYTHON_INCLUDE_PATH})
-
-include_directories("../include")
-
-## SET CMAKE FLAGS ##
-set(CMAKE_C_COMPILER "gcc-8")
-set(CMAKE_CXX_COMPILER "g++-8")
-set(CMAKE_CXX_STANDARD_DEFAULT)
-set(CMAKE_SWIG_FLAGS -c++) # -Wall
-add_definitions(-std=c++2a)
-
+include_directories(
+    ${PYTHON_INCLUDE_PATH}
+    ${Boost_INCLUDE_DIRS}
+    "../include"
+)
+# ${GRASP_LIB_INCLUDE_DIR}
+    
 ## LINK ##
 set_source_files_properties(pygrasp.i PROPERTIES CPLUSPLUS ON)
 set_source_files_properties(pygrasp.i PROPERTIES SWIG_FLAGS "-includeall")
 
-set(Grasp_LIB "/home/nacho/ActiveGrasping/active-grasping-bo/Grasp/build/libGrasp.so")
+# set(Grasp_LIB "/home/nacho/ActiveGrasping/active-grasping-bo/Grasp/build/libGrasp.so")
 
-swig_add_library(${name} LANGUAGE python SOURCES pygrasp.i)
-swig_link_libraries(${name} ${PYTHON_LIBRARIES} ${Simox_LIBRARIES} ${Grasp_LIB})
+swig_add_library(${LIB_NAME} LANGUAGE python SOURCES pygrasp.i)
+swig_link_libraries(${LIB_NAME} ${PYTHON_LIBRARIES} Grasp)
+
+execute_process ( COMMAND 
+         python3 -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"
+         OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+INSTALL(
+    FILES "${PROJECT_SOURCE_DIR}/build/grasp/python/${LIB_NAME}.py" "${PROJECT_SOURCE_DIR}/build/lib/_${LIB_NAME}.so"
+    DESTINATION ${PYTHON_SITE_PACKAGES}
+)

@@ -2,11 +2,11 @@ import sys
 import numpy as np
 
 from pygrasp import *
-from active_grasping import *
+from active_grasping_opt import *
 
 
 def test_gramacy() -> ActiveGrasping:
-    print("---TEST GRAMACY---")
+
 
     default_query = np.zeros((2,))
     active_variables = [0, 1]
@@ -18,10 +18,9 @@ def test_gramacy() -> ActiveGrasping:
 
     opt = ActiveGrasping(params, {})
 
-    return opt
+    return "Gramacy", opt
 
 def test_simox() -> ActiveGrasping:
-    print("---TEST SIMOX---")
 
     grasp_params = GraspPlannerParams(
         "/home/nacho/ActiveGrasping/simox/VirtualRobot/data/robots/iCub/iCub.xml",
@@ -44,9 +43,11 @@ def test_simox() -> ActiveGrasping:
 
     opt = ActiveGrasping(opt_params, {})
 
-    return opt
+    return "SIMOX", opt
 
-def exec_opt(opt: ActiveGrasping):
+def exec_opt(name: str, opt: ActiveGrasping):
+    print("---TEST " + name + "---")
+
     mvalue, x_out, error = opt.optimize()
 
     print("Result:", x_out)
@@ -67,4 +68,4 @@ if __name__ == "__main__":
         opts.append(test_simox())
     
     for opt in opts:
-        exec_opt(opt)
+        exec_opt(opt[0], opt[1])

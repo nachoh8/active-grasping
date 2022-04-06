@@ -1,4 +1,4 @@
-#include "../include/grasp/TestGramacyExecutor.hpp"
+#include "../include/Grasp/TestGramacyExecutor.hpp"
 
 #include <cmath>
 

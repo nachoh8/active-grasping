@@ -1,4 +1,4 @@
-#include "../include/grasp/GraspPlanner.hpp"
+#include "../include/Grasp/GraspPlanner.hpp"
 
 #include <iomanip>
 
@@ -6,7 +6,7 @@
 #include <VirtualRobot/XML/ObjectIO.h>
 #include <VirtualRobot/XML/RobotIO.h>
 
-#include "../include/grasp/GraspVars.hpp"
+#include "../include/Grasp/GraspVars.hpp"
 
 namespace Grasp {
 

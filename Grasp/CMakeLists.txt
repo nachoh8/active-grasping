@@ -1,39 +1,51 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
 
-PROJECT (GraspModule)
+set(LIBRARY_NAME Grasp)
 
-set(name "Grasp")
+## FIND PACKAGES ##
 
 FIND_PACKAGE(Simox REQUIRED)
-MESSAGE (STATUS "** Simox version: ${Simox_VERSION}")
-include_directories(${Simox_INCLUDE_DIRS})
+FIND_PACKAGE(Eigen3 REQUIRED)
 
-find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
+## LIB FILES ##
 
-
-FILE(GLOB INCS 
-  ${PROJECT_SOURCE_DIR}/include/grasp/GraspVars.hpp
-  ${PROJECT_SOURCE_DIR}/include/grasp/GraspResult.hpp
-  ${PROJECT_SOURCE_DIR}/include/grasp/GraspExecutor.hpp
-  ${PROJECT_SOURCE_DIR}/include/grasp/TestGramacyExecutor.hpp
-  ${PROJECT_SOURCE_DIR}/include/grasp/GraspPlannerParams.hpp
-  ${PROJECT_SOURCE_DIR}/include/grasp/GraspPlanner.hpp
+SET( GRASP_INCS 
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Grasp/GraspVars.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Grasp/GraspResult.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Grasp/GraspExecutor.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Grasp/TestGramacyExecutor.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Grasp/GraspPlannerParams.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Grasp/GraspPlanner.hpp
 )
   
-FILE(GLOB SRCS 
-  ${PROJECT_SOURCE_DIR}/src/TestGramacyExecutor.cpp
-  ${PROJECT_SOURCE_DIR}/src/GraspPlanner.cpp
+SET( GRASP_SRCS 
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/TestGramacyExecutor.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/GraspPlanner.cpp
 )
 
-set(CMAKE_C_COMPILER "gcc-8")
-set(CMAKE_CXX_COMPILER "g++-8")
-set(CMAKE_CXX_STANDARD_DEFAULT)
-add_definitions(-std=c++2a)
-add_definitions(-fPIC)
+set(GRASP_LIB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
 
-################################## LIBRARY ##############################
-ADD_LIBRARY(${name} SHARED ${SRCS} ${INCS})
-target_include_directories(${name} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-TARGET_LINK_LIBRARIES(${name} PUBLIC VirtualRobot Eigen3::Eigen GraspStudio Saba)
-# TARGET_LINK_LIBRARIES(${name} PUBLIC GraspStudio Saba)
+## EXTERNAL INCLUDE ##
+
+include_directories(
+  ${Simox_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIR}
+  )
+
+## LINK ##
+
+add_library(${LIBRARY_NAME} STATIC ${GRASP_INCS} ${GRASP_SRCS})
+
+TARGET_LINK_LIBRARIES(${LIBRARY_NAME} ${EIGEN3_LIBS} VirtualRobot GraspStudio)
+
+INSTALL(
+    TARGETS ${LIBRARY_NAME}
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)
+INSTALL(
+  DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/Grasp" DESTINATION include
+)
+
+## Python ##
+add_subdirectory(python)

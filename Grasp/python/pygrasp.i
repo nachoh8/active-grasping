@@ -1,13 +1,13 @@
 %module pygrasp
 
 %{
-    #include "grasp/GraspVars.hpp"
-    #include "grasp/GraspPlannerParams.hpp"
-    #include "grasp/GraspResult.hpp"
+    #include <Grasp/GraspVars.hpp>
+    #include <Grasp/GraspPlannerParams.hpp>
+    #include <Grasp/GraspResult.hpp>
 
-    #include "grasp/GraspExecutor.hpp"
-    #include "grasp/TestGramacyExecutor.hpp"
-    #include "grasp/GraspPlanner.hpp"
+    #include <Grasp/GraspExecutor.hpp>
+    #include <Grasp/TestGramacyExecutor.hpp>
+    #include <Grasp/GraspPlanner.hpp>
 %}
 
 %include "std_string.i"
@@ -23,8 +23,8 @@ namespace std {
 %eigen_typemaps(Eigen::Matrix4f)
 %eigen_typemaps(Eigen::MatrixXf)
 
-%include "grasp/GraspVars.hpp"
-%include "grasp/GraspResult.hpp"
+%include "Grasp/GraspVars.hpp"
+%include "Grasp/GraspResult.hpp"
 
 namespace Grasp {
     class GraspExecutor {

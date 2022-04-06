@@ -7,11 +7,11 @@
 #include <bayesopt/parameters.hpp>
 #include <specialtypes.hpp>
 
-#include <grasp/GraspResult.hpp>
+#include <Grasp/GraspResult.hpp>
 
-#include "ActiveGraspingOptParams.h"
+#include "ActiveGraspingOptParams.hpp"
 
-namespace ActiveGrasping {
+namespace ActiveGraspingOpt {
 
 class ActiveGraspingOpt : public bayesopt::ContinuousModel {
 public:
