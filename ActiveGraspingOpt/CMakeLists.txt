@@ -38,7 +38,7 @@ set( OPT_SRCS
 ## LINK ##
 add_library(${LIBRARY_NAME} STATIC ${OPT_INCS} ${OPT_SRCS})
 
-TARGET_LINK_LIBRARIES(${LIBRARY_NAME} grasp bayesopt nlopt)
+TARGET_LINK_LIBRARIES(${LIBRARY_NAME} Grasp bayesopt nlopt)
 
 INSTALL(
     TARGETS ${LIBRARY_NAME}

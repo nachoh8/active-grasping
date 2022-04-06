@@ -1,7 +1,5 @@
 #pragma once
 
-// #include <specialtypes.hpp>
-
 #include "GraspExecutor.hpp"
 
 namespace Grasp {

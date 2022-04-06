@@ -22,8 +22,8 @@ add_definitions(-std=c++2a)
 
 
 ## MODULES ##
-add_subdirectory(Grasp ${CMAKE_BINARY_DIR}/grasp)
-add_subdirectory(ActiveGraspingOpt ${CMAKE_BINARY_DIR}/activeGraspOpt)
+add_subdirectory(Grasp ${CMAKE_BINARY_DIR}/Grasp)
+add_subdirectory(ActiveGraspingOpt ${CMAKE_BINARY_DIR}/ActiveGraspOpt)
 
 ## TESTS ##
 add_subdirectory(test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
