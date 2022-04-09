@@ -14,3 +14,20 @@
     >> cmake ..
     >> make -j4
     >> sudo make install
+
+## Execution ##
+
+Active Grasping Optimization:
+
+    >> python3 main_bo.py   -fgopt <active_grasp_params_file>
+                            -fgrasp <grasp_planner_params_file>
+                            [-fbopt <bayesopt_params_file>]
+                            [-flog <log_file>]
+
+Optimization evaluation:
+
+    >> python3 evaluation.py -flog <log_file>
+
+Grasp visualization:
+
+    >> ./build/bin/grasp_visualization <grasp_planner_params_file>

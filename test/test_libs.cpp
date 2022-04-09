@@ -29,6 +29,8 @@ void test_gramacy() {
     // bopt_params bo_params = ActiveGraspingOpt::initBoptParams();
     bopt_params opt_param;
     opt_param       = initialize_parameters_to_default();
+    // opt_param.verbose_level = 5;
+    // opt_param.log_filename = "/home/nacho/ActiveGrasping/active-grasping/bopt_log.txt";
 
     ActiveGraspingOpt::ActiveGraspingOpt opt(params, opt_param);
 
