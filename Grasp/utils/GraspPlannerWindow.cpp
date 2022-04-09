@@ -1,4 +1,4 @@
-#include "../include/Grasp/GraspPlannerWindow.h"
+#include "GraspPlannerWindow.h"
 
 #include "GraspPlanning/Visualization/CoinVisualization/CoinConvexHullVisualization.h"
 #include "GraspPlanning/ContactConeGenerator.h"
@@ -44,7 +44,7 @@ using namespace std;
 using namespace VirtualRobot;
 using namespace GraspStudio;
 
-namespace Grasp {
+using namespace Grasp;
 
 GraspPlannerWindow::GraspPlannerWindow(const GraspPlannerParams& params)
 : QMainWindow(nullptr), GraspPlanner(params)
@@ -441,6 +441,4 @@ void GraspPlannerWindow::updateObj(const float value, const int idx) {
     
 
     buildVisu();
-}
-
 }

@@ -7,7 +7,6 @@ from active_grasping_opt import *
 
 def test_gramacy() -> ActiveGrasping:
 
-
     default_query = np.zeros((2,))
     active_variables = [0, 1]
     lower_bound = np.zeros((2,))
@@ -21,25 +20,18 @@ def test_gramacy() -> ActiveGrasping:
     return "Gramacy", opt
 
 def test_simox() -> ActiveGrasping:
-
-    grasp_params = GraspPlannerParams(
-        "/home/nacho/ActiveGrasping/simox/VirtualRobot/data/robots/iCub/iCub.xml",
-        "Left Hand",
-        "Grasp Preshape",
-        "/home/nacho/ActiveGrasping/simox/VirtualRobot/data/objects/WaterBottleSmall.xml",
-        1000.0, 0.01, True
-    )
-    grasp_params.obj_pose = True
+    grasp_params = GraspPlannerParams()
+    is_valid = load_GraspPlannerParams_json("config/grasp_params.json", grasp_params) # or from file
+    if not is_valid:
+        print("Error: parsing gras planner params")
+        exit(1)
+    
+    grasp_params.has_obj_pose = True
     grasp_params.obj_position = np.ndarray((3,1), buffer=np.array([93, 34, 45]), dtype=np.float32)
     grasp_params.obj_orientation = np.ndarray((3,1), buffer=np.array([1.4, 2.84, -3.1]), dtype=np.float32)
 
     executor = GraspPlanner(grasp_params)
-    active_variables = [TRANS_Y, TRANS_Z]
-    lower_bound = np.array([-110, -2], dtype=np.float64)
-    upper_bound = np.array([20, 18], dtype=np.float64)
-    default_query = np.zeros((NUM_GRASP_VARS,))
-
-    opt_params = ActiveGraspingParams(default_query, active_variables, lower_bound, upper_bound, 1, executor)
+    opt_params = load_ActiveGraspingParams("config/active_grasp_params.json", executor)
 
     opt = ActiveGrasping(opt_params, {})
 

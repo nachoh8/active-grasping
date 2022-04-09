@@ -1,6 +1,7 @@
 #include "../include/Grasp/GraspPlanner.hpp"
 
 #include <iomanip>
+#include <stdexcept>
 
 #include <VirtualRobot/ManipulationObject.h>
 #include <VirtualRobot/XML/ObjectIO.h>
@@ -15,6 +16,15 @@ namespace Grasp {
 GraspPlanner::GraspPlanner(const GraspPlannerParams& params)
 : params(params)
 {
+    loadScene();
+}
+
+GraspPlanner::GraspPlanner(const std::string& json_file)
+{
+    if (!load_GraspPlannerParams_json(json_file, this->params)) {
+        throw "Errpr creating GraspPlanner from json";
+    }
+
     loadScene();
 }
 
@@ -42,7 +52,7 @@ void GraspPlanner::loadScene() {
     eefCloned = _eef->createEefRobot("eef", "icub_eef");
     eef = eefCloned->getEndEffector(params.eef_name);
 
-    if (params.eef_pose) {
+    if (params.has_eef_pose) {
         moveEE(params.eef_position, params.eef_orientation);
     }
 
@@ -53,7 +63,7 @@ void GraspPlanner::loadScene() {
         exit(1);
     }
 
-    if (params.obj_pose) {
+    if (params.has_obj_pose) {
         float x[6];
         x[0] = params.obj_position.x();
         x[1] = params.obj_position.y();

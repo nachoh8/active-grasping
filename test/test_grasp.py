@@ -36,10 +36,15 @@ params = GraspPlannerParams( # or with values
     "/home/nacho/ActiveGrasping/simox/VirtualRobot/data/objects/WaterBottleSmall.xml",
     1000.0, 0.01, True
 )
+is_valid = load_GraspPlannerParams_json("config/grasp_params.json", params) # or from file
+if not is_valid:
+        print("Error: parsing gras planner params")
+        exit(1)
+
 print("Robot file: " + params.robot_file)
 
 # set obj pose
-params.obj_pose = True
+params.has_obj_pose = True
 params.obj_position = np.ndarray((3,1), buffer=np.array([93, 34, 45]), dtype=np.float32)
 params.obj_orientation = np.ndarray((3,1), buffer=np.array([1.4, 2.84, -3.1]), dtype=np.float32)
 

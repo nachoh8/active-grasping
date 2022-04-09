@@ -44,10 +44,10 @@ namespace Grasp {
         std::string preshape;
         std::string object_file;
 
-        bool eef_pose = false;
+        bool has_eef_pose = false;
         Eigen::Vector3f eef_position, eef_orientation;
 
-        bool obj_pose = false;
+        bool has_obj_pose = false;
         Eigen::Vector3f obj_position, obj_orientation;
 
         float timeout;
@@ -65,9 +65,12 @@ namespace Grasp {
         );
     };
 
+    bool load_GraspPlannerParams_json(const std::string& json, GraspPlannerParams& params);
+
     class GraspPlanner : public GraspExecutor {
     public:
         GraspPlanner(const GraspPlannerParams& params);
+        GraspPlanner(const std::string& json_file);
 
         GraspResult executeQueryGrasp(const std::vector<double>& query);
     };

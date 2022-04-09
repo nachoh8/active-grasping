@@ -12,10 +12,10 @@ struct GraspPlannerParams {
     std::string preshape;
     std::string object_file;
 
-    bool eef_pose = false;
+    bool has_eef_pose = false;
     Eigen::Vector3f eef_position, eef_orientation;
 
-    bool obj_pose = false;
+    bool has_obj_pose = false;
     Eigen::Vector3f obj_position, obj_orientation;
 
     float timeout;
@@ -41,5 +41,7 @@ struct GraspPlannerParams {
         force_closure = _force_closure;
     }
 };
+
+bool load_GraspPlannerParams_json(const std::string& json, GraspPlannerParams& params);
 
 }

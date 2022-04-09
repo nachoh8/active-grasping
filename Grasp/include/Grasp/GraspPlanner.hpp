@@ -32,6 +32,8 @@ class GraspPlanner : public GraspExecutor {
 public:
     GraspPlanner(const GraspPlannerParams& params);
 
+    GraspPlanner(const std::string& json_file);
+
     /**
      * @brief Execute grasp from bayesopt query and computes its quality
      * 

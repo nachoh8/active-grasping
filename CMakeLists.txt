@@ -26,4 +26,4 @@ add_subdirectory(Grasp ${CMAKE_BINARY_DIR}/Grasp)
 add_subdirectory(ActiveGraspingOpt ${CMAKE_BINARY_DIR}/ActiveGraspOpt)
 
 ## TESTS ##
-add_subdirectory(test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+add_subdirectory(test ${CMAKE_BINARY_DIR}/tests)

@@ -78,22 +78,13 @@ void test_simox() {
     // params.upper_bound[5] = 3.14;
     params.default_query = vectord(Grasp::NUM_GRASP_VARS, 0);
 
-    Eigen::Vector3f obj_position(93, 34, 45);
-    Eigen::Vector3f obj_orientation(1.4, 2.84, -3.1);
-    
-    Grasp::GraspPlannerParams plannerParams(
-        "/home/nacho/ActiveGrasping/simox/VirtualRobot/data/robots/iCub/iCub.xml",
-        "Left Hand",
-        "Grasp Preshape",
-        "/home/nacho/ActiveGrasping/simox/VirtualRobot/data/objects/WaterBottleSmall.xml",
-        1000.0f, 0.01, true
-    );
+    /*Grasp::GraspPlannerParams plannerParams;
+    if (!Grasp::load_GraspPlannerParams_json("../config/grasp_params.json", plannerParams)) {
+        std::cout << "Error: parsing grasp planner params\n";
+        exit(1);
+    }*/
 
-    plannerParams.obj_pose = true;
-    plannerParams.obj_position = obj_position;
-    plannerParams.obj_orientation = obj_orientation;
-
-    std::shared_ptr<Grasp::GraspExecutor> executor = std::make_shared<Grasp::GraspPlanner>(plannerParams);
+    std::shared_ptr<Grasp::GraspExecutor> executor = std::make_shared<Grasp::GraspPlanner>("../config/grasp_params.json");
     params.executor = executor;
 
     /// Optimize
@@ -121,7 +112,7 @@ void test_simox() {
 
 int main(int argc, char *argv[]) {
 
-    // test_gramacy();
+    test_gramacy();
     test_simox();
 
     return 0;

@@ -6,6 +6,7 @@ set(LIBRARY_NAME Grasp)
 
 FIND_PACKAGE(Simox REQUIRED)
 FIND_PACKAGE(Eigen3 REQUIRED)
+find_package(Boost REQUIRED)
 
 ## LIB FILES ##
 
@@ -19,6 +20,7 @@ SET( GRASP_INCS
 )
   
 SET( GRASP_SRCS 
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/GraspPlannerParams.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/TestGramacyExecutor.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/GraspPlanner.cpp
 )
@@ -30,13 +32,14 @@ set(GRASP_LIB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
 include_directories(
   ${Simox_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
+  ${Boost_INCLUDE_DIR}
   )
 
 ## LINK ##
 
 add_library(${LIBRARY_NAME} STATIC ${GRASP_INCS} ${GRASP_SRCS})
 
-TARGET_LINK_LIBRARIES(${LIBRARY_NAME} ${EIGEN3_LIBS} VirtualRobot GraspStudio)
+TARGET_LINK_LIBRARIES(${LIBRARY_NAME} ${EIGEN3_LIBS} ${Boost_LIBRARIES} VirtualRobot GraspStudio)
 
 INSTALL(
     TARGETS ${LIBRARY_NAME}
@@ -49,3 +52,6 @@ INSTALL(
 
 ## Python ##
 add_subdirectory(python)
+
+## Grasp Visualization ##
+add_subdirectory(utils)

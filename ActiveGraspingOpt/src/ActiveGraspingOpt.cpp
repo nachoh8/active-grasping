@@ -21,7 +21,7 @@ double ActiveGraspingOpt::evaluateSample(const vectord& query) {
 
     double res = evaluateGraspQuality(qualities);
 
-    return std::clamp(res, ymin, ymax);
+    return -res;
 }
 
 vectord ActiveGraspingOpt::createOptQuery(const vectord& query) {

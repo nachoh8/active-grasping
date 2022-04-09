@@ -32,12 +32,12 @@
 
 #include <vector>
 
-#include "GraspPlanner.hpp"
-#include "GraspPlannerParams.hpp"
+#include "../include/Grasp/GraspPlanner.hpp"
+#include "../include/Grasp/GraspPlannerParams.hpp"
 
 #include "ui_GraspPlanner.h"
 
-namespace Grasp {
+using namespace Grasp;
 
 class GraspPlannerWindow : public QMainWindow, public GraspPlanner
 {
@@ -110,5 +110,3 @@ protected:
 
     void updateObj(const float value, const int idx);
 };
-
-}
