@@ -4,24 +4,51 @@ import matplotlib.pyplot as plt
 from pygrasp import *
 from active_grasping_opt import *
 
-from ActiveGraspingOpt.python.active_grasping_opt import DataLog
-
-def outcome_iterations(outcomes: "list[float]"):
+def outcome_iterations(outcomes: "list[float]", best_acum=False):
+    
     iterations = range(1, len(outcomes)+1)
+    if best_acum:
+        title = 'Best outcome until iteration x'
+        Y = [outcomes[0]]
+        for i in range(1, len(outcomes)):
+            v = outcomes[i] if outcomes[i] > Y[i-1] else Y[i-1]
+            Y.append(v)
+    else:
+        Y = outcomes
+        title = 'Value of best selected sample'
 
-    plt.plot(iterations, outcomes, 'ro-')
+    plt.figure()
+
+    plt.plot(iterations, Y, 'ro-')
     plt.xlabel('Iteration')
     plt.ylabel('Outcome')
-    plt.title('Value of best selected sample')
+    plt.title(title)
+
 
 def distance_queries(queries: list):
     iterations = range(1, len(queries)+1)
-    x_neighbor_dist = [np.linalg.norm(np.array(a)-np.array(b)) for a, b in zip(queries, queries[1:])]
-
-    plt.plot(iterations[1:], x_neighbor_dist, 'bo-')
+    n_vars = len(queries[0])
+    matrix = np.array(queries) # #iterations x #vars
+    
+    total_dist = np.linalg.norm(matrix[:-1] - matrix[1:], axis=1)
+    """dist = np.zeros((len(queries) - 1, n_vars + 1))
+    dist[:, 1:] = matrix[:-1] - matrix[1:] # var dist
+    dist[:, 0] = np.linalg.norm(dist[:,1:], axis=1) # total dist"""
+    
+    plt.figure()
+    plt.plot(iterations[1:], total_dist, 'bo-')
     plt.xlabel('Iteration')
     plt.ylabel('Distance')
     plt.title('Distance between consecutive queries\'s')
+    
+    """for j in range(dist.shape[1]):
+        plt.subplot(1, n_vars+1, j+1)
+        plt.plot(iterations[1:], dist[:, j], 'bo-')
+    
+        #plt.plot(iterations[1:], dist[], 'go-')
+        plt.xlabel('Iteration')
+        plt.ylabel('Distance')
+        plt.title('Distance between consecutive queries\'s')"""
 
 
 if __name__ == "__main__":
@@ -38,10 +65,10 @@ if __name__ == "__main__":
     queries = [s[1] for s in samples]
     outcomes = [s[2] for s in samples]
     
-    plt.figure(0)
     outcome_iterations(outcomes)
 
-    plt.figure(1)
+    outcome_iterations(outcomes, best_acum=True)
+
     distance_queries(queries)
 
     plt.show()

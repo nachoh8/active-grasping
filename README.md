@@ -19,7 +19,7 @@
 
 Active Grasping Optimization:
 
-    >> python3 main_bo.py   -fgopt <active_grasp_params_file>
+    >> python3 main_active_grasping.py   -fgopt <active_grasp_params_file>
                             -fgrasp <grasp_planner_params_file>
                             [-fbopt <bayesopt_params_file>]
                             [-flog <log_file>]

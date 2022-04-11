@@ -5,8 +5,6 @@ import json
 from pygrasp import *
 from active_grasping_opt import *
 
-from ActiveGraspingOpt.python.active_grasping_opt import DataLog
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Active Grasping with bayesian optimization')
     parser.add_argument("-fgopt", type=str, help="active grasping params file", metavar='<active_grasp_params_file>', required=True)

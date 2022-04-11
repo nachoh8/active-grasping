@@ -40,6 +40,8 @@ def str_to_var(var: str) -> int:
             return ROT_PITCH
         elif var == "rz":
             return ROT_YAW
+        else:
+            return var
 
 def var_to_str(var: int) -> str:
         if var == TRANS_X:
@@ -132,7 +134,7 @@ class DataLog(object):
         elif self.log_file:
             file = self.log_file
         else:
-            raise Exception("Error: you must provide a source destination file")
+            raise Exception("Error: you must provide a log source file")
 
         with open(file, 'r') as f:
             data = json.load(f)
