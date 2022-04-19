@@ -6,6 +6,7 @@
 #include <VirtualRobot/ManipulationObject.h>
 #include <VirtualRobot/XML/ObjectIO.h>
 #include <VirtualRobot/XML/RobotIO.h>
+#include <VirtualRobot/CollisionDetection/CollisionChecker.h>
 
 #include "../include/Grasp/GraspVars.hpp"
 
@@ -113,14 +114,23 @@ GraspResult GraspPlanner::executeQueryGrasp(const std::vector<double>& query) {
 GraspResult GraspPlanner::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy) {
 
     // 1. Move EE
-    // TODO: check if the new position is valid
     moveEE(xyz, rpy);
 
-    // 2. Reset: Open and close EE
+    // 2. Check Collisions
+    if (eef->getCollisionChecker()->checkCollision(object->getCollisionModel(), eef->createSceneObjectSet())) {
+        std::cout << "Error: Collision detected!" << std::endl;
+        GraspData grasp;
+        grasp.result = GraspResult();
+        grasp.pose = eefCloned->getGlobalPose();
+        grasps.push_back(grasp);
+        return grasp.result;
+    }
+
+    // 3. Reset: Open and close EE
     openEE();
     closeEE();
 
-    // 3. Evaluate grasp
+    // 4. Evaluate grasp
     if (!graspQuality()) {
         return GraspResult();
     }

@@ -27,7 +27,7 @@ def outcome_iterations(outcomes: "list[float]", best_acum=False):
 
 def distance_queries(queries: list):
     iterations = range(1, len(queries)+1)
-    n_vars = len(queries[0])
+    # n_vars = len(queries[0])
     matrix = np.array(queries) # #iterations x #vars
     
     total_dist = np.linalg.norm(matrix[:-1] - matrix[1:], axis=1)
@@ -51,6 +51,38 @@ def distance_queries(queries: list):
         plt.title('Distance between consecutive queries\'s')"""
 
 
+def outcome_vars(queries: list, outcomes: "list[float]", var_labels: "list[str]"=None, plot2D=False):
+    matrix = np.array(queries)
+    Z = outcomes
+    
+    n_vars = len(queries[0])
+    X = matrix[:, 0]
+    if n_vars > 1:
+        Y = matrix[:, 1]
+    
+    if not var_labels:
+        var_labels = ["x", "y"]
+
+    fig = plt.figure()
+    if n_vars == 1:
+        plt.scatter(X, Z, alpha=0.5)
+        plt.xlabel(var_labels[0])
+        plt.ylabel("outcome")
+    elif plot2D:
+        plt.scatter(X, Y, c=Z, alpha=0.5)
+        plt.colorbar()
+        plt.xlabel(var_labels[0])
+        plt.ylabel(var_labels[1])
+    else:
+        ax = fig.add_subplot(projection='3d')
+        ax.scatter(X, Y, Z, c=Z)
+        ax.set_xlabel(var_labels[0])
+        ax.set_ylabel(var_labels[1])
+        ax.set_zlabel("outcome")
+    
+    plt.title("Distribution of the outcome")
+    plt.show()
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Active Grasping with bayesian optimization')
     parser.add_argument("-flog", type=str, help="log file", metavar='<log_file>', required=True)
@@ -70,5 +102,7 @@ if __name__ == "__main__":
     outcome_iterations(outcomes, best_acum=True)
 
     distance_queries(queries)
+
+    outcome_vars(queries, outcomes, plot2D=False, var_labels=[var_to_str(var) for var in logger.gopt_params.active_variables])
 
     plt.show()
