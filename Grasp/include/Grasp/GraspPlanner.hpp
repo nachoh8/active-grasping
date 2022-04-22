@@ -24,7 +24,7 @@
 namespace Grasp {
 
 struct GraspData {
-    Eigen::Matrix4f pose;
+    Eigen::Vector3f pos, ori;
     GraspResult result;
 };
 
@@ -48,7 +48,7 @@ public:
      * @param xyz position @param rpy orientation 
      * @return Grasp quality 
      */
-    GraspResult executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy);
+    GraspResult executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy, bool save_grasp=true);
 
 protected:
     /// Init Methods
@@ -72,9 +72,9 @@ protected:
     /**
      * @brief Measure the quality of the current grasp
      * 
-     * @return \b True - if there is contact with the object
+     * @return GraspResult
      */
-    bool graspQuality();
+    GraspResult graspQuality();
 
     void closeEE();
 

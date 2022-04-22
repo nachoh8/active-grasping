@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
     init_samples, samples = logger.get_grasps()
     queries = [s[1] for s in samples]
-    outcomes = [s[2] for s in samples]
+    outcomes = [s[2].measure for s in samples]
     
     outcome_iterations(outcomes)
 

@@ -39,11 +39,16 @@
 
 using namespace Grasp;
 
+struct GraspPlannerWindowParams {
+    GraspPlannerParams planner_params;
+    std::vector<Grasp::GraspData> grasps;
+};
+
 class GraspPlannerWindow : public QMainWindow, public GraspPlanner
 {
     Q_OBJECT
 public:
-    GraspPlannerWindow(const GraspPlannerParams& params);
+    GraspPlannerWindow(const GraspPlannerWindowParams& params);
     ~GraspPlannerWindow() override;
 
     /*!< Executes the SoQt mainLoop. You need to call this in order to execute the application. */
@@ -55,7 +60,7 @@ public:
      * @param xyz-position @param rpy-orientation 
      * @return Grasp quality 
      */
-    GraspResult executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy);
+    GraspResult executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy, bool save_grasp=true);
 
 public slots:
     /*! Closes the window and exits SoQt runloop. */
@@ -74,7 +79,11 @@ public slots:
     void buildVisu();
 
     //void plan();
-    void grasp();
+    void add_grasp();
+    void measure_quality();
+
+    void previous_grasp();
+    void next_grasp();
 
     void sliderReleased_ObjectX();
     void sliderReleased_ObjectY();
@@ -90,6 +99,11 @@ protected:
     void setupUI();
 
     static void timerCB(void* data, SoSensor* sensor);
+
+    void updateObj(const float value, const int idx);
+
+    int current_grasp = -1;
+
     Ui::GraspPlanner UI;
     SoQtExaminerViewer* viewer; /*!< Viewer to display the 3D model of the robot and the environment. */
 
@@ -108,5 +122,4 @@ protected:
     std::shared_ptr<VirtualRobot::CoinVisualization> visualizationRobot;
     std::shared_ptr<VirtualRobot::CoinVisualization> visualizationObject;
 
-    void updateObj(const float value, const int idx);
 };

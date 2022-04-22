@@ -46,14 +46,14 @@ using namespace GraspStudio;
 
 using namespace Grasp;
 
-GraspPlannerWindow::GraspPlannerWindow(const GraspPlannerParams& params)
-: QMainWindow(nullptr), GraspPlanner(params)
+GraspPlannerWindow::GraspPlannerWindow(const GraspPlannerWindowParams& params)
+: QMainWindow(nullptr), GraspPlanner(params.planner_params)
 {
     VR_INFO << " start " << std::endl;
 
-    robotFile = params.robot_file;
-    eefName = params.eef_name;
-    preshape = params.preshape;
+    robotFile = params.planner_params.robot_file;
+    eefName = params.planner_params.eef_name;
+    preshape = params.planner_params.preshape;
 
     eefVisu = nullptr;
 
@@ -74,6 +74,12 @@ GraspPlannerWindow::GraspPlannerWindow(const GraspPlannerParams& params)
 
     eefVisu = CoinVisualizationFactory::CreateEndEffectorVisualization(eef);
     eefVisu->ref();
+
+    if (params.grasps.size() > 0) {
+        grasps = params.grasps;
+        current_grasp = 0;
+        executeGrasp(grasps[0].pos, grasps[0].ori, false);
+    }
 
     buildVisu();
 
@@ -98,12 +104,12 @@ int GraspPlannerWindow::main()
     return 0;
 }
 
-GraspResult GraspPlannerWindow::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy) {
-    GraspResult res = GraspPlanner::executeGrasp(xyz, rpy);
+GraspResult GraspPlannerWindow::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy, bool save_grasp) {
+    GraspResult res = GraspPlanner::executeGrasp(xyz, rpy, save_grasp);
 
     std::stringstream ss;
     ss << std::setprecision(3);
-    ss << "Grasp: " << grasps.size() << "\n"
+    ss << "Grasp: " << (current_grasp+1) << "/" << grasps.size() << "\n"
         << "Quality:" << res.measure << std::endl
         << "Volume:" << res.volume << std::endl
         << "Force closure: " << (res.force_closure ? "yes" : "no") << std::endl;
@@ -132,9 +138,13 @@ void GraspPlannerWindow::setupUI()
     viewer->setSceneGraph(sceneSep);
     viewer->viewAll();
 
-    connect(UI.pushButtonQuality, SIGNAL(clicked()), this, SLOT(grasp()));
+    connect(UI.pushButtonAddGrasp, SIGNAL(clicked()), this, SLOT(add_grasp()));
+    connect(UI.pushButtonQuality, SIGNAL(clicked()), this, SLOT(measure_quality()));
     connect(UI.pushButtonOpen, SIGNAL(clicked()), this, SLOT(openEEF()));
     connect(UI.pushButtonClose, SIGNAL(clicked()), this, SLOT(closeEEF()));
+
+    connect(UI.pushButtonPrevGrasp, SIGNAL(clicked()), this, SLOT(previous_grasp()));
+    connect(UI.pushButtonNextGrasp, SIGNAL(clicked()), this, SLOT(next_grasp()));
 
     connect(UI.checkBoxColModel, SIGNAL(clicked()), this, SLOT(colModel()));
     connect(UI.checkBoxCones, SIGNAL(clicked()), this, SLOT(frictionConeVisu()));
@@ -298,14 +308,41 @@ void GraspPlannerWindow::quit()
 }
 */
 
-void GraspPlannerWindow::grasp()
-{
+void GraspPlannerWindow::add_grasp() {
     Eigen::Vector3f pos = eefCloned->getGlobalPosition();
     Eigen::Vector3f ori = eefCloned->getGlobalOrientation().eulerAngles(0, 1, 2);
-
-    executeGrasp(pos, ori);
+    
+    current_grasp = grasps.size();
+    
+    executeGrasp(pos, ori, true);
 }
 
+void GraspPlannerWindow::measure_quality()
+{
+    if (current_grasp >= 0 && current_grasp < grasps.size()) {
+        Grasp::GraspData grasp = grasps[current_grasp];
+        grasps[current_grasp].result = executeGrasp(grasp.pos, grasp.ori, false);
+    } else {
+        std::cout << "measure_quality: FIRST YOU HAVE TO SELECT A GRASP\n";
+    }
+}
+
+
+void GraspPlannerWindow::previous_grasp() {
+    if (current_grasp > 0) {
+        current_grasp--;
+
+        measure_quality();
+    }
+}
+
+void GraspPlannerWindow::next_grasp() {
+    if (current_grasp < grasps.size() - 1) {
+        current_grasp++;
+
+        measure_quality();
+    }
+}
 
 void GraspPlannerWindow::closeEEF()
 {

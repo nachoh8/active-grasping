@@ -111,31 +111,39 @@ GraspResult GraspPlanner::executeQueryGrasp(const std::vector<double>& query) {
     return executeGrasp(xyz, rpy);
 }
 
-GraspResult GraspPlanner::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy) {
+GraspResult GraspPlanner::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy, bool save_grasp) {
 
-    // 1. Move EE
+    // 1. Open and Move EE
+    openEE();
     moveEE(xyz, rpy);
 
     // 2. Check Collisions
+    GraspData grasp;
+    grasp.pos = xyz;
+    grasp.ori = rpy;
     if (eef->getCollisionChecker()->checkCollision(object->getCollisionModel(), eef->createSceneObjectSet())) {
         std::cout << "Error: Collision detected!" << std::endl;
-        GraspData grasp;
         grasp.result = GraspResult();
-        grasp.pose = eefCloned->getGlobalPose();
-        grasps.push_back(grasp);
+        if (save_grasp) grasps.push_back(grasp);
         return grasp.result;
     }
 
-    // 3. Reset: Open and close EE
-    openEE();
+    // 3. Close EE
     closeEE();
 
     // 4. Evaluate grasp
-    if (!graspQuality()) {
-        return GraspResult();
+    grasp.result = graspQuality();
+
+    if (save_grasp) {
+        grasps.push_back(grasp);
+        std::cout << "Grasp " << grasps.size() << ":\n";
     }
 
-    return grasps.back().result;
+    std::cout << "Grasp Quality (epsilon measure):" << grasp.result.measure << std::endl;
+    std::cout << "v measure:" << grasp.result.volume << std::endl;
+    std::cout << "Force closure: " << (grasp.result.force_closure ? "yes" : "no") << std::endl;
+
+    return grasp.result;
 }
 
 /// Grasping
@@ -156,7 +164,7 @@ void GraspPlanner::moveEE(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy
     eefCloned->setGlobalPose(m);
 }
 
-bool GraspPlanner::graspQuality() {
+GraspResult GraspPlanner::graspQuality() {
     if (contacts.size() > 0) {
         qualityMeasure->setContactPoints(contacts);
 
@@ -164,23 +172,12 @@ bool GraspPlanner::graspQuality() {
         float epsilon = qualityMeasure->getGraspQuality();
         bool fc = qualityMeasure->isGraspForceClosure();
 
-        GraspData grasp;
-        grasp.result = GraspResult(epsilon, volume, fc);
-        grasp.pose = eefCloned->getGlobalPose();
-
-        grasps.push_back(grasp);
-
-        std::cout << "Grasp " << grasps.size() << ":\n";
-        std::cout << "Grasp Quality (epsilon measure):" << epsilon << std::endl;
-        std::cout << "v measure:" << volume << std::endl;
-        std::cout << "Force closure: " << (fc ? "yes" : "no") << std::endl;
-
-        return true;
+        return GraspResult(epsilon, volume, fc);;
     }
 
     std::cout << "GraspQuality: not contacts!!!\n";
 
-    return false;
+    return GraspResult();
 }
 
 void GraspPlanner::closeEE()

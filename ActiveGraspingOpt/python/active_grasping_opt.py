@@ -94,13 +94,13 @@ class DataLog(object):
         self.n_samples = 0
         self.grasps = []
     
-    def add_grasp(self, query: "list[float]", outcome: float):
+    def add_grasp(self, query: "list[float]", res: GraspResult):
         self.n_samples += 1
         if self.n_samples <= self.n_init_samples:
             it = -1
         else:
             it = self.n_samples - self.n_init_samples
-        self.grasps.append([it, query, outcome])
+        self.grasps.append([it, query, res])
 
     def get_grasps(self) -> "tuple[list, list]": # init samples, iteration queries
         return self.grasps[:self.n_init_samples], self.grasps[self.n_init_samples:]
@@ -121,7 +121,7 @@ class DataLog(object):
         data['gopt_params']['lower_bound'] = list(self.gopt_params.lower_bound)
         data['gopt_params']['upper_bound'] = list(self.gopt_params.upper_bound)
         data['gopt_params']['default_query'] = list(self.gopt_params.default_query)
-        data['grasps'] = [{'iteration': g[0], 'query': g[1], 'outcome': g[2]} for g in self.grasps]
+        data['grasps'] = [{'iteration': g[0], 'query': g[1], 'res': {'measure': g[2].measure, 'volume': g[2].volume, 'force_closure': g[2].force_closure}} for g in self.grasps]
 
         json_str = json.dumps(data, indent=4)
         with open(file, 'w') as outfile:
@@ -139,7 +139,8 @@ class DataLog(object):
         with open(file, 'r') as f:
             data = json.load(f)
 
-            self.grasps = [[g['iteration'], g['query'], g['outcome']] for g in data['grasps']]
+            self.grasps = [[g['iteration'], g['query'], GraspResult(g['res']['measure'], g['res']['volume'], g['res']['force_closure'])] for g in data['grasps']]
+            
             self.n_samples = len(self.grasps)
 
             self.bopt_params = data['bopt_params']
@@ -184,12 +185,13 @@ class ActiveGrasping(BayesOptContinuous):
         
         qualities = self.applyQueryToHand(query)
 
-        res = self.evaluateGraspQuality(qualities)
+        # res = self.evaluateGraspQuality(qualities)
+        res = qualities[0]
         
         if self.logger:
             self.logger.add_grasp(list(x_in), res)
 
-        return -res
+        return -res.measure
 
     ### PRIVATE METHODS
 
@@ -228,4 +230,4 @@ class ActiveGrasping(BayesOptContinuous):
         volume          /= n
         force_closure   /= n
 
-        return measure
+        return measure, volume, force_closure
