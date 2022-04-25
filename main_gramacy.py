@@ -38,7 +38,7 @@ if __name__ == "__main__":
     print("------------------------")
     print("Best:")
     print("\tPoint:", x_out)
-    print("\tOutcome:", abs(quality))
+    print("\tOutcome:", quality)
 
     if logger:
         logger.save_json()
