@@ -1,5 +1,5 @@
 import numpy as np
-from pygrasp import *
+from pygrasp.pygrasp import *
 
 print("----TEST EIGEN/NUMPY----")
 eigen_v3f = test_eigen_numpy_type()
@@ -36,7 +36,7 @@ params = GraspPlannerParams( # or with values
     "/home/nacho/ActiveGrasping/simox/VirtualRobot/data/objects/WaterBottleSmall.xml",
     1000.0, 0.01, True
 )
-is_valid = load_GraspPlannerParams_json("config/grasp_params.json", params) # or from file
+is_valid = load_GraspPlannerParams_json("config/grasp/grasp_params.json", params) # or from file
 if not is_valid:
         print("Error: parsing gras planner params")
         exit(1)

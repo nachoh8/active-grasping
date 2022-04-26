@@ -2,8 +2,11 @@ import numpy as np
 import argparse
 import json
 
-from pygrasp import *
-from active_grasping_opt import *
+from pygrasp.pygrasp import *
+
+from active_grasping.active_grasping_opt import ActiveGrasping
+from active_grasping.active_grasping_params import *
+from active_grasping.datalog import DataLog
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Active Grasping with bayesian optimization')

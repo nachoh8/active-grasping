@@ -23,9 +23,33 @@ If you want to use active grasping with SigOpt platfform you have to add two env
 * SIGOPT_DEV_TOKEN, your sigopt development token
 * SIGOPT_PROD_TOKEN, your sigopt production token
 
-Dev token is used by default, you can select production token with the argument "--prod"
+You can choose Dev/Production token by setting the param "mode" to "dev"/"prod" in our sigopt params file.
+
+## Tests
+
+Tests to check that everything is working
+
+Test c++ lib:
+
+    >> cd build && ./bin/test_libs
+
+Test python lib:
+
+    >> python3 test_grasp.py
+    >> python3 test_active_grasp.py
+    >> python3 test_gramacy_sigop.py
 
 ## Execution
+
+Gramacy:
+
+    >> python3 main_gramacy.py   -fgopt <active_grasp_params_file>
+                            -fgrasp <grasp_planner_params_file>
+                            (-fbopt <bayesopt_params_file> |
+                            -fsopt <sigopt_params_file>)
+                            [-flog <log_file>]
+
+To execute with bayesopt set -fbopt or to use sigopt set -fsopt
 
 Active Grasping Optimization:
 
@@ -42,4 +66,4 @@ Grasp visualization:
 
     >> ./build/bin/grasp_visualization <grasp_planner_params_file> [<log_file>]
 
-* <log_file>: log file to load grasps from an experiment
+* <log_file>: log file to load grasps from an experiment result

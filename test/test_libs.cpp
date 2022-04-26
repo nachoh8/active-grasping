@@ -86,7 +86,7 @@ void test_simox() {
         exit(1);
     }*/
 
-    std::shared_ptr<Grasp::GraspExecutor> executor = std::make_shared<Grasp::GraspPlanner>("../config/grasp_params.json");
+    std::shared_ptr<Grasp::GraspExecutor> executor = std::make_shared<Grasp::GraspPlanner>("../config/grasp/grasp_params.json");
     params.executor = executor;
 
     /// Optimize

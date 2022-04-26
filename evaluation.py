@@ -1,8 +1,9 @@
 import argparse
+import numpy as np
 import matplotlib.pyplot as plt
 
-from pygrasp import *
-from active_grasping_opt import *
+from pygrasp.gutils import var_to_str
+from active_grasping.datalog import DataLog
 
 def outcome_iterations(outcomes: "list[float]", best_acum=False):
     

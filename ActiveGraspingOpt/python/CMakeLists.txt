@@ -7,6 +7,6 @@ execute_process ( COMMAND
          OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 INSTALL(
-    FILES active_grasping_opt.py
-    DESTINATION ${PYTHON_SITE_PACKAGES}
+    FILES active_grasping_opt.py datalog.py active_grasping_params.py sigopt_executor.py
+    DESTINATION "${PYTHON_SITE_PACKAGES}/active_grasping"
 )

@@ -1,8 +1,10 @@
 import sys
 import numpy as np
 
-from pygrasp import *
-from active_grasping_opt import *
+from pygrasp.pygrasp import *
+
+from active_grasping.active_grasping_opt import ActiveGrasping
+from active_grasping.active_grasping_params import *
 
 
 def test_gramacy() -> ActiveGrasping:
@@ -21,7 +23,7 @@ def test_gramacy() -> ActiveGrasping:
 
 def test_simox() -> ActiveGrasping:
     grasp_params = GraspPlannerParams()
-    is_valid = load_GraspPlannerParams_json("config/grasp_params.json", grasp_params) # or from file
+    is_valid = load_GraspPlannerParams_json("config/grasp/grasp_params.json", grasp_params) # or from file
     if not is_valid:
         print("Error: parsing gras planner params")
         exit(1)
@@ -31,7 +33,7 @@ def test_simox() -> ActiveGrasping:
     grasp_params.obj_orientation = np.ndarray((3,1), buffer=np.array([1.4, 2.84, -3.1]), dtype=np.float32)
 
     executor = GraspPlanner(grasp_params)
-    opt_params = load_ActiveGraspingParams("config/active_grasp_params.json", executor)
+    opt_params = load_ActiveGraspingParams("config/grasp/gopt_z.json", executor)
 
     opt = ActiveGrasping(opt_params, {})
 
