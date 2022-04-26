@@ -41,7 +41,7 @@ Test python lib:
 
 ## Execution
 
-Gramacy:
+### Gramacy optimization
 
     >> python3 main_gramacy.py   -fgopt <active_grasp_params_file>
                             -fgrasp <grasp_planner_params_file>
@@ -51,18 +51,21 @@ Gramacy:
 
 To execute with bayesopt set -fbopt or to use sigopt set -fsopt
 
-Active Grasping Optimization:
+### Active Grasping Optimization
 
     >> python3 main_active_grasping.py   -fgopt <active_grasp_params_file>
                             -fgrasp <grasp_planner_params_file>
-                            [-fbopt <bayesopt_params_file>]
+                            (-fbopt <bayesopt_params_file> |
+                            -fsopt <sigopt_params_file>)
                             [-flog <log_file>]
 
-Optimization evaluation:
+To execute with bayesopt set -fbopt or to use sigopt set -fsopt
+
+### Optimization evaluation
 
     >> python3 evaluation.py -flog <log_file>
 
-Grasp visualization:
+### Grasp visualization
 
     >> ./build/bin/grasp_visualization <grasp_planner_params_file> [<log_file>]
 
