@@ -42,8 +42,8 @@ class SigOptExecutor(object):
         print("-------------------------------")
         
         best_runs = self.experiment.get_best_runs() # generator type
-        best = next(best_runs) # sigopt.objects.TrainingRun type
-        print("Best result:")
-        print("Query:", list(best.assignments.items())) # sigopt.objects.Assignments = dict[param_name: value]
-        print("Metrics:", [(metric, value.value) for metric, value in best.values.items()]) # dict[metric_name: sigopt.objects.MetricEvaluation]
+        print("Best results:")
+        for run in best_runs: # sigopt.objects.TrainingRun type
+            print("Query:", list(run.assignments.items())) # sigopt.objects.Assignments = dict[param_name: value]
+            print("Metrics:", [(metric, value.value) for metric, value in run.values.items()]) # dict[metric_name: sigopt.objects.MetricEvaluation]
             
