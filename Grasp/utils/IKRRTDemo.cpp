@@ -6,13 +6,17 @@
 #include <VirtualRobot/Visualization/CoinVisualization/CoinVisualization.h>
 #include <VirtualRobot/RuntimeEnvironment.h>
 
+#include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
+#include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/Qt/SoQt.h>
+
 #include <string>
 #include <iostream>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-#include "GraspPlannerIK.hpp"
+#include "GraspPlannerIKui.h"
 
 int main(int argc, char* argv[])
 {
@@ -33,7 +37,9 @@ int main(int argc, char* argv[])
     std::cout << "Using col model (kin chain) " << colModel << std::endl;
     std::cout << "Using col model (static robot)" << colModelRob << std::endl;
 
-    GraspPlannerIK planner(filenameScene, filenameReach, kinChain, eef, colModel, colModelRob);
+    GraspPlannerIKui plannerUI(filenameScene, filenameReach, kinChain, eef, colModel, colModelRob);
+
+    plannerUI.main();
 
     return 0;
 

@@ -28,14 +28,16 @@
 
 #include <vector>
 
+#include "GraspPlannerIK.hpp"
+
 #include "ui_IKRRT.h"
 
-class IKRRTWindow : public QMainWindow
+class GraspPlannerIKui : public QMainWindow, public GraspPlannerIK
 {
     Q_OBJECT
 public:
-    IKRRTWindow(std::string& sceneFile, std::string& reachFile, std::string& rns, std::string& eef, std::string& colModel, std::string& colModelRob);
-    ~IKRRTWindow() override;
+    GraspPlannerIKui(std::string& sceneFile, std::string& reachFile, std::string& rns, std::string& eef, std::string& colModel, std::string& colModelRob);
+    ~GraspPlannerIKui() override;
 
     /*!< Executes the SoQt mainLoop. You need to call this in order to execute the application. */
     int main();
@@ -49,9 +51,6 @@ public slots:
     void closeEvent(QCloseEvent* event) override;
 
     void resetSceneryAll();
-
-    void closeEEF();
-    void openEEF();
 
     void colModel();
 
@@ -72,10 +71,21 @@ public slots:
 
     void playAndSave();
 
+    void closeEEFbtn();
+
+    void openEEFbtn();
+
+    void box2TCP();
+
 protected:
 
-    void loadScene(const std::string& sceneFile);
-    void loadReach(const std::string& reachFile);
+    /// GRASP
+
+    void closeEEF();
+
+    void openEEF();
+
+    /// UI
 
     void setupUI();
     QString formatString(const char* s, float f);
@@ -89,6 +99,7 @@ protected:
     static void timerCB(void* data, SoSensor* sensor);
     void buildRrtVisu();
     void saveScreenshot();
+
     Ui::MainWindowIKRRT UI;
     SoQtExaminerViewer* viewer; /*!< Viewer to display the 3D model of the robot and the environment. */
 
@@ -100,33 +111,14 @@ protected:
     SoSeparator* reachabilitySep;
     SoSeparator* obstaclesSep;
     SoSeparator* rrtSep;
-
-    VirtualRobot::RobotPtr robot;
-    std::vector< VirtualRobot::ObstaclePtr > obstacles;
-    VirtualRobot::ManipulationObjectPtr object;
-    VirtualRobot::ReachabilityPtr reachSpace;
-
-    VirtualRobot::EndEffectorPtr eef;
-    Saba::CSpaceSampledPtr cspace;
-    Eigen::VectorXf startConfig;
-
-    VirtualRobot::GraspSetPtr graspSet;
-    VirtualRobot::RobotNodeSetPtr rns;
-
-    std::string eefName;
-    std::string rnsName;
-    std::string colModelName;
-    std::string colModelNameRob;
-
-    Saba::CSpacePathPtr solution;
-    Saba::CSpacePathPtr solutionOptimized;
-    Saba::CSpaceTreePtr tree;
-    Saba::CSpaceTreePtr tree2;
+    SoSeparator* targetPoseBoxSep;
 
     bool playbackMode;
     int playCounter;
 
     std::shared_ptr<VirtualRobot::CoinVisualization> visualizationRobot;
     std::shared_ptr<VirtualRobot::CoinVisualization> visualizationObject;
+
+    VirtualRobot::ObstaclePtr targetPoseBox;
 };
 

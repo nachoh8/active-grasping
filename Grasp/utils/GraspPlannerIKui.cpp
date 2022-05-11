@@ -1,5 +1,5 @@
 
-#include "IKRRTWindow.h"
+#include "GraspPlannerIKui.h"
 #include "VirtualRobot/EndEffector/EndEffector.h"
 #include "VirtualRobot/Workspace/Reachability.h"
 #include "VirtualRobot/ManipulationObject.h"
@@ -39,15 +39,9 @@ float TIMER_MS = 30.0f;
 
 /// INIT
 
-IKRRTWindow::IKRRTWindow(std::string& sceneFile, std::string& reachFile, std::string& rns, std::string& eef, std::string& colModel, std::string& colModelRob)
-    : QMainWindow(nullptr)
+GraspPlannerIKui::GraspPlannerIKui(std::string& sceneFile, std::string& reachFile, std::string& rns, std::string& eef, std::string& colModel, std::string& colModelRob)
+    : QMainWindow(nullptr), GraspPlannerIK(sceneFile, reachFile, rns, eef, colModel, colModelRob)
 {
-    VR_INFO << " start " << std::endl;
-
-    eefName = eef;
-    rnsName = rns;
-    this->colModelName = colModel;
-    this->colModelNameRob = colModelRob;
 
     sceneSep = new SoSeparator;
     sceneSep->ref();
@@ -61,8 +55,6 @@ IKRRTWindow::IKRRTWindow(std::string& sceneFile, std::string& reachFile, std::st
 
     playbackMode = false;
 
-    //sceneSep->addChild(robotSep);
-
     sceneSep->addChild(robotSep);
     sceneSep->addChild(objectSep);
     sceneSep->addChild(graspsSep);
@@ -73,9 +65,14 @@ IKRRTWindow::IKRRTWindow(std::string& sceneFile, std::string& reachFile, std::st
 
     setupUI();
 
-    loadScene(sceneFile);
+    buildVisu();
 
-    loadReach(reachFile);
+    targetPoseBox = Obstacle::createBox(30.0f, 30.0f, 30.0f);
+    targetPoseBox->showCoordinateSystem(true);
+    targetPoseBoxSep = new SoSeparator();
+    targetPoseBoxSep->addChild(CoinVisualization(targetPoseBox->getVisualization()).getCoinVisualization());
+    sceneSep->addChild(targetPoseBoxSep);
+    box2TCP();
 
     viewer->viewAll();
 
@@ -85,142 +82,51 @@ IKRRTWindow::IKRRTWindow(std::string& sceneFile, std::string& reachFile, std::st
     sensor_mgr->insertTimerSensor(timer);
 }
 
-void IKRRTWindow::loadScene(const std::string& sceneFile)
-{
-    graspSet.reset();
-    robot.reset();
-    object.reset();
-    obstacles.clear();
-    eef.reset();
-    ScenePtr scene = SceneIO::loadScene(sceneFile);
-
-    if (!scene)
-    {
-        VR_ERROR << " no scene ..." << std::endl;
-        return;
-    }
-
-    std::vector< RobotPtr > robots = scene->getRobots();
-
-    if (robots.size() != 1)
-    {
-        VR_ERROR << "Need exactly 1 robot" << std::endl;
-        return;
-    }
-
-    robot = robots[0];
-
-
-    std::vector< ManipulationObjectPtr > objects = scene->getManipulationObjects();
-
-    if (objects.size() < 1)
-    {
-        VR_ERROR << "Need at least 1 object" << std::endl;
-        return;
-    }
-
-    object = objects[0];
-    VR_INFO << "using first manipulation object: " << object->getName() << std::endl;
-
-
-    obstacles = scene->getObstacles();
-
-    if (robot && object)
-    {
-        eef = robot->getEndEffector(eefName);
-
-        if (!eef)
-        {
-            VR_ERROR << "Need a correct EEF in robot" << std::endl;
-            return;
-        }
-
-        graspSet = object->getGraspSet(eef);
-
-        rns = robot->getRobotNodeSet(rnsName);
-
-        if (!rns)
-        {
-            VR_ERROR << "Need a correct RNS in robot" << std::endl;
-        }
-
-    }
-
-    if (rns)
-    {
-        rns->getJointValues(startConfig);
-    }
-
-    buildVisu();
-
-}
-
-void IKRRTWindow::loadReach(const std::string& reachFile)
-{
-    reachabilitySep->removeAllChildren();
-
-    if (!robot)
-    {
-        return;
-    }
-
-    std::cout << "Loading Reachability from " << reachFile << std::endl;
-    reachSpace.reset(new Reachability(robot));
-
-    try
-    {
-        reachSpace->load(reachFile);
-    }
-    catch (VirtualRobotException& e)
-    {
-        std::cout << " ERROR while loading reach space" << std::endl;
-        std::cout << e.what();
-        reachSpace.reset();
-        return;
-    }
-
-    reachSpace->print();
-
-    buildVisu();
-}
-
-
 /// EEF
 
-void IKRRTWindow::closeEEF()
+void GraspPlannerIKui::closeEEF()
 {
-    if (eef)
-    {
-        eef->closeActors(object);
-    }
+    GraspPlannerIK::closeEEF();
 
     redraw();
 
 }
 
-void IKRRTWindow::openEEF()
+void GraspPlannerIKui::openEEF()
 {
-    if (eef)
-    {
-        eef->openActors();
-    }
+    GraspPlannerIK::openEEF();
 
     redraw();
 
 }
 
+void GraspPlannerIKui::closeEEFbtn()
+{
+    closeEEF();
+
+    Grasp::GraspResult result = graspQuality();
+
+    std::cout << "Grasp Quality (epsilon measure):" << result.measure << std::endl;
+    std::cout << "v measure:" << result.volume << std::endl;
+    std::cout << "Force closure: " << (result.force_closure ? "yes" : "no") << std::endl;
+}
+
+void GraspPlannerIKui::openEEFbtn()
+{
+    openEEF();
+}
 
 /// UI
 
-IKRRTWindow::~IKRRTWindow()
+GraspPlannerIKui::~GraspPlannerIKui()
 {
     sceneSep->unref();
 }
 
 
-void IKRRTWindow::timerCB(void* data, SoSensor* /*sensor*/)
+void GraspPlannerIKui::timerCB(void* data, SoSensor* /*sensor*/)
 {
-    IKRRTWindow* ikWindow = static_cast<IKRRTWindow*>(data);
+    GraspPlannerIKui* ikWindow = static_cast<GraspPlannerIKui*>(data);
     float x[6];
     x[0] = (float)ikWindow->UI.horizontalSliderX->value();
     x[1] = (float)ikWindow->UI.horizontalSliderY->value();
@@ -271,7 +177,7 @@ void IKRRTWindow::timerCB(void* data, SoSensor* /*sensor*/)
 }
 
 
-void IKRRTWindow::setupUI()
+void GraspPlannerIKui::setupUI()
 {
     UI.setupUi(this);
     viewer = new SoQtExaminerViewer(UI.frameViewer, "", TRUE, SoQtExaminerViewer::BUILD_POPUP);
@@ -287,8 +193,8 @@ void IKRRTWindow::setupUI()
     viewer->viewAll();
 
     connect(UI.pushButtonReset, SIGNAL(clicked()), this, SLOT(resetSceneryAll()));
-    connect(UI.pushButtonClose, SIGNAL(clicked()), this, SLOT(closeEEF()));
-    connect(UI.pushButtonOpen, SIGNAL(clicked()), this, SLOT(openEEF()));
+    connect(UI.pushButtonClose, SIGNAL(clicked()), this, SLOT(closeEEFbtn()));
+    connect(UI.pushButtonOpen, SIGNAL(clicked()), this, SLOT(openEEFbtn()));
 
     connect(UI.checkBoxSolution, SIGNAL(clicked()), this, SLOT(buildVisu()));
     connect(UI.checkBoxTCP, SIGNAL(clicked()), this, SLOT(buildVisu()));
@@ -312,7 +218,7 @@ void IKRRTWindow::setupUI()
 
 }
 
-void IKRRTWindow::playAndSave()
+void GraspPlannerIKui::playAndSave()
 {
     if (playbackMode)
     {
@@ -325,7 +231,7 @@ void IKRRTWindow::playAndSave()
     }
 }
 
-QString IKRRTWindow::formatString(const char* s, float f)
+QString GraspPlannerIKui::formatString(const char* s, float f)
 {
     QString str1(s);
 
@@ -356,24 +262,19 @@ QString IKRRTWindow::formatString(const char* s, float f)
 }
 
 
-void IKRRTWindow::resetSceneryAll()
+void GraspPlannerIKui::resetSceneryAll()
 {
-    if (rns && robot)
-    {
-        robot->setJointValues(rns, startConfig);
-    }
+    GraspPlannerIK::reset();
 }
 
 
-void IKRRTWindow::closeEvent(QCloseEvent* event)
+void GraspPlannerIKui::closeEvent(QCloseEvent* event)
 {
     quit();
     QMainWindow::closeEvent(event);
 }
 
-
-
-void IKRRTWindow::saveScreenshot()
+void GraspPlannerIKui::saveScreenshot()
 {
     static int counter = 0;
     SbString framefile;
@@ -399,7 +300,7 @@ void IKRRTWindow::saveScreenshot()
 
 }
 
-void IKRRTWindow::buildVisu()
+void GraspPlannerIKui::buildVisu()
 {
     showCoordSystem();
 
@@ -454,7 +355,7 @@ void IKRRTWindow::buildVisu()
     redraw();
 }
 
-int IKRRTWindow::main()
+int GraspPlannerIKui::main()
 {
     SoQt::show(this);
     SoQt::mainLoop();
@@ -462,7 +363,7 @@ int IKRRTWindow::main()
 }
 
 
-void IKRRTWindow::quit()
+void GraspPlannerIKui::quit()
 {
     std::cout << "IKRRTWindow: Closing" << std::endl;
     this->close();
@@ -470,9 +371,9 @@ void IKRRTWindow::quit()
 }
 
 
-void IKRRTWindow::updateObject(float x[6])
+void GraspPlannerIKui::updateObject(float x[6])
 {
-    if (object)
+    /*if (object)
     {
         //cout << "getGlobalPose robot:" << endl << robotEEF->getGlobalPose() << std::endl;
         //cout << "getGlobalPose TCP:" << endl <<  robotEEF_EEF->getTcp()->getGlobalPose() << std::endl;
@@ -484,49 +385,102 @@ void IKRRTWindow::updateObject(float x[6])
         std::cout << "object " << std::endl;
         std::cout << m << std::endl;
 
+    }*/
+
+    if (targetPoseBox)
+    {
+        /*std::cout << "TCP" << std::endl;
+        std::cout << eef->getTcp()->getGlobalPose() << std::endl;
+
+        std::cout << "Grasp reachable:" << std::endl;
+        VirtualRobot::GraspPtr rg = graspSet->getGrasps()[0];
+        std::cout << rg->getTransformation() << std::endl;
+
+        Eigen::Matrix4f xx = rg->getTcpPoseGlobal(object->getGlobalPose());
+        
+        Eigen::Vector3f xyz = xx.block<3,1>(0,3);
+        Eigen::Vector3f rpy = VirtualRobot::MathTools::eigen4f2rpy(xx);
+        std::cout << xyz.transpose() << std::endl;
+        std::cout << rpy.transpose() << std::endl;*/
+
+        //cout << "getGlobalPose robot:" << endl << robotEEF->getGlobalPose() << std::endl;
+        //cout << "getGlobalPose TCP:" << endl <<  robotEEF_EEF->getTcp()->getGlobalPose() << std::endl;
+        //std::cout << "Grasp target:" << std::endl;
+
+        Eigen::Matrix4f m;
+        MathTools::posrpy2eigen4f(x, m);
+
+        m = targetPoseBox->getGlobalPose() * m;
+        targetPoseBox->setGlobalPose(m);
+
+        /*std::cout << "global pose" << std::endl;
+        xyz = m.block<3,1>(0,3);
+        rpy = VirtualRobot::MathTools::eigen4f2rpy(m);
+        std::cout << xyz.transpose() << std::endl;
+        std::cout << rpy.transpose() << std::endl;
+
+        VirtualRobot::RobotNodePtr tcp = eef->getTcp();
+        Eigen::Matrix4f wTtcp_o = tcp->getGlobalPose();
+        robot->setGlobalPoseForRobotNode(tcp, m);
+
+        Eigen::Matrix4f wTobj = object->getGlobalPose();
+        Eigen::Matrix4f tcpTobj = tcp->toLocalCoordinateSystem(wTobj);
+
+        VirtualRobot::GraspPtr targetGrasp(new VirtualRobot::Grasp("Query Grasp", robot->getType(), eef->getName(), tcpTobj));
+
+        std::cout << "grasp target transformation" << std::endl;
+        std::cout << targetGrasp->getTransformation() << std::endl;
+        
+        xx = targetGrasp->getTcpPoseGlobal(object->getGlobalPose());
+        xyz = xx.block<3,1>(0,3);
+        rpy = VirtualRobot::MathTools::eigen4f2rpy(xx);
+        std::cout << xyz.transpose() << std::endl;
+        std::cout << rpy.transpose() << std::endl;
+
+        robot->setGlobalPoseForRobotNode(tcp, wTtcp_o);*/
     }
 
     redraw();
 
 }
 
-void IKRRTWindow::sliderReleased_ObjectX()
+void GraspPlannerIKui::sliderReleased_ObjectX()
 {
     UI.horizontalSliderX->setValue(0);
     buildVisu();
 }
 
-void IKRRTWindow::sliderReleased_ObjectY()
+void GraspPlannerIKui::sliderReleased_ObjectY()
 {
     UI.horizontalSliderY->setValue(0);
     buildVisu();
 }
 
-void IKRRTWindow::sliderReleased_ObjectZ()
+void GraspPlannerIKui::sliderReleased_ObjectZ()
 {
     UI.horizontalSliderZ->setValue(0);
     buildVisu();
 }
 
-void IKRRTWindow::sliderReleased_ObjectA()
+void GraspPlannerIKui::sliderReleased_ObjectA()
 {
     UI.horizontalSliderRo->setValue(0);
     buildVisu();
 }
 
-void IKRRTWindow::sliderReleased_ObjectB()
+void GraspPlannerIKui::sliderReleased_ObjectB()
 {
     UI.horizontalSliderPi->setValue(0);
     buildVisu();
 }
 
-void IKRRTWindow::sliderReleased_ObjectG()
+void GraspPlannerIKui::sliderReleased_ObjectG()
 {
     UI.horizontalSliderYa->setValue(0);
     buildVisu();
 }
 
-void IKRRTWindow::showCoordSystem()
+void GraspPlannerIKui::showCoordSystem()
 {
     if (eef)
     {
@@ -546,7 +500,7 @@ void IKRRTWindow::showCoordSystem()
     }
 }
 
-void IKRRTWindow::buildRRTVisu()
+void GraspPlannerIKui::buildRRTVisu()
 {
     rrtSep->removeAllChildren();
 
@@ -583,7 +537,7 @@ void IKRRTWindow::buildRRTVisu()
     rrtSep->addChild(sol);
 }
 
-void IKRRTWindow::buildGraspSetVisu()
+void GraspPlannerIKui::buildGraspSetVisu()
 {
     graspsSep->removeAllChildren();
 
@@ -617,7 +571,7 @@ void IKRRTWindow::buildGraspSetVisu()
 }
 
 
-void IKRRTWindow::reachVisu()
+void GraspPlannerIKui::reachVisu()
 {
     if (!robot || !reachSpace)
     {
@@ -647,86 +601,32 @@ void IKRRTWindow::reachVisu()
     }
 }
 
-void IKRRTWindow::planIKRRT()
+void GraspPlannerIKui::planIKRRT()
 {
+    Eigen::Matrix4f m = targetPoseBox->getGlobalPose();
+    Eigen::Vector3f xyz = m.block<3,1>(0,3);
+    Eigen::Vector3f rpy = VirtualRobot::MathTools::eigen4f2rpy(m);
+    
+    std::cout << "Execute grasp\n";
+    std::cout << xyz.transpose() << std::endl;
+    std::cout << rpy.transpose() << std::endl;
 
-    GenericIKSolverPtr ikSolver(new GenericIKSolver(rns));
+    // Eigen::Vector3f xyz = targetPoseBox->getGlobalPosition();
+    // Eigen::Vector3f rpy = targetPoseBox->getGlobalOrientation().eulerAngles(0, 1, 2);
 
-    if (UI.checkBoxReachabilitySpaceIK->checkState() == Qt::Checked)
-    {
-        ikSolver->setReachabilityCheck(reachSpace);
-    }
-
-    // setup collision detection
-    CDManagerPtr cdm;
-
-    if (UI.checkBoxColCheckIK->checkState() == Qt::Checked)
-    {
-        SceneObjectSetPtr colModelSet = robot->getRobotNodeSet(colModelName);
-        SceneObjectSetPtr colModelSet2;
-
-        if (!colModelNameRob.empty())
-        {
-            colModelSet2 = robot->getRobotNodeSet(colModelNameRob);
-        }
-
-        if (colModelSet)
-        {
-            cdm.reset(new CDManager());
-            cdm->addCollisionModel(object);
-            cdm->addCollisionModel(colModelSet);
-
-            if (colModelSet2)
-            {
-                cdm->addCollisionModel(colModelSet2);
-            }
-
-            ikSolver->collisionDetection(cdm);
-        }
-    }
-    else
-    {
-        cdm.reset(new CDManager());
-    }
-
-    ikSolver->setMaximumError(10.0f, 0.08f);
-    ikSolver->setupJacobian(0.9f, 20);
-
-    cspace.reset(new Saba::CSpaceSampled(robot, cdm, rns));
-
-    GraspSetPtr graspSet = object->getGraspSet(robot->getType(), eefName);
-    Saba::GraspIkRrtPtr ikRrt(new Saba::GraspIkRrt(cspace, object, ikSolver, graspSet));
-
-
-    ikRrt->setStart(startConfig);
-    bool planOK = ikRrt->plan();
-
-    if (planOK)
-    {
-        VR_INFO << " Planning succeeded " << std::endl;
-        solution = ikRrt->getSolution();
-        Saba::ShortcutProcessorPtr postProcessing(new Saba::ShortcutProcessor(solution, cspace, false));
-        solutionOptimized = postProcessing->optimize(100);
-        tree = ikRrt->getTree();
-        tree2 = ikRrt->getTree2();
-
-    }
-    else
-    {
-        VR_INFO << " Planning failed" << std::endl;
-    }
+    executeGrasp(xyz, rpy);
 
     sliderSolution(1000);
 
     buildVisu();
 }
 
-void IKRRTWindow::colModel()
+void GraspPlannerIKui::colModel()
 {
     buildVisu();
 }
 
-void IKRRTWindow::sliderSolution(int pos)
+void GraspPlannerIKui::sliderSolution(int pos)
 {
     if (!solution)
     {
@@ -749,7 +649,7 @@ void IKRRTWindow::sliderSolution(int pos)
     //saveScreenshot();
 }
 
-void IKRRTWindow::redraw()
+void GraspPlannerIKui::redraw()
 {
     viewer->scheduleRedraw();
     UI.frameViewer->update();
@@ -758,4 +658,27 @@ void IKRRTWindow::redraw()
     viewer->scheduleRedraw();
 }
 
+void GraspPlannerIKui::box2TCP()
+{
+    if (!eef) return;
 
+    RobotNodePtr tcp = eef->getTcp();
+    if (!tcp || !targetPoseBox)
+    {
+        return;
+    }
+
+    // Eigen::Matrix4f m = tcp->getGlobalPose();
+    float x[6];
+    x[0] = -246;
+    x[1] = -93;
+    x[2] = 664;
+    x[3] = -1.53;
+    x[4] = -0.034;
+    x[5] = 2.35;
+
+    Eigen::Matrix4f m;
+    VirtualRobot::MathTools::posrpy2eigen4f(x, m);
+    targetPoseBox->setGlobalPose(m);
+    viewer->render();
+}

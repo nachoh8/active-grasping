@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <string>
@@ -8,8 +9,9 @@
 #include <VirtualRobot/ManipulationObject.h>
 #include <VirtualRobot/Nodes/RobotNode.h>
 #include <VirtualRobot/Obstacle.h>
-#include "VirtualRobot/Workspace/Reachability.h"
-#include "VirtualRobot/Grasping/Grasp.h"
+#include <VirtualRobot/Workspace/Reachability.h>
+#include <VirtualRobot/Grasping/Grasp.h>
+#include <VirtualRobot/Grasping/GraspSet.h>
 
 #include <MotionPlanning/Saba.h>
 #include <MotionPlanning/CSpace/CSpacePath.h>
@@ -71,10 +73,16 @@ protected:
     // VirtualRobot::GraspSetPtr graspSet;
     VirtualRobot::RobotNodeSetPtr rns;
 
+    VirtualRobot::GraspSetPtr graspSet;
     GraspStudio::GraspQualityMeasureWrenchSpacePtr qualityMeasure;
 
     std::string eefName;
     std::string rnsName;
     std::string colModelName;
     std::string colModelNameRob;
+
+    Saba::CSpacePathPtr solution;
+    Saba::CSpacePathPtr solutionOptimized;
+    Saba::CSpaceTreePtr tree;
+    Saba::CSpaceTreePtr tree2;
 };

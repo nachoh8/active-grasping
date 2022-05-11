@@ -6,10 +6,10 @@
 #include <VirtualRobot/VirtualRobotException.h>
 #include <VirtualRobot/IK/GenericIKSolver.h>
 #include <VirtualRobot/CollisionDetection/CDManager.h>
-#include "VirtualRobot/Grasping/GraspSet.h"
 
 #include <MotionPlanning/Planner/GraspIkRrt.h>
 #include <MotionPlanning/CSpace/CSpaceSampled.h>
+#include <MotionPlanning/PostProcessing/ShortcutProcessor.h>
 
 /// INIT
 
@@ -76,6 +76,7 @@ void GraspPlannerIK::loadScene(const std::string& sceneFile)
     }
 
     // graspSet = object->getGraspSet(eef);
+    graspSet.reset(new VirtualRobot::GraspSet(eefName, robot->getType(), eefName));
 
     rns = robot->getRobotNodeSet(rnsName);
 
@@ -96,6 +97,10 @@ void GraspPlannerIK::loadReach(const std::string& reachFile)
     try
     {
         reachSpace->load(reachFile);
+        // VirtualRobot::GraspSetPtr rg = reachSpace->getReachableGrasps(object->getGraspSet(eef), object);
+        // graspSet->removeAllGrasps();
+        // graspSet->addGrasp(rg->getGrasps()[0]);
+        
     }
     catch (VirtualRobot::VirtualRobotException& e)
     {
@@ -130,7 +135,6 @@ Grasp::GraspResult GraspPlannerIK::executeGrasp(const Eigen::Vector3f& xyz, cons
     // m = tcp->getGlobalPose() * m; // if m was relative traslationm, rotation
 
     /// 2. Open and Move EEF
-    openEEF();
     reset();
     
     VirtualRobot::RobotNodePtr tcp = eef->getTcp();
@@ -145,18 +149,19 @@ Grasp::GraspResult GraspPlannerIK::executeGrasp(const Eigen::Vector3f& xyz, cons
     robot->setGlobalPoseForRobotNode(tcp, wTtcp_o); // set orig pose
 
     if (plan(queryGrasp)) { // measure grasp quality
-        closeEEF();
+        // closeEEF();
 
         Grasp::GraspResult result = graspQuality();
 
         std::cout << "Grasp Quality (epsilon measure):" << result.measure << std::endl;
         std::cout << "v measure:" << result.volume << std::endl;
         std::cout << "Force closure: " << (result.force_closure ? "yes" : "no") << std::endl;
+
+        return result;
     }
 
     return Grasp::GraspResult();
 }
-
 
 /// Grasping
 
@@ -172,7 +177,7 @@ bool GraspPlannerIK::plan(VirtualRobot::GraspPtr targetGrasp) {
     // set collision detection
     VirtualRobot::CDManagerPtr cdm;
     cdm.reset(new VirtualRobot::CDManager());
-
+    /*
     VirtualRobot::SceneObjectSetPtr colModelSet = robot->getRobotNodeSet(colModelName);
     VirtualRobot::SceneObjectSetPtr colModelSet2;
 
@@ -193,7 +198,7 @@ bool GraspPlannerIK::plan(VirtualRobot::GraspPtr targetGrasp) {
 
         ikSolver->collisionDetection(cdm);
     }
-
+    */
     // set params
     ikSolver->setMaximumError(5.0f, 0.04f);
     ikSolver->setupJacobian(0.9f, 20);
@@ -204,18 +209,36 @@ bool GraspPlannerIK::plan(VirtualRobot::GraspPtr targetGrasp) {
     /// 3. GraspIKRRT setup
     
     // create Grasp set
-    VirtualRobot::GraspSetPtr graspSet (new VirtualRobot::GraspSet(eefName, robot->getType(), eefName));
-    graspSet->addGrasp(targetGrasp);
+    VirtualRobot::GraspSetPtr _graspSet (new VirtualRobot::GraspSet(eefName, robot->getType(), eefName));
+    // graspSet.reset(new VirtualRobot::GraspSet(eefName, robot->getType(), eefName));
+    _graspSet->addGrasp(targetGrasp);
 
     // set grasp planner
-    Saba::GraspIkRrtPtr ikRrt(new Saba::GraspIkRrt(cspace, object, ikSolver, graspSet, 0.999999999999999999f));
+    // std::cout << "Grasp reachable:" << std::endl;
+    // VirtualRobot::GraspPtr rg = graspSet->getGrasps()[0];
+    // std::cout << rg->getTransformation() << std::endl;
+    // std::cout << "Grasp target:" << std::endl;
+    // std::cout << targetGrasp->getTransformation() << std::endl;
+
+    Saba::GraspIkRrtPtr ikRrt(new Saba::GraspIkRrt(cspace, object, ikSolver, _graspSet, 0.9999f));
     ikRrt->setStart(startConfig);
     
     bool planOK = ikRrt->plan();
     VR_INFO << " Planning success: " << planOK << std::endl;
-    /*if (planOK) { // optimize path
-        
-    }*/
+    if (planOK) { // optimize path
+        solution = ikRrt->getSolution();
+        Saba::ShortcutProcessorPtr postProcessing(new Saba::ShortcutProcessor(solution, cspace, false));
+        solutionOptimized = postProcessing->optimize(100);
+        tree = ikRrt->getTree();
+        tree2 = ikRrt->getTree2();
+
+        graspSet->addGrasp(targetGrasp);
+    } else {
+        solution.reset();
+        solutionOptimized.reset();
+        tree.reset();
+        tree2.reset();
+    }
 
     return planOK;
 }
@@ -253,5 +276,6 @@ Grasp::GraspResult GraspPlannerIK::graspQuality() {
 /// OTHERS
 
 void GraspPlannerIK::reset() {
+    openEEF();
     robot->setJointValues(rns, startConfig);
 }
