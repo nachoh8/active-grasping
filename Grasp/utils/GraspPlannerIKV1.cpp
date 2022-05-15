@@ -23,8 +23,6 @@ GraspPlannerIK::GraspPlannerIK(const std::string& sceneFile, const std::string& 
     this->colModelNameRob = colModelRob;
 
     useCollision = true;
-    useReachability = false;
-    useOnlyPosition = false;
 
     loadScene(sceneFile);
 
@@ -174,7 +172,7 @@ bool GraspPlannerIK::plan(VirtualRobot::GraspPtr targetGrasp) {
     VirtualRobot::GenericIKSolverPtr ikSolver(new VirtualRobot::GenericIKSolver(rns));
 
     // set reachability
-    if (useReachability && reachSpace) {
+    if (reachSpace) {
         ikSolver->setReachabilityCheck(reachSpace);
     }
 
@@ -247,159 +245,6 @@ bool GraspPlannerIK::plan(VirtualRobot::GraspPtr targetGrasp) {
     }
 
     return planOK;
-}
-
-bool GraspPlannerIK::planIK(Eigen::Matrix4f targetPose) {
-    /// 1. IKSolver setup
-    VirtualRobot::GenericIKSolverPtr ikSolver(new VirtualRobot::GenericIKSolver(rns));
-
-    // set reachability
-    if (useReachability && reachSpace) {
-        ikSolver->setReachabilityCheck(reachSpace);
-    }
-
-    // set collision detection
-    VirtualRobot::CDManagerPtr cdm;
-    cdm.reset(new VirtualRobot::CDManager());
-    
-    if (useCollision) {
-        VirtualRobot::SceneObjectSetPtr colModelSet = robot->getRobotNodeSet(colModelName);
-        VirtualRobot::SceneObjectSetPtr colModelSet2;
-
-        if (!colModelNameRob.empty())
-        {
-            colModelSet2 = robot->getRobotNodeSet(colModelNameRob);
-        }
-
-        if (colModelSet)
-        {
-            cdm->addCollisionModel(object);
-            cdm->addCollisionModel(colModelSet);
-
-            if (colModelSet2)
-            {
-                cdm->addCollisionModel(colModelSet2);
-            }
-
-            ikSolver->collisionDetection(cdm);
-        }
-    }
-    
-    // set params
-    ikSolver->setMaximumError(5.0f, 0.04f);
-    ikSolver->setupJacobian(0.9f, 20);
-
-    VirtualRobot::IKSolver::CartesianSelection selection = useOnlyPosition ? VirtualRobot::IKSolver::Position : VirtualRobot::IKSolver::All;
-
-    /// 2. Solve IK
-    bool planOK = ikSolver->solve(targetPose, selection, 50);
-    VR_INFO << " IK success: " << planOK << std::endl;
-    if (planOK) {
-        Eigen::Matrix4f actPose = eef->getTcp()->getGlobalPose();
-        float errorPos = (actPose.block(0, 3, 3, 1) - targetPose.block(0, 3, 3, 1)).norm();
-        VirtualRobot::MathTools::Quaternion q1 = VirtualRobot::MathTools::eigen4f2quat(actPose);
-        VirtualRobot::MathTools::Quaternion q2 = VirtualRobot::MathTools::eigen4f2quat(targetPose);
-        VirtualRobot::MathTools::Quaternion d = getDelta(q1, q2);
-        float errorOri = fabs(180.0f - (d.w + 1.0f) * 90.0f);
-
-        VR_INFO << "Error pos: " << errorPos << std::endl;
-        VR_INFO << "Error ori: " << errorOri << std::endl;
-
-        return true;
-    }
-
-    return false;
-}
-
-bool GraspPlannerIK::planIKRrt(Eigen::Matrix4f targetPose) {
-    /// 1. IKSolver setup
-    VirtualRobot::GenericIKSolverPtr ikSolver(new VirtualRobot::GenericIKSolver(rns));
-
-    // set reachability
-    if (useReachability && reachSpace) {
-        ikSolver->setReachabilityCheck(reachSpace);
-    }
-
-    // set collision detection
-    VirtualRobot::CDManagerPtr cdm;
-    cdm.reset(new VirtualRobot::CDManager());
-    
-    if (useCollision) {
-        VirtualRobot::SceneObjectSetPtr colModelSet = robot->getRobotNodeSet(colModelName);
-        VirtualRobot::SceneObjectSetPtr colModelSet2;
-
-        if (!colModelNameRob.empty())
-        {
-            colModelSet2 = robot->getRobotNodeSet(colModelNameRob);
-        }
-
-        if (colModelSet)
-        {
-            // cdm->addCollisionModel(object);
-            cdm->addCollisionModel(colModelSet);
-
-            if (colModelSet2)
-            {
-                cdm->addCollisionModel(colModelSet2);
-            }
-
-            ikSolver->collisionDetection(cdm);
-        }
-    }
-    
-    // set params
-    ikSolver->setMaximumError(5.0f, 0.04f);
-    ikSolver->setupJacobian(0.3f, 100);
-
-    VirtualRobot::IKSolver::CartesianSelection selection = useOnlyPosition ? VirtualRobot::IKSolver::Position : VirtualRobot::IKSolver::All;
-
-    /// 2. Solve IK
-    bool planOK = ikSolver->solve(targetPose, selection, 50);
-    VR_INFO << " IK success: " << planOK << std::endl;
-    if (!planOK) {
-        reset();
-        return false;
-    }
-
-    Eigen::Matrix4f actPose = eef->getTcp()->getGlobalPose();
-    float errorPos = (actPose.block(0, 3, 3, 1) - targetPose.block(0, 3, 3, 1)).norm();
-    VirtualRobot::MathTools::Quaternion q1 = VirtualRobot::MathTools::eigen4f2quat(actPose);
-    VirtualRobot::MathTools::Quaternion q2 = VirtualRobot::MathTools::eigen4f2quat(targetPose);
-    VirtualRobot::MathTools::Quaternion d = getDelta(q1, q2);
-    float errorOri = fabs(180.0f - (d.w + 1.0f) * 90.0f);
-
-    VR_INFO << "Error pos: " << errorPos << std::endl;
-    VR_INFO << "Error ori: " << errorOri << std::endl;
-
-    /// 3. Get Goal config and reset
-    Eigen::VectorXf goalConfig;
-    rns->getJointValues(goalConfig);
-    reset();
-
-    /// 4. BiRRT setup
-    cspace.reset(new Saba::CSpaceSampled(robot, cdm, rns, 1000000));
-    cspace->setSamplingSize(0.04f);
-    cspace->setSamplingSizeDCD(0.08f);
-
-    Saba::BiRrtPtr rrt(new Saba::BiRrt(cspace, Saba::Rrt::eExtend, Saba::Rrt::eConnect));
-    rrt->setStart(startConfig);
-    rrt->setGoal(goalConfig);
-
-    /// 5. Execute and postprocessing
-    planOK = rrt->plan();
-    VR_INFO << " BiRRT success: " << planOK << std::endl;
-    if (!planOK) {
-        reset();
-        return false;
-    }
-
-    solution = rrt->getSolution();
-    Saba::ShortcutProcessorPtr postProcessing(new Saba::ShortcutProcessor(solution, cspace, false));
-    solutionOptimized = postProcessing->optimize(100);
-    tree = rrt->getTree();
-    tree2 = rrt->getTree2();
-
-    return true;
 }
 
 void GraspPlannerIK::closeEEF()

@@ -42,6 +42,10 @@ protected:
 
     bool plan(VirtualRobot::GraspPtr targetGrasp);
 
+    bool planIK(Eigen::Matrix4f targetPose);
+
+    bool planIKRrt(Eigen::Matrix4f targetPose);
+
     void closeEEF();
 
     void openEEF();
@@ -85,4 +89,6 @@ protected:
     Saba::CSpacePathPtr solutionOptimized;
     Saba::CSpaceTreePtr tree;
     Saba::CSpaceTreePtr tree2;
+
+    bool useCollision, useReachability, useOnlyPosition;
 };

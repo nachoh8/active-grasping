@@ -197,6 +197,7 @@ void GraspPlannerIKui::setupUI()
     connect(UI.pushButtonOpen, SIGNAL(clicked()), this, SLOT(openEEFbtn()));
 
     connect(UI.checkBoxSolution, SIGNAL(clicked()), this, SLOT(buildVisu()));
+    connect(UI.checkBoxOnlyPosition, SIGNAL(clicked()), this, SLOT(buildVisu()));
     connect(UI.checkBoxTCP, SIGNAL(clicked()), this, SLOT(buildVisu()));
     connect(UI.checkBoxColModel, SIGNAL(clicked()), this, SLOT(colModel()));
     connect(UI.checkBoxGraspSet, SIGNAL(clicked()), this, SLOT(buildVisu()));
@@ -614,7 +615,16 @@ void GraspPlannerIKui::planIKRRT()
     // Eigen::Vector3f xyz = targetPoseBox->getGlobalPosition();
     // Eigen::Vector3f rpy = targetPoseBox->getGlobalOrientation().eulerAngles(0, 1, 2);
 
-    executeGrasp(xyz, rpy);
+    useCollision = UI.checkBoxColCheckIK->isChecked();
+    useReachability = UI.checkBoxReachabilitySpaceIK->isChecked();
+    useOnlyPosition = UI.checkBoxOnlyPosition->isChecked();
+    std::cout << "Use colllisions: " << useCollision << std::endl;
+    std::cout << "Use Reachability: " << useReachability << std::endl;
+    std::cout << "Use Only position: " << useOnlyPosition << std::endl;
+    
+    // executeGrasp(xyz, rpy);
+    // planIK(m);
+    planIKRrt(m);
 
     sliderSolution(1000);
 
