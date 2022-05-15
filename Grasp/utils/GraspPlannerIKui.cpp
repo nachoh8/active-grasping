@@ -146,34 +146,6 @@ void GraspPlannerIKui::timerCB(void* data, SoSensor* /*sensor*/)
         ikWindow->updateObject(x);
         ikWindow->redraw();
     }
-
-    int maxSlider = 200;
-
-    if (ikWindow->playbackMode && ikWindow->playCounter <= maxSlider)
-    {
-        if (ikWindow->playCounter == 0)
-        {
-            ikWindow->openEEF();
-            ikWindow->sliderSolution(0);
-            ikWindow->playCounter++;
-        }
-        else if (ikWindow->playCounter == maxSlider)
-        {
-            ikWindow->sliderSolution(1000);
-            ikWindow->closeEEF();
-            std::cout << "Stopping playback" << std::endl;
-            ikWindow->playbackMode = false;
-        }
-        else
-        {
-            ikWindow->playCounter++;
-            float pos = (float)ikWindow->playCounter / (float)maxSlider;
-            ikWindow->sliderSolution((int)(pos * 1000.0f));
-        }
-
-        ikWindow->redraw();
-        ikWindow->saveScreenshot();
-    }
 }
 
 
@@ -204,7 +176,6 @@ void GraspPlannerIKui::setupUI()
     connect(UI.checkBoxReachableGrasps, SIGNAL(clicked()), this, SLOT(buildVisu()));
     connect(UI.checkBoxReachabilitySpace, SIGNAL(clicked()), this, SLOT(reachVisu()));
     connect(UI.pushButtonIKRRT, SIGNAL(clicked()), this, SLOT(planIKRRT()));
-    connect(UI.pushButtonPlay, SIGNAL(clicked()), this, SLOT(playAndSave()));
 
     connect(UI.horizontalSliderX, SIGNAL(sliderReleased()), this, SLOT(sliderReleased_ObjectX()));
     connect(UI.horizontalSliderY, SIGNAL(sliderReleased()), this, SLOT(sliderReleased_ObjectY()));
@@ -217,19 +188,6 @@ void GraspPlannerIKui::setupUI()
     UI.checkBoxColCheckIK->setChecked(false);
     UI.checkBoxReachabilitySpaceIK->setChecked(false);
 
-}
-
-void GraspPlannerIKui::playAndSave()
-{
-    if (playbackMode)
-    {
-        playbackMode = false;
-    }
-    else
-    {
-        playCounter = 0;
-        playbackMode = true;
-    }
 }
 
 QString GraspPlannerIKui::formatString(const char* s, float f)
@@ -374,72 +332,11 @@ void GraspPlannerIKui::quit()
 
 void GraspPlannerIKui::updateObject(float x[6])
 {
-    /*if (object)
-    {
-        //cout << "getGlobalPose robot:" << endl << robotEEF->getGlobalPose() << std::endl;
-        //cout << "getGlobalPose TCP:" << endl <<  robotEEF_EEF->getTcp()->getGlobalPose() << std::endl;
-        Eigen::Matrix4f m;
-        MathTools::posrpy2eigen4f(x, m);
+    Eigen::Matrix4f m;
+    MathTools::posrpy2eigen4f(x, m);
 
-        m = object->getGlobalPose() * m;
-        object->setGlobalPose(m);
-        std::cout << "object " << std::endl;
-        std::cout << m << std::endl;
-
-    }*/
-
-    if (targetPoseBox)
-    {
-        /*std::cout << "TCP" << std::endl;
-        std::cout << eef->getTcp()->getGlobalPose() << std::endl;
-
-        std::cout << "Grasp reachable:" << std::endl;
-        VirtualRobot::GraspPtr rg = graspSet->getGrasps()[0];
-        std::cout << rg->getTransformation() << std::endl;
-
-        Eigen::Matrix4f xx = rg->getTcpPoseGlobal(object->getGlobalPose());
-        
-        Eigen::Vector3f xyz = xx.block<3,1>(0,3);
-        Eigen::Vector3f rpy = VirtualRobot::MathTools::eigen4f2rpy(xx);
-        std::cout << xyz.transpose() << std::endl;
-        std::cout << rpy.transpose() << std::endl;*/
-
-        //cout << "getGlobalPose robot:" << endl << robotEEF->getGlobalPose() << std::endl;
-        //cout << "getGlobalPose TCP:" << endl <<  robotEEF_EEF->getTcp()->getGlobalPose() << std::endl;
-        //std::cout << "Grasp target:" << std::endl;
-
-        Eigen::Matrix4f m;
-        MathTools::posrpy2eigen4f(x, m);
-
-        m = targetPoseBox->getGlobalPose() * m;
-        targetPoseBox->setGlobalPose(m);
-
-        /*std::cout << "global pose" << std::endl;
-        xyz = m.block<3,1>(0,3);
-        rpy = VirtualRobot::MathTools::eigen4f2rpy(m);
-        std::cout << xyz.transpose() << std::endl;
-        std::cout << rpy.transpose() << std::endl;
-
-        VirtualRobot::RobotNodePtr tcp = eef->getTcp();
-        Eigen::Matrix4f wTtcp_o = tcp->getGlobalPose();
-        robot->setGlobalPoseForRobotNode(tcp, m);
-
-        Eigen::Matrix4f wTobj = object->getGlobalPose();
-        Eigen::Matrix4f tcpTobj = tcp->toLocalCoordinateSystem(wTobj);
-
-        VirtualRobot::GraspPtr targetGrasp(new VirtualRobot::Grasp("Query Grasp", robot->getType(), eef->getName(), tcpTobj));
-
-        std::cout << "grasp target transformation" << std::endl;
-        std::cout << targetGrasp->getTransformation() << std::endl;
-        
-        xx = targetGrasp->getTcpPoseGlobal(object->getGlobalPose());
-        xyz = xx.block<3,1>(0,3);
-        rpy = VirtualRobot::MathTools::eigen4f2rpy(xx);
-        std::cout << xyz.transpose() << std::endl;
-        std::cout << rpy.transpose() << std::endl;
-
-        robot->setGlobalPoseForRobotNode(tcp, wTtcp_o);*/
-    }
+    m = targetPoseBox->getGlobalPose() * m;
+    targetPoseBox->setGlobalPose(m);
 
     redraw();
 
@@ -510,27 +407,16 @@ void GraspPlannerIKui::buildRRTVisu()
         return;
     }
 
-    if (!solution)
+    if (!birrtSolution)
     {
         return;
     }
 
     std::shared_ptr<Saba::CoinRrtWorkspaceVisualization> w(new Saba::CoinRrtWorkspaceVisualization(robot, cspace, eef->getTcpName()));
 
-    if (tree)
+    if (birrtSolOptimized)
     {
-        w->addTree(tree);
-    }
-
-    if (tree2)
-    {
-        w->addTree(tree2);
-    }
-
-    //w->addCSpacePath(solution);
-    if (solutionOptimized)
-    {
-        w->addCSpacePath(solutionOptimized, Saba::CoinRrtWorkspaceVisualization::eGreen);
+        w->addCSpacePath(birrtSolOptimized, Saba::CoinRrtWorkspaceVisualization::eGreen);
     }
 
     //w->addConfiguration(startConfig,Saba::CoinRrtWorkspaceVisualization::eGreen,3.0f);
@@ -571,7 +457,6 @@ void GraspPlannerIKui::buildGraspSetVisu()
     }
 }
 
-
 void GraspPlannerIKui::reachVisu()
 {
     if (!robot || !reachSpace)
@@ -604,29 +489,36 @@ void GraspPlannerIKui::reachVisu()
 
 void GraspPlannerIKui::planIKRRT()
 {
-    Eigen::Matrix4f m = targetPoseBox->getGlobalPose();
-    Eigen::Vector3f xyz = m.block<3,1>(0,3);
-    Eigen::Vector3f rpy = VirtualRobot::MathTools::eigen4f2rpy(m);
+    Eigen::Matrix4f targetPose = targetPoseBox->getGlobalPose();
+    Eigen::Vector3f xyz = targetPose.block<3,1>(0,3);
+    Eigen::Vector3f rpy = VirtualRobot::MathTools::eigen4f2rpy(targetPose);
     
-    std::cout << "Execute grasp\n";
-    std::cout << xyz.transpose() << std::endl;
-    std::cout << rpy.transpose() << std::endl;
-
-    // Eigen::Vector3f xyz = targetPoseBox->getGlobalPosition();
-    // Eigen::Vector3f rpy = targetPoseBox->getGlobalOrientation().eulerAngles(0, 1, 2);
-
+    std::cout << "--------CONFIG--------\n";
+    std::cout << "Target Pose: ("
+                << xyz.transpose() << ", "
+                << rpy.transpose() << ")" << std::endl;
+    
     useCollision = UI.checkBoxColCheckIK->isChecked();
     useReachability = UI.checkBoxReachabilitySpaceIK->isChecked();
     useOnlyPosition = UI.checkBoxOnlyPosition->isChecked();
     std::cout << "Use colllisions: " << useCollision << std::endl;
     std::cout << "Use Reachability: " << useReachability << std::endl;
     std::cout << "Use Only position: " << useOnlyPosition << std::endl;
-    
-    // executeGrasp(xyz, rpy);
-    // planIK(m);
-    planIKRrt(m);
 
-    sliderSolution(1000);
+    cspaceColStepSize = (float)UI.doubleSpinBoxCSpaceColStepSize->value();
+    cspacePathStepSize = (float)UI.doubleSpinBoxCSpacePathStepSize->value();
+    ikMaxErrorPos = (float)UI.doubleSpinBoxIKMaxErrorPos->value();
+    ikMaxErrorOri = (float)UI.doubleSpinBoxIKMaxErrorOri->value();
+    ikJacobianStepSize = (float)UI.doubleSpinBoxIKJacobianStepSize->value();
+    ikJacobianMaxLoops = (int)UI.doubleSpinBoxIKJacobianMaxLoops->value();
+
+    std::cout << "IK Solver Max error -> Position: " << ikMaxErrorPos << " | Ori: " << ikMaxErrorOri << std::endl;
+    std::cout << "IK Solver Jacobian -> Step size: " << ikJacobianStepSize << " | Max loops: " << ikJacobianMaxLoops << std::endl;
+    std::cout << "Cspace -> Col step size: " << cspaceColStepSize << " | path step size: " << cspacePathStepSize << std::endl;
+    std::cout << "----------------------------------------------\n";
+
+    // executeGrasp(xyz, rpy);
+    executeGrasp(targetPose);
 
     buildVisu();
 }
@@ -638,16 +530,17 @@ void GraspPlannerIKui::colModel()
 
 void GraspPlannerIKui::sliderSolution(int pos)
 {
-    if (!solution)
+    if (!birrtSolution)
     {
         return;
     }
+    openEEF();
 
-    Saba::CSpacePathPtr s = solution;
+    Saba::CSpacePathPtr s = birrtSolution;
 
-    if (solutionOptimized)
+    if (birrtSolOptimized)
     {
-        s = solutionOptimized;
+        s = birrtSolOptimized;
     }
 
     float p = (float)pos / 1000.0f;
@@ -656,7 +549,6 @@ void GraspPlannerIKui::sliderSolution(int pos)
     robot->setJointValues(rns, iPos);
 
     redraw();
-    //saveScreenshot();
 }
 
 void GraspPlannerIKui::redraw()
@@ -683,9 +575,9 @@ void GraspPlannerIKui::box2TCP()
     x[0] = -246;
     x[1] = -93;
     x[2] = 664;
-    x[3] = -1.53;
-    x[4] = -0.034;
-    x[5] = 2.35;
+    x[3] = -1.57f;
+    x[4] = 0.0f;
+    x[5] = 3.14f;
 
     Eigen::Matrix4f m;
     VirtualRobot::MathTools::posrpy2eigen4f(x, m);

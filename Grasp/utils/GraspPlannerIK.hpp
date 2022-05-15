@@ -29,7 +29,9 @@ public:
 
     Grasp::GraspResult executeQueryGrasp(const std::vector<double>& query);
 
-    Grasp::GraspResult executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy, bool save_grasp=true);
+    Grasp::GraspResult executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy);
+
+    Grasp::GraspResult executeGrasp(const Eigen::Matrix4f& targetPose);
 
 protected:
     /// INIT
@@ -40,11 +42,7 @@ protected:
 
     /// EEF
 
-    bool plan(VirtualRobot::GraspPtr targetGrasp);
-
-    bool planIK(Eigen::Matrix4f targetPose);
-
-    bool planIKRrt(Eigen::Matrix4f targetPose);
+    bool plan(Eigen::Matrix4f targetPose);
 
     void closeEEF();
 
@@ -64,7 +62,7 @@ protected:
     /// Attributes
 
     VirtualRobot::RobotPtr robot;
-    Saba::CSpaceSampledPtr cspace;
+    VirtualRobot::RobotNodeSetPtr rns;
     Eigen::VectorXf startConfig;
 
     VirtualRobot::EndEffectorPtr eef;
@@ -72,10 +70,6 @@ protected:
 
     std::vector< VirtualRobot::ObstaclePtr > obstacles;
     VirtualRobot::ManipulationObjectPtr object;
-    VirtualRobot::ReachabilityPtr reachSpace;
-
-    // VirtualRobot::GraspSetPtr graspSet;
-    VirtualRobot::RobotNodeSetPtr rns;
 
     VirtualRobot::GraspSetPtr graspSet;
     GraspStudio::GraspQualityMeasureWrenchSpacePtr qualityMeasure;
@@ -85,10 +79,21 @@ protected:
     std::string colModelName;
     std::string colModelNameRob;
 
-    Saba::CSpacePathPtr solution;
-    Saba::CSpacePathPtr solutionOptimized;
-    Saba::CSpaceTreePtr tree;
-    Saba::CSpaceTreePtr tree2;
+    /// Common planner params
+    bool useCollision;
 
-    bool useCollision, useReachability, useOnlyPosition;
+    /// IK Solver params
+    bool useReachability, useOnlyPosition;
+    VirtualRobot::ReachabilityPtr reachSpace;
+
+    float ikMaxErrorPos = 5.0f, ikMaxErrorOri = 0.04f; // mm, rads
+    float ikJacobianStepSize = 0.3f;
+    int ikJacobianMaxLoops = 100, ikMaxLoops = 50;
+
+    /// BiRRT params
+    float cspacePathStepSize = 0.04f, cspaceColStepSize = 0.08f;
+    int optOptimzeStep = 100;
+    Saba::CSpaceSampledPtr cspace;
+    Saba::CSpacePathPtr birrtSolution;
+    Saba::CSpacePathPtr birrtSolOptimized;
 };

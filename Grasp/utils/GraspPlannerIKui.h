@@ -69,8 +69,6 @@ public slots:
 
     void planIKRRT();
 
-    void playAndSave();
-
     void closeEEFbtn();
 
     void openEEFbtn();

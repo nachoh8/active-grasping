@@ -11,6 +11,16 @@
 #include <MotionPlanning/CSpace/CSpaceSampled.h>
 #include <MotionPlanning/PostProcessing/ShortcutProcessor.h>
 
+inline void poseError(const Eigen::Matrix4f& currentPose, const Eigen::Matrix4f& targetPose, float& posError, float& oriError) {
+    posError = (currentPose.block(0, 3, 3, 1) - targetPose.block(0, 3, 3, 1)).norm();
+    
+    VirtualRobot::MathTools::Quaternion q1 = VirtualRobot::MathTools::eigen4f2quat(currentPose);
+    VirtualRobot::MathTools::Quaternion q2 = VirtualRobot::MathTools::eigen4f2quat(targetPose);
+    VirtualRobot::MathTools::Quaternion d = getDelta(q1, q2);
+    oriError = fabs(180.0f - (d.w + 1.0f) * 90.0f);
+}
+
+
 /// INIT
 
 GraspPlannerIK::GraspPlannerIK(const std::string& sceneFile, const std::string& reachFile, const std::string& rns,
@@ -101,9 +111,6 @@ void GraspPlannerIK::loadReach(const std::string& reachFile)
     try
     {
         reachSpace->load(reachFile);
-        // VirtualRobot::GraspSetPtr rg = reachSpace->getReachableGrasps(object->getGraspSet(eef), object);
-        // graspSet->removeAllGrasps();
-        // graspSet->addGrasp(rg->getGrasps()[0]);
         
     }
     catch (VirtualRobot::VirtualRobotException& e)
@@ -123,8 +130,8 @@ Grasp::GraspResult GraspPlannerIK::executeQueryGrasp(const std::vector<double>& 
     return Grasp::GraspResult();
 }
 
-Grasp::GraspResult GraspPlannerIK::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy, bool save_grasp) {
-    /// 1. pos, rpy -> pose matrix
+Grasp::GraspResult GraspPlannerIK::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy) {
+    /// pos, rpy -> pose matrix
     float x[6];
     x[0] = xyz.x();
     x[1] = xyz.y();
@@ -133,43 +140,54 @@ Grasp::GraspResult GraspPlannerIK::executeGrasp(const Eigen::Vector3f& xyz, cons
     x[4] = rpy.y();
     x[5] = rpy.z();
 
-    Eigen::Matrix4f wTq; // wTq
-    VirtualRobot::MathTools::posrpy2eigen4f(x, wTq);
-    // VirtualRobot::RobotNodePtr tcp = eef->getTcp();
-    // m = tcp->getGlobalPose() * m; // if m was relative traslationm, rotation
+    Eigen::Matrix4f targetPose;
+    VirtualRobot::MathTools::posrpy2eigen4f(x, targetPose);
 
-    /// 2. Open and Move EEF
+    return executeGrasp(targetPose);
+}
+
+Grasp::GraspResult GraspPlannerIK::executeGrasp(const Eigen::Matrix4f& targetPose) {
+    /// 1. To start config
     reset();
-    
-    VirtualRobot::RobotNodePtr tcp = eef->getTcp();
-    Eigen::Matrix4f wTtcp_o = tcp->getGlobalPose();
-    robot->setGlobalPoseForRobotNode(tcp, wTq);
 
-    Eigen::Matrix4f wTobj = object->getGlobalPose();
-    Eigen::Matrix4f tcpTobj = tcp->toLocalCoordinateSystem(wTobj);
+    /// 2. Plan and execute
+    if (plan(targetPose)) {
+        /// 3. Set final config
+        Eigen::VectorXf finalPos;
+        birrtSolOptimized->interpolate(1, finalPos);
+        robot->setJointValues(rns, finalPos);
 
-    VirtualRobot::GraspPtr queryGrasp(new VirtualRobot::Grasp("Query Grasp", robot->getType(), eef->getName(), tcpTobj));
-    
-    robot->setGlobalPoseForRobotNode(tcp, wTtcp_o); // set orig pose
+        /*float posError, oriError;
+        poseError(eef->getTcp()->getGlobalPose(), targetPose, posError, oriError);
 
-    if (plan(queryGrasp)) { // measure grasp quality
-        // closeEEF();
+        std::cout << "BiRRT Error pos: " << posError << std::endl;
+        std::cout << "BiRRT Error ori: " << oriError << std::endl;*/
 
+        /// 4. Measure grasp quality
+        if (eef->getCollisionChecker()->checkCollision(object->getCollisionModel(), eef->createSceneObjectSet())) {
+            std::cout << "Error: EEF Collision detected!" << std::endl;
+            reset();
+            return Grasp::GraspResult();
+        }
+
+        closeEEF();
         Grasp::GraspResult result = graspQuality();
 
         std::cout << "Grasp Quality (epsilon measure):" << result.measure << std::endl;
-        std::cout << "v measure:" << result.volume << std::endl;
+        std::cout << "Volume measure:" << result.volume << std::endl;
         std::cout << "Force closure: " << (result.force_closure ? "yes" : "no") << std::endl;
 
         return result;
     }
+
+    reset();
 
     return Grasp::GraspResult();
 }
 
 /// Grasping
 
-bool GraspPlannerIK::plan(VirtualRobot::GraspPtr targetGrasp) {
+bool GraspPlannerIK::plan(Eigen::Matrix4f targetPose) {
     /// 1. IKSolver setup
     VirtualRobot::GenericIKSolverPtr ikSolver(new VirtualRobot::GenericIKSolver(rns));
 
@@ -206,170 +224,24 @@ bool GraspPlannerIK::plan(VirtualRobot::GraspPtr targetGrasp) {
     }
     
     // set params
-    ikSolver->setMaximumError(5.0f, 0.04f);
-    ikSolver->setupJacobian(0.9f, 20);
-
-    /// 2. Cspace setup
-    cspace.reset(new Saba::CSpaceSampled(robot, cdm, rns));
-
-    /// 3. GraspIKRRT setup
-    
-    // create Grasp set
-    VirtualRobot::GraspSetPtr _graspSet (new VirtualRobot::GraspSet(eefName, robot->getType(), eefName));
-    // graspSet.reset(new VirtualRobot::GraspSet(eefName, robot->getType(), eefName));
-    _graspSet->addGrasp(targetGrasp);
-
-    // set grasp planner
-    // std::cout << "Grasp reachable:" << std::endl;
-    // VirtualRobot::GraspPtr rg = graspSet->getGrasps()[0];
-    // std::cout << rg->getTransformation() << std::endl;
-    // std::cout << "Grasp target:" << std::endl;
-    // std::cout << targetGrasp->getTransformation() << std::endl;
-
-    Saba::GraspIkRrtPtr ikRrt(new Saba::GraspIkRrt(cspace, object, ikSolver, _graspSet, 0.9999f));
-    ikRrt->setStart(startConfig);
-    
-    bool planOK = ikRrt->plan();
-    VR_INFO << " Planning success: " << planOK << std::endl;
-    if (planOK) { // optimize path
-        solution = ikRrt->getSolution();
-        Saba::ShortcutProcessorPtr postProcessing(new Saba::ShortcutProcessor(solution, cspace, false));
-        solutionOptimized = postProcessing->optimize(100);
-        tree = ikRrt->getTree();
-        tree2 = ikRrt->getTree2();
-
-        graspSet->addGrasp(targetGrasp);
-    } else {
-        solution.reset();
-        solutionOptimized.reset();
-        tree.reset();
-        tree2.reset();
-    }
-
-    return planOK;
-}
-
-bool GraspPlannerIK::planIK(Eigen::Matrix4f targetPose) {
-    /// 1. IKSolver setup
-    VirtualRobot::GenericIKSolverPtr ikSolver(new VirtualRobot::GenericIKSolver(rns));
-
-    // set reachability
-    if (useReachability && reachSpace) {
-        ikSolver->setReachabilityCheck(reachSpace);
-    }
-
-    // set collision detection
-    VirtualRobot::CDManagerPtr cdm;
-    cdm.reset(new VirtualRobot::CDManager());
-    
-    if (useCollision) {
-        VirtualRobot::SceneObjectSetPtr colModelSet = robot->getRobotNodeSet(colModelName);
-        VirtualRobot::SceneObjectSetPtr colModelSet2;
-
-        if (!colModelNameRob.empty())
-        {
-            colModelSet2 = robot->getRobotNodeSet(colModelNameRob);
-        }
-
-        if (colModelSet)
-        {
-            cdm->addCollisionModel(object);
-            cdm->addCollisionModel(colModelSet);
-
-            if (colModelSet2)
-            {
-                cdm->addCollisionModel(colModelSet2);
-            }
-
-            ikSolver->collisionDetection(cdm);
-        }
-    }
-    
-    // set params
-    ikSolver->setMaximumError(5.0f, 0.04f);
-    ikSolver->setupJacobian(0.9f, 20);
+    ikSolver->setMaximumError(ikMaxErrorPos, ikMaxErrorOri);
+    ikSolver->setupJacobian(ikJacobianStepSize, ikJacobianMaxLoops);
 
     VirtualRobot::IKSolver::CartesianSelection selection = useOnlyPosition ? VirtualRobot::IKSolver::Position : VirtualRobot::IKSolver::All;
 
     /// 2. Solve IK
-    bool planOK = ikSolver->solve(targetPose, selection, 50);
-    VR_INFO << " IK success: " << planOK << std::endl;
-    if (planOK) {
-        Eigen::Matrix4f actPose = eef->getTcp()->getGlobalPose();
-        float errorPos = (actPose.block(0, 3, 3, 1) - targetPose.block(0, 3, 3, 1)).norm();
-        VirtualRobot::MathTools::Quaternion q1 = VirtualRobot::MathTools::eigen4f2quat(actPose);
-        VirtualRobot::MathTools::Quaternion q2 = VirtualRobot::MathTools::eigen4f2quat(targetPose);
-        VirtualRobot::MathTools::Quaternion d = getDelta(q1, q2);
-        float errorOri = fabs(180.0f - (d.w + 1.0f) * 90.0f);
-
-        VR_INFO << "Error pos: " << errorPos << std::endl;
-        VR_INFO << "Error ori: " << errorOri << std::endl;
-
-        return true;
-    }
-
-    return false;
-}
-
-bool GraspPlannerIK::planIKRrt(Eigen::Matrix4f targetPose) {
-    /// 1. IKSolver setup
-    VirtualRobot::GenericIKSolverPtr ikSolver(new VirtualRobot::GenericIKSolver(rns));
-
-    // set reachability
-    if (useReachability && reachSpace) {
-        ikSolver->setReachabilityCheck(reachSpace);
-    }
-
-    // set collision detection
-    VirtualRobot::CDManagerPtr cdm;
-    cdm.reset(new VirtualRobot::CDManager());
-    
-    if (useCollision) {
-        VirtualRobot::SceneObjectSetPtr colModelSet = robot->getRobotNodeSet(colModelName);
-        VirtualRobot::SceneObjectSetPtr colModelSet2;
-
-        if (!colModelNameRob.empty())
-        {
-            colModelSet2 = robot->getRobotNodeSet(colModelNameRob);
-        }
-
-        if (colModelSet)
-        {
-            // cdm->addCollisionModel(object);
-            cdm->addCollisionModel(colModelSet);
-
-            if (colModelSet2)
-            {
-                cdm->addCollisionModel(colModelSet2);
-            }
-
-            ikSolver->collisionDetection(cdm);
-        }
-    }
-    
-    // set params
-    ikSolver->setMaximumError(5.0f, 0.04f);
-    ikSolver->setupJacobian(0.3f, 100);
-
-    VirtualRobot::IKSolver::CartesianSelection selection = useOnlyPosition ? VirtualRobot::IKSolver::Position : VirtualRobot::IKSolver::All;
-
-    /// 2. Solve IK
-    bool planOK = ikSolver->solve(targetPose, selection, 50);
-    VR_INFO << " IK success: " << planOK << std::endl;
+    bool planOK = ikSolver->solve(targetPose, selection, ikMaxLoops);
+    std::cout << "IK Solver success: " << planOK << std::endl;
     if (!planOK) {
-        reset();
         return false;
     }
 
     Eigen::Matrix4f actPose = eef->getTcp()->getGlobalPose();
-    float errorPos = (actPose.block(0, 3, 3, 1) - targetPose.block(0, 3, 3, 1)).norm();
-    VirtualRobot::MathTools::Quaternion q1 = VirtualRobot::MathTools::eigen4f2quat(actPose);
-    VirtualRobot::MathTools::Quaternion q2 = VirtualRobot::MathTools::eigen4f2quat(targetPose);
-    VirtualRobot::MathTools::Quaternion d = getDelta(q1, q2);
-    float errorOri = fabs(180.0f - (d.w + 1.0f) * 90.0f);
+    float posError, oriError;
+    poseError(actPose, targetPose, posError, oriError);
 
-    VR_INFO << "Error pos: " << errorPos << std::endl;
-    VR_INFO << "Error ori: " << errorOri << std::endl;
+    std::cout << "IK Solver Error pos: " << posError << std::endl;
+    std::cout << "IK Solver Error ori: " << oriError << std::endl;
 
     /// 3. Get Goal config and reset
     Eigen::VectorXf goalConfig;
@@ -378,26 +250,24 @@ bool GraspPlannerIK::planIKRrt(Eigen::Matrix4f targetPose) {
 
     /// 4. BiRRT setup
     cspace.reset(new Saba::CSpaceSampled(robot, cdm, rns, 1000000));
-    cspace->setSamplingSize(0.04f);
-    cspace->setSamplingSizeDCD(0.08f);
+    cspace->setSamplingSize(cspacePathStepSize);
+    cspace->setSamplingSizeDCD(cspaceColStepSize);
 
     Saba::BiRrtPtr rrt(new Saba::BiRrt(cspace, Saba::Rrt::eExtend, Saba::Rrt::eConnect));
     rrt->setStart(startConfig);
     rrt->setGoal(goalConfig);
 
     /// 5. Execute and postprocessing
-    planOK = rrt->plan();
-    VR_INFO << " BiRRT success: " << planOK << std::endl;
+    planOK = rrt->plan(true);
+    std::cout << "BiRRT success: " << planOK << std::endl;
+    std::cout << "BiRRT time: " << rrt->getPlanningTimeMS() << " ms" << std::endl;
     if (!planOK) {
-        reset();
         return false;
     }
 
-    solution = rrt->getSolution();
-    Saba::ShortcutProcessorPtr postProcessing(new Saba::ShortcutProcessor(solution, cspace, false));
-    solutionOptimized = postProcessing->optimize(100);
-    tree = rrt->getTree();
-    tree2 = rrt->getTree2();
+    birrtSolution = rrt->getSolution();
+    Saba::ShortcutProcessorPtr postProcessing(new Saba::ShortcutProcessor(birrtSolution, cspace, false));
+    birrtSolOptimized = postProcessing->optimize(optOptimzeStep);
 
     return true;
 }
