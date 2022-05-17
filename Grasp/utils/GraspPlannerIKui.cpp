@@ -39,8 +39,8 @@ float TIMER_MS = 30.0f;
 
 /// INIT
 
-GraspPlannerIKui::GraspPlannerIKui(std::string& sceneFile, std::string& reachFile, std::string& rns, std::string& eef, std::string& colModel, std::string& colModelRob)
-    : QMainWindow(nullptr), GraspPlannerIK(sceneFile, reachFile, rns, eef, colModel, colModelRob)
+GraspPlannerIKui::GraspPlannerIKui(const GraspPlannerIKParams& params)
+    : QMainWindow(nullptr), GraspPlannerIK(params)
 {
 
     sceneSep = new SoSeparator;
@@ -50,7 +50,6 @@ GraspPlannerIKui::GraspPlannerIKui(std::string& sceneFile, std::string& reachFil
     graspsSep = new SoSeparator;
     reachableGraspsSep = new SoSeparator;
     reachabilitySep = new SoSeparator;
-    obstaclesSep = new SoSeparator;
     rrtSep = new SoSeparator;
 
     playbackMode = false;
@@ -60,10 +59,20 @@ GraspPlannerIKui::GraspPlannerIKui(std::string& sceneFile, std::string& reachFil
     sceneSep->addChild(graspsSep);
     sceneSep->addChild(reachableGraspsSep);
     sceneSep->addChild(reachabilitySep);
-    sceneSep->addChild(obstaclesSep);
     sceneSep->addChild(rrtSep);
 
     setupUI();
+
+    UI.checkBoxColCheckIK->setChecked(useCollision);
+    UI.checkBoxReachabilitySpaceIK->setChecked(useReachability);
+    UI.checkBoxOnlyPosition->setChecked(useOnlyPosition);
+
+    UI.doubleSpinBoxCSpaceColStepSize->setValue(cspaceColStepSize);
+    UI.doubleSpinBoxCSpacePathStepSize->setValue(cspacePathStepSize);
+    UI.doubleSpinBoxIKMaxErrorPos->setValue(ikMaxErrorPos);
+    UI.doubleSpinBoxIKMaxErrorOri->setValue(ikMaxErrorOri);
+    UI.doubleSpinBoxIKJacobianStepSize->setValue(ikJacobianStepSize);
+    UI.doubleSpinBoxIKJacobianMaxLoops->setValue(ikJacobianMaxLoops);
 
     buildVisu();
 
@@ -233,38 +242,11 @@ void GraspPlannerIKui::closeEvent(QCloseEvent* event)
     QMainWindow::closeEvent(event);
 }
 
-void GraspPlannerIKui::saveScreenshot()
-{
-    static int counter = 0;
-    SbString framefile;
-
-    framefile.sprintf("renderFrame_%06d.png", counter);
-    counter++;
-    redraw();
-    viewer->getSceneManager()->render();
-    viewer->getSceneManager()->scheduleRedraw();
-    QGLWidget* w = (QGLWidget*)viewer->getGLWidget();
-
-    QImage i = w->grabFrameBuffer();
-    bool bRes = i.save(framefile.getString(), "BMP");
-
-    if (bRes)
-    {
-        std::cout << "wrote image " << counter << std::endl;
-    }
-    else
-    {
-        std::cout << "failed writing image " << counter << std::endl;
-    }
-
-}
-
 void GraspPlannerIKui::buildVisu()
 {
     showCoordSystem();
 
     robotSep->removeAllChildren();
-    //bool colModel = (UI.checkBoxColModel->isChecked());
     SceneObject::VisualizationType colModel = (UI.checkBoxColModel->isChecked()) ? SceneObject::Collision : SceneObject::Full;
 
     if (robot)
@@ -289,21 +271,6 @@ void GraspPlannerIKui::buildVisu()
         if (visualisationNode)
         {
             objectSep->addChild(visualisationNode);
-        }
-    }
-
-    obstaclesSep->removeAllChildren();
-
-    if (obstacles.size() > 0)
-    {
-        for (const auto & obstacle : obstacles)
-        {
-            SoNode* visualisationNode = CoinVisualizationFactory::getCoinVisualization(obstacle, colModel);
-
-            if (visualisationNode)
-            {
-                obstaclesSep->addChild(visualisationNode);
-            }
         }
     }
 
@@ -474,16 +441,6 @@ void GraspPlannerIKui::reachVisu()
         {
             reachabilitySep->addChild(visualisationNode);
         }
-
-        /*
-            VirtualRobot::CoinVisualizationPtr visualization = reachSpace->getVisualization<CoinVisualization>();
-            SoNode* visualisationNode = NULL;
-            if (visualization)
-                visualisationNode = visualization->getCoinVisualization();
-
-            if (visualisationNode)
-                reachabilitySep->addChild(visualisationNode);
-        */
     }
 }
 
@@ -501,9 +458,6 @@ void GraspPlannerIKui::planIKRRT()
     useCollision = UI.checkBoxColCheckIK->isChecked();
     useReachability = UI.checkBoxReachabilitySpaceIK->isChecked();
     useOnlyPosition = UI.checkBoxOnlyPosition->isChecked();
-    std::cout << "Use colllisions: " << useCollision << std::endl;
-    std::cout << "Use Reachability: " << useReachability << std::endl;
-    std::cout << "Use Only position: " << useOnlyPosition << std::endl;
 
     cspaceColStepSize = (float)UI.doubleSpinBoxCSpaceColStepSize->value();
     cspacePathStepSize = (float)UI.doubleSpinBoxCSpacePathStepSize->value();
@@ -512,11 +466,10 @@ void GraspPlannerIKui::planIKRRT()
     ikJacobianStepSize = (float)UI.doubleSpinBoxIKJacobianStepSize->value();
     ikJacobianMaxLoops = (int)UI.doubleSpinBoxIKJacobianMaxLoops->value();
 
-    std::cout << "IK Solver Max error -> Position: " << ikMaxErrorPos << " | Ori: " << ikMaxErrorOri << std::endl;
-    std::cout << "IK Solver Jacobian -> Step size: " << ikJacobianStepSize << " | Max loops: " << ikJacobianMaxLoops << std::endl;
-    std::cout << "Cspace -> Col step size: " << cspaceColStepSize << " | path step size: " << cspacePathStepSize << std::endl;
-    std::cout << "----------------------------------------------\n";
+    printInfo();
 
+    // std::vector<double> query = {xyz.x(), xyz.y(), xyz.z(), rpy.x(), rpy.y(), rpy.z()};
+    // executeQueryGrasp(query);
     // executeGrasp(xyz, rpy);
     executeGrasp(targetPose);
 

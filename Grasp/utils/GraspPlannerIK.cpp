@@ -5,7 +5,6 @@
 #include <VirtualRobot/XML/SceneIO.h>
 #include <VirtualRobot/VirtualRobotException.h>
 #include <VirtualRobot/IK/GenericIKSolver.h>
-#include <VirtualRobot/CollisionDetection/CDManager.h>
 
 #include <MotionPlanning/Planner/GraspIkRrt.h>
 #include <MotionPlanning/CSpace/CSpaceSampled.h>
@@ -23,32 +22,37 @@ inline void poseError(const Eigen::Matrix4f& currentPose, const Eigen::Matrix4f&
 
 /// INIT
 
-GraspPlannerIK::GraspPlannerIK(const std::string& sceneFile, const std::string& reachFile, const std::string& rns,
-                const std::string& eef, const std::string& colModel, const std::string& colModelRob)
+GraspPlannerIK::GraspPlannerIK(const GraspPlannerIKParams& params)
+    : params(params)
 {
-
-    this->eefName = eef;
-    this->rnsName = rns;
-    this->colModelName = colModel;
-    this->colModelNameRob = colModelRob;
-
-    useCollision = true;
-    useReachability = false;
     useOnlyPosition = false;
+    useReachability = false;
+    useCollision = true;
 
-    loadScene(sceneFile);
+    ikMaxErrorPos = params.max_error_pos;
+    ikMaxErrorOri = params.max_error_ori;
 
-    loadReach(reachFile);
+    ikJacobianStepSize = params.jacobian_step_size;
+    ikJacobianMaxLoops = params.jacobian_max_loops;
+
+    cspacePathStepSize = params.cspace_path_step_size;
+    cspaceColStepSize = params.cspace_col_step_size;
+
+    loadScene();
+
+    loadReach();
 
     /// Set quality measure
 
     qualityMeasure.reset(new GraspStudio::GraspQualityMeasureWrenchSpace(object));
     qualityMeasure->calculateObjectProperties();
+
+    printInfo();
 }
 
-void GraspPlannerIK::loadScene(const std::string& sceneFile)
+void GraspPlannerIK::loadScene()
 {
-    VirtualRobot::ScenePtr scene = VirtualRobot::SceneIO::loadScene(sceneFile);
+    VirtualRobot::ScenePtr scene = VirtualRobot::SceneIO::loadScene(params.scene);
 
     if (!scene)
     {
@@ -66,6 +70,27 @@ void GraspPlannerIK::loadScene(const std::string& sceneFile)
 
     robot = robots[0];
 
+    rns = robot->getRobotNodeSet(params.rns);
+
+    if (!rns)
+    {
+        VR_ERROR << "Need a correct robot node set in robot" << std::endl;
+        exit(1);
+    }
+
+    rns->getJointValues(startConfig);
+    
+    /// Load EEF
+
+    eef = robot->getEndEffector(params.eef);
+
+    if (!eef)
+    {
+        VR_ERROR << "Need a correct EEF in robot" << std::endl;
+        exit(1);
+    }
+
+    /// Load Object
 
     std::vector< VirtualRobot::ManipulationObjectPtr > objects = scene->getManipulationObjects();
 
@@ -76,42 +101,29 @@ void GraspPlannerIK::loadScene(const std::string& sceneFile)
     }
 
     object = objects[0];
-    VR_INFO << "using first manipulation object: " << object->getName() << std::endl;
 
+    /// Add collisions
 
-    obstacles = scene->getObstacles();
+    cdm.reset(new VirtualRobot::CDManager());
+    cdm->addCollisionModel(object);
     
-    eef = robot->getEndEffector(eefName);
-
-    if (!eef)
-    {
-        VR_ERROR << "Need a correct EEF in robot" << std::endl;
-        exit(1);
+    for (auto& r_col : params.robot_cols) {
+        VirtualRobot::SceneObjectSetPtr col = robot->getRobotNodeSet(r_col);
+        cdm->addCollisionModel(col);
     }
-
-    // graspSet = object->getGraspSet(eef);
-    graspSet.reset(new VirtualRobot::GraspSet(eefName, robot->getType(), eefName));
-
-    rns = robot->getRobotNodeSet(rnsName);
-
-    if (!rns)
-    {
-        VR_ERROR << "Need a correct robot node set in robot" << std::endl;
-        exit(1);
-    }
-
-    rns->getJointValues(startConfig);
+    
 }
 
-void GraspPlannerIK::loadReach(const std::string& reachFile)
+void GraspPlannerIK::loadReach()
 {
-    std::cout << "Loading Reachability from " << reachFile << std::endl;
+    if (params.reachability == "") return;
+
     reachSpace.reset(new VirtualRobot::Reachability(robot));
 
     try
     {
-        reachSpace->load(reachFile);
-        
+        reachSpace->load(params.reachability);
+        useReachability = true;
     }
     catch (VirtualRobot::VirtualRobotException& e)
     {
@@ -120,14 +132,28 @@ void GraspPlannerIK::loadReach(const std::string& reachFile)
         reachSpace.reset();
         return;
     }
-
-    reachSpace->print();
 }
 
 /// Public
 
 Grasp::GraspResult GraspPlannerIK::executeQueryGrasp(const std::vector<double>& query) {
-    return Grasp::GraspResult();
+    if (query.size() != 6) {
+        std::cout << "Error: query needs 6 values (x,y,z,r,p,y)" << std::endl;
+        return Grasp::GraspResult();
+    }
+
+    float x[6];
+    x[0] = query[0];
+    x[1] = query[1];
+    x[2] = query[2];
+    x[3] = query[3];
+    x[4] = query[4];
+    x[5] = query[5];
+
+    Eigen::Matrix4f targetPose;
+    VirtualRobot::MathTools::posrpy2eigen4f(x, targetPose);
+
+    return executeGrasp(targetPose);
 }
 
 Grasp::GraspResult GraspPlannerIK::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy) {
@@ -157,12 +183,6 @@ Grasp::GraspResult GraspPlannerIK::executeGrasp(const Eigen::Matrix4f& targetPos
         birrtSolOptimized->interpolate(1, finalPos);
         robot->setJointValues(rns, finalPos);
 
-        /*float posError, oriError;
-        poseError(eef->getTcp()->getGlobalPose(), targetPose, posError, oriError);
-
-        std::cout << "BiRRT Error pos: " << posError << std::endl;
-        std::cout << "BiRRT Error ori: " << oriError << std::endl;*/
-
         /// 4. Measure grasp quality
         if (eef->getCollisionChecker()->checkCollision(object->getCollisionModel(), eef->createSceneObjectSet())) {
             std::cout << "Error: EEF Collision detected!" << std::endl;
@@ -185,6 +205,24 @@ Grasp::GraspResult GraspPlannerIK::executeGrasp(const Eigen::Matrix4f& targetPos
     return Grasp::GraspResult();
 }
 
+void GraspPlannerIK::printInfo() {
+    std::cout << "---------------------CONFIGURATION------------------------\n";
+    std::cout << "Scene: " << params.scene << std::endl;
+    std::cout << "Robot: " << robot->getName() << std::endl;
+    std::cout << "EEF: " << eef->getName() << std::endl;
+    std::cout << "Kinematic chain: " << rns->getName() << std::endl;
+    std::cout << "Manipulation Object: " << object->getName() << std::endl;
+
+    std::cout << "Use colllisions: " << useCollision << std::endl;
+    std::cout << "Use Reachability: " << useReachability << ", FILE " << params.reachability << std::endl;
+    std::cout << "Use Only position: " << useOnlyPosition << std::endl;
+
+    std::cout << "IK Solver Max error -> Position: " << ikMaxErrorPos << " | Ori: " << ikMaxErrorOri << std::endl;
+    std::cout << "IK Solver Jacobian -> Step size: " << ikJacobianStepSize << " | Max loops: " << ikJacobianMaxLoops << std::endl;
+    std::cout << "Cspace -> Path step size: " << cspacePathStepSize << " | Col step size: " << cspaceColStepSize << std::endl;
+    std::cout << "----------------------------------------------\n";
+}
+
 /// Grasping
 
 bool GraspPlannerIK::plan(Eigen::Matrix4f targetPose) {
@@ -197,31 +235,15 @@ bool GraspPlannerIK::plan(Eigen::Matrix4f targetPose) {
     }
 
     // set collision detection
-    VirtualRobot::CDManagerPtr cdm;
-    cdm.reset(new VirtualRobot::CDManager());
+    VirtualRobot::CDManagerPtr _cdm;
     
     if (useCollision) {
-        VirtualRobot::SceneObjectSetPtr colModelSet = robot->getRobotNodeSet(colModelName);
-        VirtualRobot::SceneObjectSetPtr colModelSet2;
-
-        if (!colModelNameRob.empty())
-        {
-            colModelSet2 = robot->getRobotNodeSet(colModelNameRob);
-        }
-
-        if (colModelSet)
-        {
-            cdm->addCollisionModel(object);
-            cdm->addCollisionModel(colModelSet);
-
-            if (colModelSet2)
-            {
-                cdm->addCollisionModel(colModelSet2);
-            }
-
-            ikSolver->collisionDetection(cdm);
-        }
+        _cdm = cdm;
+    } else {
+        _cdm.reset(new VirtualRobot::CDManager());
     }
+
+    ikSolver->collisionDetection(_cdm);
     
     // set params
     ikSolver->setMaximumError(ikMaxErrorPos, ikMaxErrorOri);
@@ -249,7 +271,7 @@ bool GraspPlannerIK::plan(Eigen::Matrix4f targetPose) {
     reset();
 
     /// 4. BiRRT setup
-    cspace.reset(new Saba::CSpaceSampled(robot, cdm, rns, 1000000));
+    cspace.reset(new Saba::CSpaceSampled(robot, _cdm, rns, 1000000));
     cspace->setSamplingSize(cspacePathStepSize);
     cspace->setSamplingSizeDCD(cspaceColStepSize);
 

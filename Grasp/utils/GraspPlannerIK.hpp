@@ -12,6 +12,7 @@
 #include <VirtualRobot/Workspace/Reachability.h>
 #include <VirtualRobot/Grasping/Grasp.h>
 #include <VirtualRobot/Grasping/GraspSet.h>
+#include <VirtualRobot/CollisionDetection/CDManager.h>
 
 #include <MotionPlanning/Saba.h>
 #include <MotionPlanning/CSpace/CSpacePath.h>
@@ -21,10 +22,11 @@
 #include "../include/Grasp/GraspExecutor.hpp"
 #include "../include/Grasp/GraspResult.hpp"
 
+#include "GraspPlannerIKParams.hpp"
+
 class GraspPlannerIK : public Grasp::GraspExecutor {
 public:
-    GraspPlannerIK(const std::string& sceneFile, const std::string& reachFile, const std::string& rns,
-                const std::string& eef, const std::string& colModel, const std::string& colModelRob);
+    GraspPlannerIK(const GraspPlannerIKParams& params);
 
 
     Grasp::GraspResult executeQueryGrasp(const std::vector<double>& query);
@@ -33,12 +35,14 @@ public:
 
     Grasp::GraspResult executeGrasp(const Eigen::Matrix4f& targetPose);
 
+    void printInfo();
+
 protected:
     /// INIT
 
-    void loadScene(const std::string& sceneFile);
+    void loadScene();
 
-    void loadReach(const std::string& reachFile);
+    void loadReach();
 
     /// EEF
 
@@ -60,6 +64,7 @@ protected:
     void reset();
 
     /// Attributes
+    GraspPlannerIKParams params;
 
     VirtualRobot::RobotPtr robot;
     VirtualRobot::RobotNodeSetPtr rns;
@@ -68,16 +73,11 @@ protected:
     VirtualRobot::EndEffectorPtr eef;
     VirtualRobot::EndEffector::ContactInfoVector contacts;
 
-    std::vector< VirtualRobot::ObstaclePtr > obstacles;
-    VirtualRobot::ManipulationObjectPtr object;
-
     VirtualRobot::GraspSetPtr graspSet;
     GraspStudio::GraspQualityMeasureWrenchSpacePtr qualityMeasure;
 
-    std::string eefName;
-    std::string rnsName;
-    std::string colModelName;
-    std::string colModelNameRob;
+    VirtualRobot::ManipulationObjectPtr object;
+    VirtualRobot::CDManagerPtr cdm;
 
     /// Common planner params
     bool useCollision;
@@ -86,12 +86,12 @@ protected:
     bool useReachability, useOnlyPosition;
     VirtualRobot::ReachabilityPtr reachSpace;
 
-    float ikMaxErrorPos = 5.0f, ikMaxErrorOri = 0.04f; // mm, rads
-    float ikJacobianStepSize = 0.3f;
-    int ikJacobianMaxLoops = 100, ikMaxLoops = 50;
+    float ikMaxErrorPos, ikMaxErrorOri; // mm, rads
+    float ikJacobianStepSize;
+    int ikJacobianMaxLoops, ikMaxLoops = 50;
 
     /// BiRRT params
-    float cspacePathStepSize = 0.04f, cspaceColStepSize = 0.08f;
+    float cspacePathStepSize, cspaceColStepSize;
     int optOptimzeStep = 100;
     Saba::CSpaceSampledPtr cspace;
     Saba::CSpacePathPtr birrtSolution;
