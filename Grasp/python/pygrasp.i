@@ -3,11 +3,13 @@
 %{
     #include <Grasp/GraspVars.hpp>
     #include <Grasp/GraspPlannerParams.hpp>
+    #include <Grasp/GraspPlannerIKParams.hpp>
     #include <Grasp/GraspResult.hpp>
 
     #include <Grasp/GraspExecutor.hpp>
     #include <Grasp/TestGramacyExecutor.hpp>
     #include <Grasp/GraspPlanner.hpp>
+    #include <Grasp/GraspPlannerIK.hpp>
 %}
 
 %include "std_string.i"
@@ -65,12 +67,35 @@ namespace Grasp {
         );
     };
 
+    struct GraspPlannerIKParams {
+        std::string scene;
+        std::string reachability;
+        std::string eef;
+        std::string rns;
+        std::vector<std::string> robot_cols;
+
+        float max_error_pos, max_error_ori;
+        float jacobian_step_size;
+        int jacobian_max_loops;
+        float cspace_path_step_size, cspace_col_step_size;
+
+        GraspPlannerIKParams() {}
+    };
+
     bool load_GraspPlannerParams_json(const std::string& json, GraspPlannerParams& params);
+    bool load_GraspPlannerIKParams(const std::string& json, GraspPlannerIKParams& params);
 
     class GraspPlanner : public GraspExecutor {
     public:
         GraspPlanner(const GraspPlannerParams& params);
         GraspPlanner(const std::string& json_file);
+
+        GraspResult executeQueryGrasp(const std::vector<double>& query);
+    };
+
+    class GraspPlannerIK : public GraspExecutor {
+    public:
+        GraspPlannerIK(const GraspPlannerIKParams& params);
 
         GraspResult executeQueryGrasp(const std::vector<double>& query);
     };
