@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
 
     if (argc < 2 || argc > 3) {
         std::cout   << "Error: incorrect number of parameters!!!\n"
-                    << "Execution: ./gras_visualization <grasp_params_file_path> [<res_file>]\n";
+                    << "Execution: ./grasp_visualization <grasp_params_file_path> [<res_file>]\n";
         exit(1);
     }
 

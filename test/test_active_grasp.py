@@ -21,7 +21,7 @@ def test_gramacy() -> ActiveGrasping:
 
     return "Gramacy", opt
 
-def test_simox() -> ActiveGrasping:
+def test_GraspPlanner() -> ActiveGrasping:
     grasp_params = GraspPlannerParams()
     is_valid = load_GraspPlannerParams_json("config/grasp/grasp_params.json", grasp_params) # or from file
     if not is_valid:
@@ -37,7 +37,21 @@ def test_simox() -> ActiveGrasping:
 
     opt = ActiveGrasping(opt_params, {})
 
-    return "SIMOX", opt
+    return "GraspPlanner", opt
+
+def test_GraspPlannerIK() -> ActiveGrasping:
+    grasp_params = GraspPlannerIKParams()
+    is_valid = load_GraspPlannerIKParams("config/scenes/test.json", grasp_params)
+    if not is_valid:
+        print("Error: parsing grasp planner ik params")
+        exit(1)
+
+    executor = GraspPlannerIK(grasp_params)
+    opt_params = load_ActiveGraspingParams("config/graspIK/gopt_xy.json", executor)
+
+    opt = ActiveGrasping(opt_params, {})
+
+    return "GraspPlannerIK", opt
 
 def exec_opt(name: str, opt: ActiveGrasping):
     print("---TEST " + name + "---")
@@ -49,17 +63,20 @@ def exec_opt(name: str, opt: ActiveGrasping):
     print("Error:", error)
 
 if __name__ == "__main__":
-    if len(sys.argv) == 2: # 0: gramacy, 1: simox, 2: all
+    if len(sys.argv) == 2: # 0: gramacy, 1: grasp planner, 2: grasp planner ik, 3: all
         test = int(sys.argv[1])
     else:
-        test = 2
+        test = 3
     
     opts = []
-    if test == 0 or test == 2:
+    if test == 0 or test == 3:
         opts.append(test_gramacy())
     
-    if test == 1 or test == 2:
-        opts.append(test_simox())
+    if test == 1 or test == 3:
+        opts.append(test_GraspPlanner())
+    
+    if test == 2 or test == 3:
+        opts.append(test_GraspPlannerIK())
     
     for opt in opts:
         exec_opt(opt[0], opt[1])

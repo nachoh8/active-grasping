@@ -4,13 +4,14 @@ import json
 import sigopt
 
 from pygrasp.pygrasp import *
+from pygrasp.gutils import construct_grasp_executor_int
 
 from active_grasping.active_grasping_opt import ActiveGrasping
 from active_grasping.active_grasping_params import *
 from active_grasping.datalog import DataLog
 from active_grasping.sigopt_executor import SigOptExecutor
 
-def sigopt_executor(model: ActiveGrasping, run: sigopt.run_context.RunContext):
+def sigopt_executor_grasp(model: ActiveGrasping, run: sigopt.run_context.RunContext):
     run.log_model("Active Grasping optimization")
     
     params = run.params
@@ -26,40 +27,42 @@ def sigopt_executor(model: ActiveGrasping, run: sigopt.run_context.RunContext):
 
     run.log_metric("outcome", res)
 
+def sigopt_executor_gramacy(model: ActiveGrasping, run: sigopt.run_context.RunContext):
+    run.log_model("Test Gramacy optimization")
+    
+    query = [run.params.x1, run.params.x2]
+    res = -model.evaluateSample(query)
+    
+    print("Query:", query, "-> Outcome:", res)
+
+    run.log_metric("outcome", res)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Active Grasping with bayesian optimization')
     parser.add_argument("-fgopt", type=str, help="active grasping params file", metavar='<active_grasp_params_file>', required=True)
-    parser.add_argument("-fgrasp", type=str, help="grasp planner params file", metavar='<grasp_planner_params_file>', required=True)
-    parser.add_argument("-fbopt", type=str, help="bayesopt params file", metavar='<bayesopt_params_file>', default="")
-    parser.add_argument("-fsopt", type=str, help="sigopt params file", metavar='<sigopt_params_file>', default="")
+    parser.add_argument("-fgrasp", nargs=2, help="grasp executor params", metavar=('<executor>', '<params_file>'), required=True)
+    parser.add_argument("-fopt", nargs=2, help="optimizer params", metavar=('<optimizer>', '<params_file>'), required=True)
     parser.add_argument("-flog", type=str, help="log file", metavar='<log_file>', default="")
 
     args = parser.parse_args()
     fgopt = args.fgopt
-    fbopt = args.fbopt
-    fgrasp = args.fgrasp
-    fsopt = args.fsopt
+    fgrasp = [int(args.fgrasp[0]), args.fgrasp[1]]
+    fopt = [int(args.fopt[0]), args.fopt[1]]
     flog = args.flog
 
-    exec_bayes = True
-    if fbopt:
-        f = open(fbopt, 'r')
-        exec_bayes = True
-    elif fsopt:
-        f = open(fsopt, 'r')
-        exec_bayes = False
-    else:
-        print("Error: you must provide bayesopt params (-fbopt) or sigopt params(-fsopt)")
+    if fgrasp[0] > 2:
+        print("Error: executor must be {0: TestGramacyExecutor, 1: GraspPlanner, 2: GraspPlannerIK}")
         exit(-1)
 
+    if fopt[0] > 1:
+        print("Error: optimizer must be {0: BayesOpt, 1: SigOpt}")
+        exit(-1)
+
+    exec_bayes = fopt[0] == 0
+    f = open(fopt[1], 'r')
     opt_params = json.load(f)
 
-    grasp_params = GraspPlannerParams()
-    if not load_GraspPlannerParams_json(fgrasp, grasp_params):
-        print("Error: parsing grasp planner params")
-        exit(1)
-    
-    executor = GraspPlanner(grasp_params)
+    executor = construct_grasp_executor_int(int(fgrasp[0]), fgrasp[1])
 
     gopt_params = load_ActiveGraspingParams(fgopt, executor)
 
@@ -80,7 +83,8 @@ if __name__ == "__main__":
         print("\tOutcome:", quality)
     else:
         print("USING SIGOPT")
-        sopt = SigOptExecutor(opt_params, model, sigopt_executor)
+        func = sigopt_executor_gramacy if fgrasp[0] == 0 else sigopt_executor_grasp
+        sopt = SigOptExecutor(opt_params, model, func)
         sopt.execute()
 
     if logger:

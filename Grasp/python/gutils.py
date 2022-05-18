@@ -1,6 +1,17 @@
 from .pygrasp import *
 
-def construct_grasp_executor(gtype: type, fgrasp: str = "") -> GraspExecutor:
+def construct_grasp_executor_int(gtype: int, fgrasp: str = "") -> GraspExecutor:
+    t = None
+    if gtype == 0:
+        t = TestGramacyExecutor
+    elif gtype == 1:
+        t = GraspPlanner
+    elif gtype == 2:
+        t = GraspPlannerIK
+    
+    return construct_grasp_executor_type(t, fgrasp)
+
+def construct_grasp_executor_type(gtype: type, fgrasp: str = "") -> GraspExecutor:
     if gtype == TestGramacyExecutor:
         return TestGramacyExecutor()
     elif gtype == GraspPlanner:
@@ -9,6 +20,12 @@ def construct_grasp_executor(gtype: type, fgrasp: str = "") -> GraspExecutor:
             print("Error: parsing grasp planner params")
             return None
         return GraspPlanner(grasp_params)
+    elif gtype == GraspPlannerIK:
+        grasp_params = GraspPlannerIKParams()
+        if not load_GraspPlannerIKParams(fgrasp, grasp_params):
+            print("Error: parsing grasp planner ik params")
+            return None
+        return GraspPlannerIK(grasp_params)
     else:
         return None
 
