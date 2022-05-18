@@ -10,6 +10,8 @@
 #define CSPACE_PATH_STEP_SIZE_DEFAULT 0.04f
 #define CSPACE_COL_STEP_SIZE_DEFAULT 0.08f
 
+namespace Grasp {
+
 struct GraspPlannerIKParams {
     std::string scene;
     std::string reachability;
@@ -26,3 +28,5 @@ struct GraspPlannerIKParams {
 };
 
 bool load_GraspPlannerIKParams(const std::string& json, GraspPlannerIKParams& params);
+
+}

@@ -1,10 +1,12 @@
-#include "GraspPlannerIKParams.hpp"
+#include "../include/Grasp/GraspPlannerIKParams.hpp"
 
 #include <iostream>
 
 #include <boost/property_tree/json_parser.hpp>
 
 namespace pt = boost::property_tree;
+
+namespace Grasp {
 
 bool load_GraspPlannerIKParams(const std::string& json, GraspPlannerIKParams& params) {
     pt::ptree root;
@@ -40,3 +42,4 @@ bool load_GraspPlannerIKParams(const std::string& json, GraspPlannerIKParams& pa
     return true;
 }
 
+}

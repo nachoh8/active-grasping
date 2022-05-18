@@ -1,4 +1,4 @@
-#include "GraspPlannerIK.hpp"
+#include "../include/Grasp/GraspPlannerIK.hpp"
 
 #include <vector>
 
@@ -19,6 +19,7 @@ inline void poseError(const Eigen::Matrix4f& currentPose, const Eigen::Matrix4f&
     oriError = fabs(180.0f - (d.w + 1.0f) * 90.0f);
 }
 
+namespace Grasp {
 
 /// INIT
 
@@ -69,6 +70,7 @@ void GraspPlannerIK::loadScene()
     }
 
     robot = robots[0];
+    robot->setThreadsafe(false);
 
     rns = robot->getRobotNodeSet(params.rns);
 
@@ -102,10 +104,21 @@ void GraspPlannerIK::loadScene()
 
     object = objects[0];
 
+    /// Load Environment
+    obstacles = scene->getObstacles();
+    std::vector<VirtualRobot::SceneObjectSetPtr> soss = scene->getSceneObjectSets();
+    if (soss.size() > 1) {
+        VR_ERROR << "Only 1 objet set is allowed" << std::endl;
+        exit(1);
+    }
+
     /// Add collisions
 
     cdm.reset(new VirtualRobot::CDManager());
     cdm->addCollisionModel(object);
+    if (soss.size() == 1) {
+        cdm->addCollisionModel(soss[0]);
+    }
     
     for (auto& r_col : params.robot_cols) {
         VirtualRobot::SceneObjectSetPtr col = robot->getRobotNodeSet(r_col);
@@ -136,10 +149,10 @@ void GraspPlannerIK::loadReach()
 
 /// Public
 
-Grasp::GraspResult GraspPlannerIK::executeQueryGrasp(const std::vector<double>& query) {
+GraspResult GraspPlannerIK::executeQueryGrasp(const std::vector<double>& query) {
     if (query.size() != 6) {
         std::cout << "Error: query needs 6 values (x,y,z,r,p,y)" << std::endl;
-        return Grasp::GraspResult();
+        return GraspResult();
     }
 
     float x[6];
@@ -156,7 +169,7 @@ Grasp::GraspResult GraspPlannerIK::executeQueryGrasp(const std::vector<double>& 
     return executeGrasp(targetPose);
 }
 
-Grasp::GraspResult GraspPlannerIK::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy) {
+GraspResult GraspPlannerIK::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy) {
     /// pos, rpy -> pose matrix
     float x[6];
     x[0] = xyz.x();
@@ -172,7 +185,7 @@ Grasp::GraspResult GraspPlannerIK::executeGrasp(const Eigen::Vector3f& xyz, cons
     return executeGrasp(targetPose);
 }
 
-Grasp::GraspResult GraspPlannerIK::executeGrasp(const Eigen::Matrix4f& targetPose) {
+GraspResult GraspPlannerIK::executeGrasp(const Eigen::Matrix4f& targetPose) {
     /// 1. To start config
     reset();
 
@@ -187,11 +200,11 @@ Grasp::GraspResult GraspPlannerIK::executeGrasp(const Eigen::Matrix4f& targetPos
         if (eef->getCollisionChecker()->checkCollision(object->getCollisionModel(), eef->createSceneObjectSet())) {
             std::cout << "Error: EEF Collision detected!" << std::endl;
             reset();
-            return Grasp::GraspResult();
+            return GraspResult();
         }
 
         closeEEF();
-        Grasp::GraspResult result = graspQuality();
+        GraspResult result = graspQuality();
 
         std::cout << "Grasp Quality (epsilon measure):" << result.measure << std::endl;
         std::cout << "Volume measure:" << result.volume << std::endl;
@@ -202,7 +215,7 @@ Grasp::GraspResult GraspPlannerIK::executeGrasp(const Eigen::Matrix4f& targetPos
 
     reset();
 
-    return Grasp::GraspResult();
+    return GraspResult();
 }
 
 void GraspPlannerIK::printInfo() {
@@ -225,7 +238,7 @@ void GraspPlannerIK::printInfo() {
 
 /// Grasping
 
-bool GraspPlannerIK::plan(Eigen::Matrix4f targetPose) {
+bool GraspPlannerIK::plan(const Eigen::Matrix4f& targetPose) {
     /// 1. IKSolver setup
     VirtualRobot::GenericIKSolverPtr ikSolver(new VirtualRobot::GenericIKSolver(rns));
 
@@ -308,7 +321,7 @@ void GraspPlannerIK::openEEF()
     eef->openActors();
 }
 
-Grasp::GraspResult GraspPlannerIK::graspQuality() {
+GraspResult GraspPlannerIK::graspQuality() {
     if (contacts.size() > 0) {
         qualityMeasure->setContactPoints(contacts);
 
@@ -316,12 +329,12 @@ Grasp::GraspResult GraspPlannerIK::graspQuality() {
         float epsilon = qualityMeasure->getGraspQuality();
         bool fc = qualityMeasure->isGraspForceClosure();
 
-        return Grasp::GraspResult(epsilon, volume, fc);;
+        return GraspResult(epsilon, volume, fc);;
     }
 
     std::cout << "GraspQuality: not contacts!!!\n";
 
-    return Grasp::GraspResult();
+    return GraspResult();
 }
 
 /// OTHERS
@@ -329,4 +342,6 @@ Grasp::GraspResult GraspPlannerIK::graspQuality() {
 void GraspPlannerIK::reset() {
     openEEF();
     robot->setJointValues(rns, startConfig);
+}
+
 }

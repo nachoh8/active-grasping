@@ -19,21 +19,23 @@
 
 #include <GraspPlanning/GraspQuality/GraspQualityMeasureWrenchSpace.h>
 
-#include "../include/Grasp/GraspExecutor.hpp"
-#include "../include/Grasp/GraspResult.hpp"
+#include "GraspExecutor.hpp"
+#include "GraspResult.hpp"
 
 #include "GraspPlannerIKParams.hpp"
 
-class GraspPlannerIK : public Grasp::GraspExecutor {
+namespace Grasp {
+
+class GraspPlannerIK : public GraspExecutor {
 public:
     GraspPlannerIK(const GraspPlannerIKParams& params);
 
 
-    Grasp::GraspResult executeQueryGrasp(const std::vector<double>& query);
+    GraspResult executeQueryGrasp(const std::vector<double>& query);
 
-    Grasp::GraspResult executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy);
+    GraspResult executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy);
 
-    Grasp::GraspResult executeGrasp(const Eigen::Matrix4f& targetPose);
+    GraspResult executeGrasp(const Eigen::Matrix4f& targetPose);
 
     void printInfo();
 
@@ -46,7 +48,7 @@ protected:
 
     /// EEF
 
-    bool plan(Eigen::Matrix4f targetPose);
+    bool plan(const Eigen::Matrix4f& targetPose);
 
     void closeEEF();
 
@@ -57,7 +59,7 @@ protected:
      * 
      * @return GraspResult
      */
-    Grasp::GraspResult graspQuality();
+    GraspResult graspQuality();
 
     /// OTHERS
 
@@ -77,6 +79,7 @@ protected:
     GraspStudio::GraspQualityMeasureWrenchSpacePtr qualityMeasure;
 
     VirtualRobot::ManipulationObjectPtr object;
+    std::vector<VirtualRobot::ObstaclePtr> obstacles;
     VirtualRobot::CDManagerPtr cdm;
 
     /// Common planner params
@@ -97,3 +100,5 @@ protected:
     Saba::CSpacePathPtr birrtSolution;
     Saba::CSpacePathPtr birrtSolOptimized;
 };
+
+}

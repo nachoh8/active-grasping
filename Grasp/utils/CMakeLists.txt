@@ -22,16 +22,12 @@ SET( GRASP_UI_SRCS
 )
 
 SET( GRASP_IK_INCS 
-  ${CMAKE_CURRENT_SOURCE_DIR}/GraspPlannerIK.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/GraspPlannerIKui.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/GraspPlannerIKParams.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/GraspPlannerIKWindow.h
 )
   
 SET( GRASP_IK_SRCS 
-  ${CMAKE_CURRENT_SOURCE_DIR}/IKRRTDemo.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/GraspPlannerIK.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/GraspPlannerIKui.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/GraspPlannerIKParams.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/grasp_ik_visualization.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/GraspPlannerIKWindow.cpp
 )
 
 ## EXTERNAL INCLUDE ##
@@ -53,15 +49,15 @@ set(GUI_UIS_PLANNER
 )
 
 set(GUI_MOC_HDRS_PLANNER_IK
-    ${CMAKE_CURRENT_SOURCE_DIR}/GraspPlannerIKui.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/GraspPlannerIKWindow.h
 )
 
 set(GUI_UIS_PLANNER_IK
-    ${CMAKE_CURRENT_SOURCE_DIR}/IKRRT.ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/GraspPlannerIK.ui
 )
 
 SimoxQtApplication(grasp_visualization "${GRASP_UI_SRCS}" "${GRASP_UI_INCS}" "${GUI_MOC_HDRS_PLANNER}" "${GUI_UIS_PLANNER}")
 TARGET_LINK_LIBRARIES(grasp_visualization PRIVATE Grasp)
 
-SimoxQtApplication(test_planner "${GRASP_IK_SRCS}" "${GRASP_IK_INCS}" "${GUI_MOC_HDRS_PLANNER_IK}" "${GUI_UIS_PLANNER_IK}")
-TARGET_LINK_LIBRARIES(test_planner PRIVATE Grasp)
+SimoxQtApplication(grasp_ik_visualization "${GRASP_IK_SRCS}" "${GRASP_IK_INCS}" "${GUI_MOC_HDRS_PLANNER_IK}" "${GUI_UIS_PLANNER_IK}")
+TARGET_LINK_LIBRARIES(grasp_ik_visualization PRIVATE Grasp)

@@ -16,20 +16,28 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-#include "GraspPlannerIKui.h"
-#include "GraspPlannerIKParams.hpp"
+#include "../include/Grasp/GraspPlannerIKParams.hpp"
+#include "GraspPlannerIKWindow.h"
 
 int main(int argc, char* argv[])
 {
-    VirtualRobot::init(argc, argv, "IK-RRT Demo");
-    std::cout << " --- START --- " << std::endl;
-
-    GraspPlannerIKParams params;
-    if (!load_GraspPlannerIKParams("/home/nacho/ActiveGrasping/active-grasping/config/scenes/test.json", params)) {
+    if (argc != 2) {
+        std::cout   << "Error: incorrect number of parameters!!!\n"
+                    << "Execution: ./grasp_ik_visualization <params_file>\n";
         exit(1);
     }
 
-    GraspPlannerIKui plannerUI(params);
+    std::string params_file = argv[1];
+
+    VirtualRobot::init(argc, argv, "GraspPlanner IK-BiRRT Demo");
+    std::cout << " --- START --- " << std::endl;
+
+    Grasp::GraspPlannerIKParams params;
+    if (!Grasp::load_GraspPlannerIKParams(params_file, params)) {
+        exit(1);
+    }
+
+    GraspPlannerIKWindow plannerUI(params);
 
     plannerUI.main();
 

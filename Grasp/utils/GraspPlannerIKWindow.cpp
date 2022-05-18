@@ -1,5 +1,5 @@
 
-#include "GraspPlannerIKui.h"
+#include "GraspPlannerIKWindow.h"
 #include "VirtualRobot/EndEffector/EndEffector.h"
 #include "VirtualRobot/Workspace/Reachability.h"
 #include "VirtualRobot/ManipulationObject.h"
@@ -39,7 +39,7 @@ float TIMER_MS = 30.0f;
 
 /// INIT
 
-GraspPlannerIKui::GraspPlannerIKui(const GraspPlannerIKParams& params)
+GraspPlannerIKWindow::GraspPlannerIKWindow(const GraspPlannerIKParams& params)
     : QMainWindow(nullptr), GraspPlannerIK(params)
 {
 
@@ -50,6 +50,7 @@ GraspPlannerIKui::GraspPlannerIKui(const GraspPlannerIKParams& params)
     graspsSep = new SoSeparator;
     reachableGraspsSep = new SoSeparator;
     reachabilitySep = new SoSeparator;
+    obstaclesSep = new SoSeparator;
     rrtSep = new SoSeparator;
 
     playbackMode = false;
@@ -59,6 +60,7 @@ GraspPlannerIKui::GraspPlannerIKui(const GraspPlannerIKParams& params)
     sceneSep->addChild(graspsSep);
     sceneSep->addChild(reachableGraspsSep);
     sceneSep->addChild(reachabilitySep);
+    sceneSep->addChild(obstaclesSep);
     sceneSep->addChild(rrtSep);
 
     setupUI();
@@ -93,7 +95,7 @@ GraspPlannerIKui::GraspPlannerIKui(const GraspPlannerIKParams& params)
 
 /// EEF
 
-void GraspPlannerIKui::closeEEF()
+void GraspPlannerIKWindow::closeEEF()
 {
     GraspPlannerIK::closeEEF();
 
@@ -101,7 +103,7 @@ void GraspPlannerIKui::closeEEF()
 
 }
 
-void GraspPlannerIKui::openEEF()
+void GraspPlannerIKWindow::openEEF()
 {
     GraspPlannerIK::openEEF();
 
@@ -109,7 +111,7 @@ void GraspPlannerIKui::openEEF()
 
 }
 
-void GraspPlannerIKui::closeEEFbtn()
+void GraspPlannerIKWindow::closeEEFbtn()
 {
     closeEEF();
 
@@ -120,22 +122,22 @@ void GraspPlannerIKui::closeEEFbtn()
     std::cout << "Force closure: " << (result.force_closure ? "yes" : "no") << std::endl;
 }
 
-void GraspPlannerIKui::openEEFbtn()
+void GraspPlannerIKWindow::openEEFbtn()
 {
     openEEF();
 }
 
 /// UI
 
-GraspPlannerIKui::~GraspPlannerIKui()
+GraspPlannerIKWindow::~GraspPlannerIKWindow()
 {
     sceneSep->unref();
 }
 
 
-void GraspPlannerIKui::timerCB(void* data, SoSensor* /*sensor*/)
+void GraspPlannerIKWindow::timerCB(void* data, SoSensor* /*sensor*/)
 {
-    GraspPlannerIKui* ikWindow = static_cast<GraspPlannerIKui*>(data);
+    GraspPlannerIKWindow* ikWindow = static_cast<GraspPlannerIKWindow*>(data);
     float x[6];
     x[0] = (float)ikWindow->UI.horizontalSliderX->value();
     x[1] = (float)ikWindow->UI.horizontalSliderY->value();
@@ -158,7 +160,7 @@ void GraspPlannerIKui::timerCB(void* data, SoSensor* /*sensor*/)
 }
 
 
-void GraspPlannerIKui::setupUI()
+void GraspPlannerIKWindow::setupUI()
 {
     UI.setupUi(this);
     viewer = new SoQtExaminerViewer(UI.frameViewer, "", TRUE, SoQtExaminerViewer::BUILD_POPUP);
@@ -199,7 +201,7 @@ void GraspPlannerIKui::setupUI()
 
 }
 
-QString GraspPlannerIKui::formatString(const char* s, float f)
+QString GraspPlannerIKWindow::formatString(const char* s, float f)
 {
     QString str1(s);
 
@@ -230,19 +232,19 @@ QString GraspPlannerIKui::formatString(const char* s, float f)
 }
 
 
-void GraspPlannerIKui::resetSceneryAll()
+void GraspPlannerIKWindow::resetSceneryAll()
 {
     GraspPlannerIK::reset();
 }
 
 
-void GraspPlannerIKui::closeEvent(QCloseEvent* event)
+void GraspPlannerIKWindow::closeEvent(QCloseEvent* event)
 {
     quit();
     QMainWindow::closeEvent(event);
 }
 
-void GraspPlannerIKui::buildVisu()
+void GraspPlannerIKWindow::buildVisu()
 {
     showCoordSystem();
 
@@ -274,6 +276,21 @@ void GraspPlannerIKui::buildVisu()
         }
     }
 
+    obstaclesSep->removeAllChildren();
+    
+    if (obstacles.size() > 0)
+    {
+        for (const auto & obstacle : obstacles)
+        {
+            SoNode* visualisationNode = CoinVisualizationFactory::getCoinVisualization(obstacle, colModel);
+
+            if (visualisationNode)
+            {
+                obstaclesSep->addChild(visualisationNode);
+            }
+        }
+    }
+
     buildGraspSetVisu();
 
     buildRRTVisu();
@@ -281,7 +298,7 @@ void GraspPlannerIKui::buildVisu()
     redraw();
 }
 
-int GraspPlannerIKui::main()
+int GraspPlannerIKWindow::main()
 {
     SoQt::show(this);
     SoQt::mainLoop();
@@ -289,7 +306,7 @@ int GraspPlannerIKui::main()
 }
 
 
-void GraspPlannerIKui::quit()
+void GraspPlannerIKWindow::quit()
 {
     std::cout << "IKRRTWindow: Closing" << std::endl;
     this->close();
@@ -297,7 +314,7 @@ void GraspPlannerIKui::quit()
 }
 
 
-void GraspPlannerIKui::updateObject(float x[6])
+void GraspPlannerIKWindow::updateObject(float x[6])
 {
     Eigen::Matrix4f m;
     MathTools::posrpy2eigen4f(x, m);
@@ -309,43 +326,43 @@ void GraspPlannerIKui::updateObject(float x[6])
 
 }
 
-void GraspPlannerIKui::sliderReleased_ObjectX()
+void GraspPlannerIKWindow::sliderReleased_ObjectX()
 {
     UI.horizontalSliderX->setValue(0);
     buildVisu();
 }
 
-void GraspPlannerIKui::sliderReleased_ObjectY()
+void GraspPlannerIKWindow::sliderReleased_ObjectY()
 {
     UI.horizontalSliderY->setValue(0);
     buildVisu();
 }
 
-void GraspPlannerIKui::sliderReleased_ObjectZ()
+void GraspPlannerIKWindow::sliderReleased_ObjectZ()
 {
     UI.horizontalSliderZ->setValue(0);
     buildVisu();
 }
 
-void GraspPlannerIKui::sliderReleased_ObjectA()
+void GraspPlannerIKWindow::sliderReleased_ObjectA()
 {
     UI.horizontalSliderRo->setValue(0);
     buildVisu();
 }
 
-void GraspPlannerIKui::sliderReleased_ObjectB()
+void GraspPlannerIKWindow::sliderReleased_ObjectB()
 {
     UI.horizontalSliderPi->setValue(0);
     buildVisu();
 }
 
-void GraspPlannerIKui::sliderReleased_ObjectG()
+void GraspPlannerIKWindow::sliderReleased_ObjectG()
 {
     UI.horizontalSliderYa->setValue(0);
     buildVisu();
 }
 
-void GraspPlannerIKui::showCoordSystem()
+void GraspPlannerIKWindow::showCoordSystem()
 {
     if (eef)
     {
@@ -365,7 +382,7 @@ void GraspPlannerIKui::showCoordSystem()
     }
 }
 
-void GraspPlannerIKui::buildRRTVisu()
+void GraspPlannerIKWindow::buildRRTVisu()
 {
     rrtSep->removeAllChildren();
 
@@ -391,7 +408,7 @@ void GraspPlannerIKui::buildRRTVisu()
     rrtSep->addChild(sol);
 }
 
-void GraspPlannerIKui::buildGraspSetVisu()
+void GraspPlannerIKWindow::buildGraspSetVisu()
 {
     graspsSep->removeAllChildren();
 
@@ -424,7 +441,7 @@ void GraspPlannerIKui::buildGraspSetVisu()
     }
 }
 
-void GraspPlannerIKui::reachVisu()
+void GraspPlannerIKWindow::reachVisu()
 {
     if (!robot || !reachSpace)
     {
@@ -444,7 +461,7 @@ void GraspPlannerIKui::reachVisu()
     }
 }
 
-void GraspPlannerIKui::planIKRRT()
+void GraspPlannerIKWindow::planIKRRT()
 {
     Eigen::Matrix4f targetPose = targetPoseBox->getGlobalPose();
     Eigen::Vector3f xyz = targetPose.block<3,1>(0,3);
@@ -476,12 +493,12 @@ void GraspPlannerIKui::planIKRRT()
     buildVisu();
 }
 
-void GraspPlannerIKui::colModel()
+void GraspPlannerIKWindow::colModel()
 {
     buildVisu();
 }
 
-void GraspPlannerIKui::sliderSolution(int pos)
+void GraspPlannerIKWindow::sliderSolution(int pos)
 {
     if (!birrtSolution)
     {
@@ -504,7 +521,7 @@ void GraspPlannerIKui::sliderSolution(int pos)
     redraw();
 }
 
-void GraspPlannerIKui::redraw()
+void GraspPlannerIKWindow::redraw()
 {
     viewer->scheduleRedraw();
     UI.frameViewer->update();
@@ -513,7 +530,7 @@ void GraspPlannerIKui::redraw()
     viewer->scheduleRedraw();
 }
 
-void GraspPlannerIKui::box2TCP()
+void GraspPlannerIKWindow::box2TCP()
 {
     if (!eef) return;
 

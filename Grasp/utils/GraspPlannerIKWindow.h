@@ -28,17 +28,19 @@
 
 #include <vector>
 
-#include "GraspPlannerIK.hpp"
-#include "GraspPlannerIKParams.hpp"
+#include "../include/Grasp/GraspPlannerIK.hpp"
+#include "../include/Grasp/GraspPlannerIKParams.hpp"
 
-#include "ui_IKRRT.h"
+#include "ui_GraspPlannerIK.h"
 
-class GraspPlannerIKui : public QMainWindow, public GraspPlannerIK
+using namespace Grasp;
+
+class GraspPlannerIKWindow : public QMainWindow, public GraspPlannerIK
 {
     Q_OBJECT
 public:
-    GraspPlannerIKui(const GraspPlannerIKParams& params);
-    ~GraspPlannerIKui() override;
+    GraspPlannerIKWindow(const GraspPlannerIKParams& params);
+    ~GraspPlannerIKWindow() override;
 
     /*!< Executes the SoQt mainLoop. You need to call this in order to execute the application. */
     int main();
@@ -98,7 +100,7 @@ protected:
     static void timerCB(void* data, SoSensor* sensor);
     void buildRrtVisu();
 
-    Ui::MainWindowIKRRT UI;
+    Ui::GraspPlannerIK UI;
     SoQtExaminerViewer* viewer; /*!< Viewer to display the 3D model of the robot and the environment. */
 
     SoSeparator* sceneSep;
