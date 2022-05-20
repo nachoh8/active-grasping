@@ -1,7 +1,7 @@
 from pygrasp.pygrasp import GraspResult
 
 from .datalog import DataLog
-from .grasp_models import ExecutorModel
+from .grasp_models import ExecutorModel, GraspPlannerIKExecutor
 
 class ActiveGrasping:
     def __init__(self, executor: ExecutorModel, active_variables: "list[str]", default_query: dict, metrics: "list[str]",
@@ -27,15 +27,16 @@ class ActiveGrasping:
 
     def executeQuery(self, query: dict) -> GraspResult:
         values = self.executor.query_to_values(query)
-
-        """qualities: list[GraspResult] = []
-        for _ in range(self.n_trials):
-            r = self.executor.execute(values)
-            qualities.append(r)
+        res: GraspResult = self.executor.execute(values)
         
-        res = qualities[0]"""
-
-        res = self.executor.execute(values)
+        print("Query:", query, "-> Outcome:", res.measure, "Volume:", res.volume, "Force closure:", res.force_closure)
+        
+        log_data = {"query": query, "metrics": {"outcome": res.measure, "volume": res.volume, "force_closure": res.force_closure}}
+        if type(self.executor) == GraspPlannerIKExecutor:
+            log_data.update({"others":{"time": res.time, "position_error": res.pos_error, "orientation_error": res.ori_error}})
+            print("Time:", res.time, "Position Error:", res.pos_error, "Orientation Error:", res.ori_error)
+        
+        self.queries.append(log_data)
 
         return res
     

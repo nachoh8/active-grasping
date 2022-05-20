@@ -66,6 +66,8 @@ protected:
     void reset();
 
     /// Attributes
+    std::vector<GraspData> grasps;
+    
     GraspPlannerIKParams params;
 
     VirtualRobot::RobotPtr robot;

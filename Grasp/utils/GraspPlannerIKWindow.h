@@ -35,11 +35,16 @@
 
 using namespace Grasp;
 
+struct GraspPlannerIKWindowParams {
+    GraspPlannerIKParams planner_params;
+    std::vector<Grasp::GraspData> grasps;
+};
+
 class GraspPlannerIKWindow : public QMainWindow, public GraspPlannerIK
 {
     Q_OBJECT
 public:
-    GraspPlannerIKWindow(const GraspPlannerIKParams& params);
+    GraspPlannerIKWindow(const GraspPlannerIKWindowParams& params);
     ~GraspPlannerIKWindow() override;
 
     /*!< Executes the SoQt mainLoop. You need to call this in order to execute the application. */
@@ -78,6 +83,10 @@ public slots:
 
     void box2TCP();
 
+    void previous_grasp();
+    void next_grasp();
+    void saveNewGrasp();
+
 protected:
 
     /// GRASP
@@ -97,8 +106,12 @@ protected:
 
     void updateObject(float x[6]);
 
+    void updateTargetGrasp();
+
     static void timerCB(void* data, SoSensor* sensor);
     void buildRrtVisu();
+
+    int current_grasp = -1;
 
     Ui::GraspPlannerIK UI;
     SoQtExaminerViewer* viewer; /*!< Viewer to display the 3D model of the robot and the environment. */

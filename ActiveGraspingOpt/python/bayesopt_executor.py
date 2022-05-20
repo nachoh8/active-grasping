@@ -48,12 +48,6 @@ class BayesOptExecutor(ActiveGrasping, BayesOptContinuous):
     def evaluateSample(self, x_in) -> float:
         query = dict(zip(self.active_variables, list(x_in)))
         res: GraspResult = self.executeQuery(query)
-
-        log_data = {"query": list(x_in), "metrics": [res.measure, res.volume, res.force_closure]}
-        if type(self.executor) == GraspPlannerIKExecutor:
-            log_data.update({"others":{"time": res.time, "position_error": res.pos_error, "orientation_error": res.ori_error}})
         
-        self.queries.append(log_data)
-
         return -res.measure
 

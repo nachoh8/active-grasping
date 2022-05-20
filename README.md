@@ -67,5 +67,7 @@ Test python lib:
 
 #### Grasp IK BiRRT
 
-    >> ./build/bin/grasp_ik_visualization <params_file>
+    >> ./grasp_ik_visualization <mode> <file>
 
+* <mode\>: 0: from configuration; 1: form log
+* <file\>: configuration or log file

@@ -13,6 +13,7 @@ endif()
 link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
 SET( GRASP_UI_INCS 
+  ${CMAKE_CURRENT_SOURCE_DIR}/utils.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/GraspPlannerWindow.h
 )
   

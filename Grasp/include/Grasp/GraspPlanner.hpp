@@ -11,7 +11,6 @@
 #include <VirtualRobot/EndEffector/EndEffector.h>
 #include "VirtualRobot/Grasping/GraspSet.h"
 
-//#include <GraspPlanning/GraspStudio.h>
 #include <GraspPlanning/GraspQuality/GraspQualityMeasureWrenchSpace.h>
 #include <GraspPlanning/GraspPlanner/GenericGraspPlanner.h>
 #include <GraspPlanning/ApproachMovementSurfaceNormal.h>
@@ -22,11 +21,6 @@
 #include "GraspPlannerParams.hpp"
 
 namespace Grasp {
-
-struct GraspData {
-    Eigen::Vector3f pos, ori;
-    GraspResult result;
-};
 
 class GraspPlanner : public GraspExecutor {
 public:
@@ -100,9 +94,6 @@ protected:
     VirtualRobot::ManipulationObjectPtr object;
 
     VirtualRobot::EndEffector::ContactInfoVector contacts;
-
-    // VirtualRobot::GraspPtr grasp;
-    // VirtualRobot::GraspSetPtr grasps;
 
     std::vector<GraspData> grasps;
 

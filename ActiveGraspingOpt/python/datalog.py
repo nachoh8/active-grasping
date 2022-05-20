@@ -1,6 +1,8 @@
 import json
+from datetime import datetime
 
 from pygrasp.pygrasp import GraspResult
+
 
 BASIC_PARAMS_KEY = "basic_params"
 GRASP_EXECUTOR_KEY = "grasp_executor"
@@ -12,6 +14,7 @@ class DataLog(object):
     def __init__(self, log_file: str = "") -> None:
         self.log_file: str = log_file
         self.data = dict()
+        self.data["date"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
         self.basic_params: dict = dict()
         self.grasp_executor: dict = dict()
@@ -77,11 +80,21 @@ class DataLog(object):
         return self.basic_params["metrics"]
 
     def get_grasps(self, metric: str = "outcome") -> "tuple[list, list]":
+        act_vars = self.get_active_vars()
+        n_var = len(act_vars)
+        
         grasps = []
         metrics = []
-        idx_metric = self.basic_params["metrics"].index(metric)
-        for grasp in self.grasps:
-            grasps.append(grasp["query"])
-            metrics.append(grasp["metrics"][idx_metric])
+        for data_grasp in self.grasps:
+            grasp = [None] * n_var
+            
+            q = data_grasp["query"]
+            for var in act_vars:
+                idx = act_vars.index(var)
+                grasp[idx] = q[var]
+            
+            grasps.append(grasp)
+
+            metrics.append(data_grasp["metrics"][metric])
         
         return grasps, metrics

@@ -20,7 +20,11 @@
 #include <ctime>
 #include <vector>
 #include <iostream>
+#include <sstream>
+#include <string>
 #include <cmath>
+#include <iomanip>
+
 #include <QImage>
 #include <QGLWidget>
 
@@ -39,8 +43,8 @@ float TIMER_MS = 30.0f;
 
 /// INIT
 
-GraspPlannerIKWindow::GraspPlannerIKWindow(const GraspPlannerIKParams& params)
-    : QMainWindow(nullptr), GraspPlannerIK(params)
+GraspPlannerIKWindow::GraspPlannerIKWindow(const GraspPlannerIKWindowParams& params)
+    : QMainWindow(nullptr), GraspPlannerIK(params.planner_params)
 {
 
     sceneSep = new SoSeparator;
@@ -76,14 +80,22 @@ GraspPlannerIKWindow::GraspPlannerIKWindow(const GraspPlannerIKParams& params)
     UI.doubleSpinBoxIKJacobianStepSize->setValue(ikJacobianStepSize);
     UI.doubleSpinBoxIKJacobianMaxLoops->setValue(ikJacobianMaxLoops);
 
-    buildVisu();
 
     targetPoseBox = Obstacle::createBox(30.0f, 30.0f, 30.0f);
     targetPoseBox->showCoordinateSystem(true);
     targetPoseBoxSep = new SoSeparator();
     targetPoseBoxSep->addChild(CoinVisualization(targetPoseBox->getVisualization()).getCoinVisualization());
     sceneSep->addChild(targetPoseBoxSep);
-    box2TCP();
+
+    if (params.grasps.size() > 0) {
+        grasps = params.grasps;
+        current_grasp = 0;
+        updateTargetGrasp();
+    } else {
+        box2TCP();
+    }
+
+    buildVisu();
 
     viewer->viewAll();
 
@@ -134,6 +146,54 @@ GraspPlannerIKWindow::~GraspPlannerIKWindow()
     sceneSep->unref();
 }
 
+void GraspPlannerIKWindow::previous_grasp() {
+    if (current_grasp > 0) {
+        current_grasp--;
+
+        updateTargetGrasp();
+    }
+}
+
+void GraspPlannerIKWindow::next_grasp() {
+    if (current_grasp < grasps.size() - 1) {
+        current_grasp++;
+
+        updateTargetGrasp();
+    }
+}
+
+void GraspPlannerIKWindow::saveNewGrasp() {
+    Eigen::Matrix4f targetPose = targetPoseBox->getGlobalPose();
+    Eigen::Vector3f xyz = targetPose.block<3,1>(0,3);
+    Eigen::Vector3f rpy = VirtualRobot::MathTools::eigen4f2rpy(targetPose);
+    
+    std::cout << "--------CONFIG--------\n";
+    std::cout << "Target Pose: ("
+                << xyz.transpose() << ", "
+                << rpy.transpose() << ")" << std::endl;
+    
+    useCollision = UI.checkBoxColCheckIK->isChecked();
+    useReachability = UI.checkBoxReachabilitySpaceIK->isChecked();
+    useOnlyPosition = UI.checkBoxOnlyPosition->isChecked();
+
+    cspaceColStepSize = (float)UI.doubleSpinBoxCSpaceColStepSize->value();
+    cspacePathStepSize = (float)UI.doubleSpinBoxCSpacePathStepSize->value();
+    ikMaxErrorPos = (float)UI.doubleSpinBoxIKMaxErrorPos->value();
+    ikMaxErrorOri = (float)UI.doubleSpinBoxIKMaxErrorOri->value();
+    ikJacobianStepSize = (float)UI.doubleSpinBoxIKJacobianStepSize->value();
+    ikJacobianMaxLoops = (int)UI.doubleSpinBoxIKJacobianMaxLoops->value();
+
+    printInfo();
+
+    Grasp::GraspData grasp;
+    grasp.pos = xyz;
+    grasp.ori = rpy;
+    grasp.result = executeGrasp(targetPose);
+
+    current_grasp = grasps.size();
+    grasps.push_back(grasp);
+    updateTargetGrasp();
+}
 
 void GraspPlannerIKWindow::timerCB(void* data, SoSensor* /*sensor*/)
 {
@@ -187,6 +247,10 @@ void GraspPlannerIKWindow::setupUI()
     connect(UI.checkBoxReachableGrasps, SIGNAL(clicked()), this, SLOT(buildVisu()));
     connect(UI.checkBoxReachabilitySpace, SIGNAL(clicked()), this, SLOT(reachVisu()));
     connect(UI.pushButtonIKRRT, SIGNAL(clicked()), this, SLOT(planIKRRT()));
+
+    connect(UI.pushButtonPrevGrasp, SIGNAL(clicked()), this, SLOT(previous_grasp()));
+    connect(UI.pushButtonNextGrasp, SIGNAL(clicked()), this, SLOT(next_grasp()));
+    connect(UI.saveNewGrasp, SIGNAL(clicked()), this, SLOT(saveNewGrasp()));
 
     connect(UI.horizontalSliderX, SIGNAL(sliderReleased()), this, SLOT(sliderReleased_ObjectX()));
     connect(UI.horizontalSliderY, SIGNAL(sliderReleased()), this, SLOT(sliderReleased_ObjectY()));
@@ -291,6 +355,18 @@ void GraspPlannerIKWindow::buildVisu()
         }
     }
 
+    Eigen::Matrix4f targetPose = targetPoseBox->getGlobalPose();
+    Eigen::Vector3f xyz = targetPose.block<3,1>(0,3);
+    Eigen::Vector3f rpy = VirtualRobot::MathTools::eigen4f2rpy(targetPose);
+
+    std::stringstream ss_o;
+    ss_o << std::setprecision(3);
+    ss_o << "Target Pose:\n"
+            << xyz.x() << ", " << xyz.y() << ", " << xyz.z() << "\n"
+            << rpy.x() << ", " << rpy.y() << ", " << rpy.z();
+    
+    UI.targetPose->setText(QString(ss_o.str().c_str()));
+
     buildGraspSetVisu();
 
     buildRRTVisu();
@@ -324,6 +400,35 @@ void GraspPlannerIKWindow::updateObject(float x[6])
 
     redraw();
 
+}
+
+void GraspPlannerIKWindow::updateTargetGrasp() {
+    reset();
+    
+    Grasp::GraspData grasp = grasps[current_grasp];
+    float x[6];
+    x[0] = grasp.pos.x();
+    x[1] = grasp.pos.y();
+    x[2] = grasp.pos.z();
+    x[3] = grasp.ori.x();
+    x[4] = grasp.ori.y();
+    x[5] = grasp.ori.z();
+
+    Eigen::Matrix4f targetPose;
+    VirtualRobot::MathTools::posrpy2eigen4f(x, targetPose);
+
+    targetPoseBox->setGlobalPose(targetPose);
+
+    std::stringstream ss;
+    ss << std::setprecision(3);
+    ss << "Grasp: " << (current_grasp+1) << "/" << grasps.size() << "\n"
+        << "Quality:" << grasp.result.measure << std::endl
+        << "Volume:" << grasp.result.volume << std::endl
+        << "Force closure: " << (grasp.result.force_closure ? "yes" : "no") << std::endl;
+
+    UI.graspInfo->setText(QString(ss.str().c_str()));
+
+    buildVisu();
 }
 
 void GraspPlannerIKWindow::sliderReleased_ObjectX()

@@ -79,44 +79,24 @@ class SigOptExecutor(ActiveGrasping):
 def sigopt_executor_grasp(sigopt_executor: SigOptExecutor, run: sigopt.run_context.RunContext):
     run.log_model(sigopt_executor.executor.get_name())
     
-    query = run.params
+    query = dict(run.params)
     res: GraspResult = sigopt_executor.executeQuery(query)
-
-    log_query = [None] * sigopt_executor.opt_dim
-    for pk in query:
-        idx = sigopt_executor.active_variables.index(pk)
-        log_query[idx] = query[pk]
-
-    print("Query:", query, "-> Outcome:", res.measure, "Volume:", res.volume, "Force closure:", res.force_closure)
 
     run.log_metric("outcome", res.measure)
     run.log_metadata("volume", res.volume)
     run.log_metadata("force_closure", res.force_closure)
     run.log_metadata("default_values", sigopt_executor.executor.get_default_values())
 
-    log_data = {"query": log_query, "metrics": [res.measure, res.volume, res.force_closure]}
     if type(sigopt_executor.executor) == GraspPlannerIKExecutor:
-        print("Time:", res.time, "Position Error:", res.pos_error, "Orientation Error:", res.ori_error)
         run.log_metadata("time(ms)", res.time)
         run.log_metadata("position_error(mm)", res.pos_error)
         run.log_metadata("orientation_error(degrees)", res.ori_error)
-        log_data.update({"others":{"time": res.time, "position_error": res.pos_error, "orientation_error": res.ori_error}})
     
-    sigopt_executor.queries.append(log_data)
 
 def sigopt_executor_gramacy(sigopt_executor: SigOptExecutor, run: sigopt.run_context.RunContext):
     run.log_model("Test Gramacy")
     
-    query = run.params
+    query = dict(run.params)
     res: GraspResult = sigopt_executor.executeQuery(query)
-
-    log_query = [None] * sigopt_executor.opt_dim
-    for pk in query:
-        idx = sigopt_executor.active_variables.index(pk)
-        log_query[idx] = query[pk]
-
-    sigopt_executor.queries.append({"query": log_query, "metrics": [res.measure, res.volume, res.force_closure]})
-    
-    print("Query:", query, "-> Outcome:", res.measure)
 
     run.log_metric("outcome", res.measure)
