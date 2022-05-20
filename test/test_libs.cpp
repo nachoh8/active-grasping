@@ -29,8 +29,6 @@ void test_gramacy() {
     // bopt_params bo_params = ActiveGraspingOpt::initBoptParams();
     bopt_params opt_param;
     opt_param       = initialize_parameters_to_default();
-    // opt_param.verbose_level = 5;
-    // opt_param.log_filename = "/home/nacho/ActiveGrasping/active-grasping/bopt_log.txt";
 
     ActiveGraspingOpt::ActiveGraspingOpt opt(params, opt_param);
 
@@ -86,7 +84,7 @@ void test_GraspPlanner() {
         exit(1);
     }*/
 
-    std::shared_ptr<Grasp::GraspExecutor> executor = std::make_shared<Grasp::GraspPlanner>("../config/grasp/grasp_params.json");
+    std::shared_ptr<Grasp::GraspExecutor> executor = std::make_shared<Grasp::GraspPlanner>("../config/grasp/tests/grasp_params.json");
     params.executor = executor;
 
     /// Optimize
@@ -117,7 +115,7 @@ void test_GraspPlannerIK() {
     std::cout << "Test GraspPlannerIK-BayesOpt (X,Y)\n";
 
     Grasp::GraspPlannerIKParams planner_params;
-    if (!Grasp::load_GraspPlannerIKParams("../config/scenes/test.json", planner_params)) {
+    if (!Grasp::load_GraspPlannerIKParams("../config/graspIK/tests/grasp_params.json", planner_params)) {
         exit(1);
     }
 
@@ -154,7 +152,7 @@ void test_GraspPlannerIK() {
     bopt_params bopt_param;
     bopt_param = initialize_parameters_to_default();
     bopt_param.n_init_samples = 4;
-    bopt_param.n_iterations = 100;
+    bopt_param.n_iterations = 5;
 
     ActiveGraspingOpt::ActiveGraspingOpt opt(opt_params, bopt_param);
 

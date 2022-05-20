@@ -1,43 +1,45 @@
-import numpy as np
 import json
 
 from pygrasp.pygrasp import GraspResult
-from pygrasp.gutils import str_to_var, var_to_str
 
-from .active_grasping_params import ActiveGraspingParams
+BASIC_PARAMS_KEY = "basic_params"
+GRASP_EXECUTOR_KEY = "grasp_executor"
+OPTIMIZER_KEY = "optimizer"
+BEST_RESULT_KEY = "best_result"
+GRASPS_KEY = "grasps"
 
 class DataLog(object):
     def __init__(self, log_file: str = "") -> None:
-        self.gopt_params: ActiveGraspingParams = None
-        self.opt_params: dict = {}
-        self.n_init_samples = 0
-        self.n_samples: int = 0
-        self.grasps = []
         self.log_file: str = log_file
+        self.data = dict()
 
-    def setup(self, gopt_params: ActiveGraspingParams, opt_params: dict):
-        self.opt_params = opt_params
-        if opt_params.get("n_init_samples"):
-            self.n_init_samples = opt_params["n_init_samples"]
-        else:
-            self.n_init_samples = 0
-        
-        self.gopt_params = gopt_params
-
-        # reset
-        self.n_samples = 0
-        self.grasps = []
+        self.basic_params: dict = dict()
+        self.grasp_executor: dict = dict()
+        self.optimizer: dict = dict()
+        self.best_results: list[dict] = []
+        self.grasps: list[dict] = []
     
-    def add_grasp(self, query: "list[float]", res: GraspResult):
-        self.n_samples += 1
-        if self.n_samples <= self.n_init_samples:
-            it = -1
-        else:
-            it = self.n_samples - self.n_init_samples
-        self.grasps.append([it, query, res])
+    def log(self, key: any, data: any):
+        self.data[key] = data
+    
+    def log_basic_params(self, params: dict):
+        self.log(BASIC_PARAMS_KEY, params)
+    
+    def log_grasp_executor(self, name: str, params: dict):
+        self.grasp_executor = {"name": name, "params": params}
+        self.log(GRASP_EXECUTOR_KEY, self.grasp_executor)
+    
+    def log_optimizer(self, name: str, params: dict):
+        self.optimizer = {"name": name, "params": params}
+        self.log(OPTIMIZER_KEY, self.optimizer)
+    
+    def log_best_results(self, results: "list[dict]"):
+        self.best_results = results
+        self.log(BEST_RESULT_KEY, self.best_results)
 
-    def get_grasps(self) -> "tuple[list, list]": # init samples, iteration queries
-        return self.grasps[:self.n_init_samples], self.grasps[self.n_init_samples:]
+    def log_grasps(self, grasps: "list[dict]"):
+        self.grasps = grasps
+        self.log(GRASPS_KEY, self.grasps)
 
     def save_json(self, json_file: str = ""):
         if json_file:
@@ -47,19 +49,8 @@ class DataLog(object):
         else:
             raise Exception("Error: you must provide a log destination file")
         
-        data = {}
-        data['opt_params'] = self.opt_params
-        data['gopt_params'] = {}
-        data['gopt_params']['n_grasp_trials'] = self.gopt_params.n_grasp_trials
-        data['gopt_params']['active_variables'] = [var_to_str(var) for var in self.gopt_params.active_variables]
-        data['gopt_params']['lower_bound'] = list(self.gopt_params.lower_bound)
-        data['gopt_params']['upper_bound'] = list(self.gopt_params.upper_bound)
-        data['gopt_params']['default_query'] = list(self.gopt_params.default_query)
-        data['grasps'] = [{'iteration': g[0], 'query': g[1], 'res': {'measure': g[2].measure, 'volume': g[2].volume, 'force_closure': g[2].force_closure}} for g in self.grasps]
-
-        json_str = json.dumps(data, indent=4)
+        json_str = json.dumps(self.data, indent=4)
         with open(file, 'w') as outfile:
-            # json.dump(json_str, outfile)
             outfile.write(json_str)
 
     def load_json(self, json_file: str = ""):
@@ -68,25 +59,29 @@ class DataLog(object):
         elif self.log_file:
             file = self.log_file
         else:
-            raise Exception("Error: you must provide a log source file")
+            raise Exception("Error: you must provide a log file")
 
         with open(file, 'r') as f:
-            data = json.load(f)
+            self.data = json.load(f)
 
-            self.grasps = [[g['iteration'], g['query'], GraspResult(g['res']['measure'], g['res']['volume'], g['res']['force_closure'])] for g in data['grasps']]
-            
-            self.n_samples = len(self.grasps)
+            self.basic_params   = self.data[BASIC_PARAMS_KEY]
+            self.grasp_executor = self.data[GRASP_EXECUTOR_KEY]
+            self.optimizer      = self.data[OPTIMIZER_KEY]
+            self.best_results   = self.data[BEST_RESULT_KEY]
+            self.grasps         = self.data[GRASPS_KEY]
+    
+    def get_active_vars(self) -> "list[str]":
+        return self.basic_params["active_variables"]
+    
+    def get_metrics(self) -> "list[str]":
+        return self.basic_params["metrics"]
 
-            self.opt_params = data['opt_params']
-            if self.opt_params.get("n_init_samples"):
-                self.n_init_samples = self.opt_params["n_init_samples"]
-            else:
-                self.n_init_samples = 0
-            
-            gopt = data['gopt_params']
-            n_gras_trials = int(gopt['n_grasp_trials'])
-            active_variables = [str_to_var(var) for var in gopt['active_variables']]
-            lower_bound = np.array(gopt['lower_bound'], dtype=np.float64)
-            upper_bound = np.array(gopt['upper_bound'], dtype=np.float64)
-            default_query = np.array(gopt['default_query'], dtype=np.float64)
-            self.gopt_params = ActiveGraspingParams(default_query, active_variables, lower_bound, upper_bound, n_gras_trials)
+    def get_grasps(self, metric: str = "outcome") -> "tuple[list, list]":
+        grasps = []
+        metrics = []
+        idx_metric = self.basic_params["metrics"].index(metric)
+        for grasp in self.grasps:
+            grasps.append(grasp["query"])
+            metrics.append(grasp["metrics"][idx_metric])
+        
+        return grasps, metrics

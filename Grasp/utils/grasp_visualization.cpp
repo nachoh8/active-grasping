@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <string>
 
 #include <boost/property_tree/json_parser.hpp>
 
@@ -37,29 +38,37 @@ bool load_grasps_from_res(const std::string& file, std::vector<Grasp::GraspData>
     try {
         pt::ptree root;
         pt::read_json(file, root);
-        pt::ptree root_gopt = root.get_child("gopt_params");
+        pt::ptree root_gopt = root.get_child("basic_params");
         
         // parse active variables
         pt::ptree root_vars = root_gopt.get_child("active_variables");
+        std::cout << "Active variables:";
         for (pt::ptree::value_type &v : root_vars)
         {
             std::string str_var = v.second.get_value<std::string>();
             int var = str_to_var(str_var);
-            if (var < Grasp::GRASP_VAR::TRANS_X || var > Grasp::GRASP_VAR::ROT_YAW) {
+            if (var == -1) {
                 std::cout << "Error: active variable " << str_var << " not valid!\n";
                 return false;
             }
+            std::cout << " " << str_var;
             active_variables.push_back(var);
         }
+        std::cout << std::endl;
 
         // parse default query
         pt::ptree root_q = root_gopt.get_child("default_query");
+        std::vector<std::string> vars = {"x", "y", "z", "rx", "ry", "rz"};
         std::vector<float> default_pose;
-        for (pt::ptree::value_type &v : root_q)
+        for (auto& var : vars) {
+            float v = root_q.get<float>(var);
+            default_pose.push_back(v);
+        }
+        /*for (pt::ptree::value_type &v : root_q)
         {
             float num = v.second.get_value<float>();
             default_pose.push_back(num);
-        }
+        }*/
 
         if (default_pose.size() != 6) {
             std::cout << "Error: default query size is different from 6!\n";
@@ -68,6 +77,8 @@ bool load_grasps_from_res(const std::string& file, std::vector<Grasp::GraspData>
 
         default_pos = Eigen::Vector3f(default_pose[GRASP_VAR::TRANS_X], default_pose[GRASP_VAR::TRANS_Y], default_pose[GRASP_VAR::TRANS_Z]);
         default_ori = Eigen::Vector3f(default_pose[GRASP_VAR::ROT_ROLL], default_pose[GRASP_VAR::ROT_PITCH], default_pose[GRASP_VAR::ROT_YAW]);
+
+        std::cout << "Default pose: (" << default_pos.transpose() << ", " << default_ori.transpose() << ")\n";
 
         // get grasps root
         root_grasps = root.get_child("grasps");
@@ -101,11 +112,24 @@ bool load_grasps_from_res(const std::string& file, std::vector<Grasp::GraspData>
                 }
             }
 
-            pt::ptree root_res = grasp_obj.get_child("res");
+            pt::ptree root_res = grasp_obj.get_child("metrics");
             Grasp::GraspData grasp;
-            grasp.result.measure = root_res.get<float>("measure");
-            grasp.result.volume = root_res.get<float>("volume");
-            grasp.result.force_closure = root_res.get<bool>("force_closure");
+            // grasp.result.measure = root_res.get<float>("measure");
+            // grasp.result.volume = root_res.get<float>("volume");
+            // grasp.result.force_closure = root_res.get<bool>("force_closure");
+            int i = 0;
+            for (pt::ptree::value_type &v : root_res)
+            {
+                if (i == 0) {
+                    grasp.result.measure = v.second.get_value<float>();
+                } else if (i == 1) {
+                    grasp.result.volume = v.second.get_value<float>();
+                } else {
+                    grasp.result.force_closure = v.second.get_value<bool>();
+                }
+                
+                i++;
+            }
             grasp.pos = pos;
             grasp.ori = ori;
 
@@ -125,13 +149,13 @@ int main(int argc, char *argv[]) {
 
     if (argc < 2 || argc > 3) {
         std::cout   << "Error: incorrect number of parameters!!!\n"
-                    << "Execution: ./grasp_visualization <grasp_params_file_path> [<res_file>]\n";
+                    << "Execution: ./grasp_visualization <grasp_params> [<log_file>]\n";
         exit(1);
     }
 
     std::string params_file = argv[1];
 
-    VirtualRobot::init(argc, argv, "Simox Grasp Planner");
+    VirtualRobot::init(argc, argv, "Grasp Planner Visualizer");
 
     Grasp::GraspPlannerParams plannerParams;
     if (!Grasp::load_GraspPlannerParams_json(params_file, plannerParams)) {
@@ -143,8 +167,8 @@ int main(int argc, char *argv[]) {
     params.planner_params = plannerParams;
 
     if (argc == 3) {
-        std::string res_file = argv[2];
-        if (!load_grasps_from_res(res_file, params.grasps)) {
+        std::string log_file = argv[2];
+        if (!load_grasps_from_res(log_file, params.grasps)) {
             std::cout << "Error: parsing grasps from res file\n";
             exit(1);
         }

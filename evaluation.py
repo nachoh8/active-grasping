@@ -2,7 +2,6 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pygrasp.gutils import var_to_str
 from active_grasping.datalog import DataLog
 
 def outcome_iterations(outcomes: "list[float]", best_acum=False):
@@ -94,16 +93,18 @@ if __name__ == "__main__":
     logger = DataLog(log_file=flog)
     logger.load_json()
 
-    init_samples, samples = logger.get_grasps()
-    queries = [s[1] for s in samples]
-    outcomes = [s[2].measure for s in samples]
+    act_vars = logger.get_active_vars()
+    print("Active variables: " + str(act_vars))
+    print("Metric: " + str(logger.get_metrics()[0]))
+
+    grasps, outcomes = logger.get_grasps()
     
     outcome_iterations(outcomes)
 
     outcome_iterations(outcomes, best_acum=True)
 
-    distance_queries(queries)
+    distance_queries(grasps)
 
-    outcome_vars(queries, outcomes, plot2D=False, var_labels=[var_to_str(var) for var in logger.gopt_params.active_variables])
+    outcome_vars(grasps, outcomes, plot2D=False, var_labels=act_vars)
 
     plt.show()

@@ -190,7 +190,8 @@ GraspResult GraspPlannerIK::executeGrasp(const Eigen::Matrix4f& targetPose) {
     reset();
 
     /// 2. Plan and execute
-    if (plan(targetPose)) {
+    float posError = -1.0f, oriError = -1.0f, planTime = -1.0f;
+    if (plan(targetPose, posError, oriError, planTime)) {
         /// 3. Set final config
         Eigen::VectorXf finalPos;
         birrtSolOptimized->interpolate(1, finalPos);
@@ -205,6 +206,9 @@ GraspResult GraspPlannerIK::executeGrasp(const Eigen::Matrix4f& targetPose) {
 
         closeEEF();
         GraspResult result = graspQuality();
+        result.pos_error = posError;
+        result.ori_error = oriError;
+        result.time = planTime;
 
         std::cout << "Grasp Quality (epsilon measure):" << result.measure << std::endl;
         std::cout << "Volume measure:" << result.volume << std::endl;
@@ -238,7 +242,7 @@ void GraspPlannerIK::printInfo() {
 
 /// Grasping
 
-bool GraspPlannerIK::plan(const Eigen::Matrix4f& targetPose) {
+bool GraspPlannerIK::plan(const Eigen::Matrix4f& targetPose, float& posError, float& oriError, float& planTime) {
     /// 1. IKSolver setup
     VirtualRobot::GenericIKSolverPtr ikSolver(new VirtualRobot::GenericIKSolver(rns));
 
@@ -272,7 +276,6 @@ bool GraspPlannerIK::plan(const Eigen::Matrix4f& targetPose) {
     }
 
     Eigen::Matrix4f actPose = eef->getTcp()->getGlobalPose();
-    float posError, oriError;
     poseError(actPose, targetPose, posError, oriError);
 
     std::cout << "IK Solver Error pos: " << posError << std::endl;
@@ -295,7 +298,8 @@ bool GraspPlannerIK::plan(const Eigen::Matrix4f& targetPose) {
     /// 5. Execute and postprocessing
     planOK = rrt->plan(true);
     std::cout << "BiRRT success: " << planOK << std::endl;
-    std::cout << "BiRRT time: " << rrt->getPlanningTimeMS() << " ms" << std::endl;
+    planTime = rrt->getPlanningTimeMS();
+    std::cout << "BiRRT time: " << planTime << " ms" << std::endl;
     if (!planOK) {
         return false;
     }

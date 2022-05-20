@@ -36,21 +36,22 @@ Test c++ lib:
 Test python lib:
 
     >> python3 test_grasp.py
-    >> python3 test_active_grasp.py
-    >> python3 test_gramacy_sigop.py
+    >> python3 test_bopt.py
+    >> python3 test_sigopt.py
 
 ## Execution
 
 ### Active Grasping Optimization
 
     >> python3 main_active_grasping.py
-                            -fgopt <active_grasp_params_file>
                             -fgrasp <executor> <params_file>
-                            -fopt <optimizer> <params_file>
+                            (-fbopt <bayesopt_params> <exp_params> |
+                            -fsopt <sigopt_params>)
                             [-flog <log_file>]
 
 * <executor\>: {0: TestGramacyExecutor, 1: GraspPlanner, 2: GraspPlannerIK}
-* <optimizer\>: {0: BayesOpt, 1: SigOpt}
+* -fbopt: BayesOpt
+* -fsopt: SigOpt
 
 ### Optimization evaluation
 
