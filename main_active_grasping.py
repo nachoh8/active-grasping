@@ -1,7 +1,5 @@
-import numpy as np
 import argparse
 import json
-import sigopt
 
 from active_grasping.utils import construct_grasp_executor_model
 from active_grasping.bayesopt_executor import BayesOptExecutor
@@ -43,7 +41,7 @@ if __name__ == "__main__":
         params.update(gopt_params)
         model = BayesOptExecutor(params, executor, logger=logger)
 
-    elif args.fsopt:
+    elif args.fsopt: # sigopt
         f = open(args.fsopt, 'r')
         opt_params = json.load(f)
 
