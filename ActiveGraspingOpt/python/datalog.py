@@ -73,6 +73,9 @@ class DataLog(object):
             self.best_results   = self.data[BEST_RESULT_KEY]
             self.grasps         = self.data[GRASPS_KEY]
     
+    def get_optimizer_name(self) -> str:
+        return self.optimizer["name"]
+
     def get_active_vars(self) -> "list[str]":
         return self.basic_params["active_variables"]
     
@@ -96,5 +99,28 @@ class DataLog(object):
             grasps.append(grasp)
 
             metrics.append(data_grasp["metrics"][metric])
+        
+        return grasps, metrics
+
+    def get_best_grasps(self, metric: str = "outcome") -> "tuple[list, list]":
+        """
+
+        """
+        act_vars = self.get_active_vars()
+        n_var = len(act_vars)
+        
+        grasps = []
+        metrics = []
+        for data_grasp in self.best_results:
+            grasp = [None] * n_var
+            
+            q = data_grasp["query"]
+            for var in act_vars:
+                idx = act_vars.index(var)
+                grasp[idx] = q[var]
+            
+            grasps.append(grasp)
+
+            metrics.append(data_grasp["metrics"][0]['value'])
         
         return grasps, metrics

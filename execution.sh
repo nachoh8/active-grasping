@@ -3,7 +3,7 @@
 ### PARAMS
 
 OPT_EXECUTOR=1
-GRASP_EXECUTOR=1
+GRASP_EXECUTOR=2
 NUM_RUNS=10
 
 RES_LOG_PREFIX="res_xyz"
@@ -25,11 +25,15 @@ elif [ $GRASP_EXECUTOR -eq 2 ]; then
     FBOPT="config/bayesopt/bopt_params_default.json"
     FGOPT="config/graspIK/gopt/gopt_xyz.json"
 
-    FSOPT="config/graspIK/sigopt/opt.json"
+    FSOPT_OPT="config/graspIK/sigopt/opt.json"
+    FSOPT_MS="config/graspIK/sigopt/multisol.json"
+    FSOPT=$FSOPT_MS
 
-    RES_FOLDER="logs/graspIK/sigopt/xyz/opt"
+    RES_FOLDER_OPT="logs/graspIK/sigopt/xyz/opt"
+    RES_FOLDER_MS="logs/graspIK/sigopt/xyz/ms"
+    RES_FOLDER=$RES_FOLDER_MS
 else
-    echo "Error: Grasp executor must be 0: GraspPlanner, 1: GraspPlannerIK"
+    echo "Error: Grasp executor must be 1: GraspPlanner, 2: GraspPlannerIK"
     exit 1
 fi
 

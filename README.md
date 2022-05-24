@@ -55,7 +55,7 @@ Test python lib:
 
 ### Optimization evaluation
 
-    >> python3 evaluation.py -flog <log_file>
+    >> python3 evaluation.py -flogs (<log_file> | <log_folder>)+
 
 ### Grasp visualization
 
@@ -69,5 +69,5 @@ Test python lib:
 
     >> ./grasp_ik_visualization <mode> <file>
 
-* <mode\>: 0: from configuration; 1: form log
+* <mode\>: 0: from configuration; 1: from log
 * <file\>: configuration or log file

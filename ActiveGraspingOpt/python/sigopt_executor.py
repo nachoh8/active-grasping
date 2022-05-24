@@ -40,7 +40,7 @@ class SigOptExecutor(ActiveGrasping):
 
         if self.logger:
             data = {"project": self.project_name, "mode": self.token_type, "exp_params": self.exp_params}
-            self.logger.log_optimizer("sigopt", data)
+            self.logger.log_optimizer(params["name"], data)
         
     def run(self):
         print("------------------------")

@@ -26,7 +26,9 @@ class BayesOptExecutor(ActiveGrasping, BayesOptContinuous):
         
         if self.logger:
             optimizer_log = {"lower_bound": list(self.lower_bound), "upper_bound": list(self.upper_bound), "bopt_params": self.params}
-            self.logger.log_optimizer("bayesopt", optimizer_log)
+            name = self.params["name"]
+            self.params.pop("name")
+            self.logger.log_optimizer(name, optimizer_log)
 
     def run(self) -> None:
         print("------------------------")

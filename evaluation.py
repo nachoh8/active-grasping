@@ -1,48 +1,45 @@
 import argparse
+from cProfile import label
 import os
 import glob
+from matplotlib import markers
 import numpy as np
 import matplotlib.pyplot as plt
 
 from active_grasping.datalog import DataLog
-from pyparsing import alphas
 
-def outcome_iterations(outcomes: "list[float]", best_acum=False, errors: "list[float]" = None):
+def compute_max_until_iteration(outcomes: np.ndarray) -> np.ndarray:
+    res = np.array([outcomes[0]])
+
+    for i in range(1, outcomes.shape[0]):
+        v = outcomes[i] if outcomes[i] > res[i-1] else res[i-1]
+        res = np.append(res, v)
+    return res
+
+def outcome_iterations(outcomes: np.ndarray, best_acum=False, errors: np.ndarray = None, names: "list[str]" = None):
     
-    iterations = range(1, len(outcomes)+1)
-    if best_acum:
-        title = 'Best outcome until iteration x'
-        Y = [outcomes[0]]
-        for i in range(1, len(outcomes)):
-            v = outcomes[i] if outcomes[i] > Y[i-1] else Y[i-1]
-            Y.append(v)
-    else:
-        Y = outcomes
-        title = 'Value of best selected sample'
-
+    iterations = range(1, outcomes.shape[1]+1)
     plt.figure()
+    for i, outs in zip(range(outcomes.shape[0]), outcomes):
+        if best_acum:
+            title = 'Best outcome until iteration x'
+            Y = compute_max_until_iteration(outs)
+        else:
+            Y = outs
+            title = 'Value of best selected sample'
 
-    if errors:
-        plt.errorbar(iterations, Y, yerr=errors, fmt='o')
-    else:
-        plt.plot(iterations, Y, 'ro-')
+        if errors is not None:
+            plt.errorbar(iterations, Y, yerr=errors[i], fmt='o', label=names[i], alpha=0.7)
+        else:
+            plt.plot(iterations, Y, 'o-')
+    
+    if names:
+        plt.legend()
     plt.xlabel('Iteration')
     plt.ylabel('Outcome')
     plt.title(title)
 
-
-def distance_queries(queries: np.ndarray):
-    iterations = range(1, queries.shape[0]+1)
-    total_dist = np.linalg.norm(queries[:-1] - queries[1:], axis=1)
-    
-    plt.figure()
-    plt.plot(iterations[1:], total_dist, 'bo-')
-    plt.xlabel('Iteration')
-    plt.ylabel('Distance')
-    plt.title('Distance between consecutive queries\'s')
-
-
-def outcome_vars(queries: np.ndarray, outcomes: "list[float]", var_labels: "list[str]", plot2D=False):
+def outcome_vars(queries: np.ndarray, outcomes: np.ndarray, var_labels: "list[str]", plot2D=False, name: str = ""):
     n_vars = len(var_labels)
 
     fig = plt.figure()
@@ -62,20 +59,38 @@ def outcome_vars(queries: np.ndarray, outcomes: "list[float]", var_labels: "list
         else:
             sc_plot = ax.scatter(queries[:, 0], queries[:, 1], queries[:, 2], c=outcomes, alpha=0.5)
             ax.set_zlabel(var_labels[2])
-        
+
         ax.set_xlabel(var_labels[0])
         ax.set_ylabel(var_labels[1])
 
     plt.colorbar(sc_plot, label="outcome", orientation="vertical")
     
-    plt.title("Distribution of the outcome")
-    plt.show()
+    plt.title("Distribution of the outcome " + name)
+
+def plot_best(grasps: np.ndarray, outcomes: np.ndarray, var_labels: "list[str]", plot_text = False, name: str = ""):
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+
+    for i, gs in zip(range(grasps.shape[0]), grasps):
+        ax.scatter(gs[:, 0], gs[:, 1], gs[:, 2], marker='o', alpha=1.0)
+        if plot_text:
+            for j in range(gs.shape[0]):
+                # print(gs[j], gs[j].shape)
+                # print(outcomes[i], outcomes[i][j].shape)
+                ax.text(gs[j, 0], gs[j, 1], gs[j, 2], str(round(outcomes[i][j], 3)))
+
+    ax.set_xlabel(var_labels[0])
+    ax.set_ylabel(var_labels[1])
+    ax.set_zlabel(var_labels[2])
+    
+    
+    plt.title("Best grasps " + name)
 
 
-def get_values(file_path: str) -> "tuple[list[str], np.ndarray, list[float]]":
+def get_values(file_path: str) -> "tuple[str, list[str], np.ndarray, np.ndarray, tuple[np.ndarray, np.ndarray]]":
     """
     input: log file
-    output: active variables, grasps, outcomes
+    output: optimizer name, active variables, grasps, outcomes, best grasps
     """
 
     logger = DataLog(log_file=file_path)
@@ -83,69 +98,97 @@ def get_values(file_path: str) -> "tuple[list[str], np.ndarray, list[float]]":
 
     act_vars = logger.get_active_vars()
     queries, outcomes = logger.get_grasps()
+    best = logger.get_best_grasps()
 
     grasps = np.array(queries)
+    res = np.array(outcomes).reshape(-1)
 
-    return act_vars, grasps, outcomes
+    return logger.get_optimizer_name(), act_vars, grasps, res, (np.array(best[0]), np.array(best[1]).reshape(-1))
 
-def get_average_values(folder_path: str) -> "tuple[list[str], np.ndarray, list[float], list[float], list[float]]":
+def get_folder_values(folder_path: str) -> "tuple[str, list[str], np.ndarray, np.ndarray, np.ndarray, np.ndarray]":
     """
     input: log file
-    output: active variables, all grasps, all outcomes, avg outcomes, std dev
+    output: optimizer name, active variables, all grasps, all outcomes, best grasps, best outcomes
     """
 
     logs = glob.glob(folder_path + "/*.json")
     print("Num. log files: " + str(len(logs)))
 
-    act_vars, all_grasps, outcomes = get_values(logs[0])
-    all_outcomes = np.array(outcomes).reshape(1, -1)
+    print("Adding", logs[0])
+    optimizer_name, act_vars, grasps, outcomes, best = get_values(logs[0])
+    all_grasps = [grasps]
+    all_outcomes = [outcomes]
+    all_best_grasps = [best[0]]
+    all_best_outcomes = [best[1]]
     logs.pop(0)
 
     for file in logs:
         print("Adding", file)
-        _, grasps, outcomes = get_values(logs[0])
-        all_grasps = np.append(all_grasps, grasps, axis=0)
-        m_outcomes = np.array(outcomes).reshape(1, -1)
-        all_outcomes = np.append(all_outcomes, m_outcomes, axis=0)
+        _, _, grasps, outcomes, best = get_values(file)
+        all_grasps.append(grasps)
+        all_outcomes.append(outcomes)
+        all_best_grasps.append(best[0])
+        all_best_outcomes.append(best[1])
     
-    avg_outcomes = list(np.mean(all_outcomes, axis=0))
-    std_dev = list(np.std(all_outcomes, axis=0))
-    all_outcomes = list(all_outcomes.flatten())
+    all_grasps = np.array(all_grasps)
+    all_outcomes = np.array(all_outcomes)
+    all_best_grasps = np.array(all_best_grasps)
+    all_best_outcomes = np.array(all_best_outcomes)
 
-    return act_vars, all_grasps, all_outcomes, avg_outcomes, std_dev
+    return optimizer_name, act_vars, all_grasps, all_outcomes, all_best_grasps, all_best_outcomes
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Active Grasping with bayesian optimization')
-    parser.add_argument("-flog", type=str, help="log file/folder", metavar='<log_file> | <folder>', required=True)
+    parser.add_argument("-flogs", nargs='+', help="log files/folders", metavar='(<log_file> | <folder>)+', required=True)
 
     args = parser.parse_args()
-    flog = args.flog
+    flogs = args.flogs
 
-    if os.path.isdir(flog):  
-        print("Loading results from " + flog + " folder")
-        act_vars, grasps, all_outcomes, outcomes, std_dev = get_average_values(flog)
+    names = []
+    mean_max_outcomes = []
+    std_dev_max_outcomes = []
 
-        print("Active variables: " + str(act_vars))
-        print("Num. total grasps: " + str(grasps.shape[0]))
+    for flog in flogs:
+        if os.path.isdir(flog):  
+            print("Loading results from " + flog + " folder")
+            optimizer_name, act_vars, all_grasps, all_outcomes, all_best_grasps, all_best_outcomes = get_folder_values(flog)
 
-        outcome_iterations(outcomes, errors=std_dev)
+            print("Optimizer: " + optimizer_name)
+            print("Active variables: " + str(act_vars))
+            print("Num. total grasps: " + str(all_grasps.shape[1]))
 
-        outcome_iterations(outcomes, best_acum=True, errors=std_dev)
+            max_outcomes = np.array([compute_max_until_iteration(outs) for outs in all_outcomes])
+            mean_max_outcomes.append(np.mean(max_outcomes, axis=0))
+            std_dev_max_outcomes.append(np.std(max_outcomes, axis=0))
 
-        outcome_vars(grasps, all_outcomes, plot2D=False, var_labels=act_vars)
-    else:  
-        print("Loading results from " + flog + " file")
-        act_vars, grasps, outcomes = get_values(flog)
+            all_grasps = all_grasps.reshape(-1,3)
+            all_outcomes = all_outcomes.reshape(-1,)
 
-        print("Active variables: " + str(act_vars))
-        print("Num. grasps: " + str(grasps.shape[0]))
+        else:  
+            print("Loading results from " + flog + " file")
+            optimizer_name, act_vars, grasps, outcomes, best = get_values(flog)
+
+            print("Optimizer: " + optimizer_name)
+            print("Active variables: " + str(act_vars))
+            print("Num. grasps: " + str(grasps.shape[0]))
+
+            all_grasps = grasps
+            all_outcomes = outcomes
+
+            all_best_grasps = np.array([best[0]])
+            all_best_outcomes = np.array([best[1]])
+
+            max_outcomes = compute_max_until_iteration(outcomes)
+            mean_max_outcomes.append(max_outcomes)
+            std_dev_max_outcomes.append(np.zeros((max_outcomes.shape)))
+        
+        names.append(optimizer_name)
+
+        outcome_vars(all_grasps, all_outcomes, plot2D=False, var_labels=act_vars, name=optimizer_name)
+
+        plot_best(all_best_grasps, all_best_outcomes, act_vars, name=optimizer_name, plot_text=True)
     
-        outcome_iterations(outcomes)
-
-        outcome_iterations(outcomes, best_acum=True)
-
-        distance_queries(grasps)
-
-        outcome_vars(grasps, outcomes, plot2D=False, var_labels=act_vars)
+    outcome_iterations(np.array(mean_max_outcomes), errors=np.array(std_dev_max_outcomes), names=names)
 
     plt.show()
