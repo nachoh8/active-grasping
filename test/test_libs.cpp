@@ -54,8 +54,10 @@ void test_simox() {
 
     ActiveGraspingOpt::ActiveGraspingOptParams params;
     //params.active_variables.push_back(GRASP_VAR::TRANS_X);
-    params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_Y);
-    params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_Z);
+    //params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_Y);
+    //params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_Z);
+    params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_PHI);
+    params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_RHO);
     /*params.active_variables.push_back(GRASP_VAR::ROT_ROLL);
     params.active_variables.push_back(GRASP_VAR::ROT_PITCH);
     params.active_variables.push_back(GRASP_VAR::ROT_YAW);*/

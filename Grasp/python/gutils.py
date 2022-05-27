@@ -13,12 +13,20 @@ def construct_grasp_executor(gtype: type, fgrasp: str = "") -> GraspExecutor:
         return None
 
 def str_to_var(var: str) -> int:
+    """""
     if var == "x":
         return TRANS_X
     elif var == "y":
         return TRANS_Y
     elif var == "z":
         return TRANS_Z
+    """
+    if var == "theta":
+        return TRANS_THETA
+    elif var == "phi":
+        return TRANS_PHI
+    elif var == "rho":
+        return TRANS_RHO
     elif var == "rx":
         return ROT_ROLL
     elif var == "ry":
@@ -29,12 +37,20 @@ def str_to_var(var: str) -> int:
         return var
 
 def var_to_str(var: int) -> str:
+    """
     if var == TRANS_X:
         return "x"
     elif var == TRANS_Y:
         return "y"
     elif var == TRANS_Z:
         return "z"
+    """
+    if var == TRANS_THETA:
+        return "theta"
+    elif var == TRANS_PHI:
+        return "phi"
+    elif var == TRANS_RHO:
+        return "rho"
     elif var == ROT_ROLL:
         return "rx"
     elif var == ROT_PITCH:

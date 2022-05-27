@@ -13,12 +13,20 @@
 namespace pt = boost::property_tree;
 
 inline int str_to_var(const std::string& var) {
+    /*
     if (var == "x") {
         return Grasp::GRASP_VAR::TRANS_X;
     } else if (var == "y") {
         return Grasp::GRASP_VAR::TRANS_Y;
     } else if ( var == "z") {
         return Grasp::GRASP_VAR::TRANS_Z;
+    */
+    if (var == "theta") {
+        return Grasp::GRASP_VAR::TRANS_THETA;
+    } else if (var == "phi") {
+        return Grasp::GRASP_VAR::TRANS_PHI;
+    } else if ( var == "rho") {
+        return Grasp::GRASP_VAR::TRANS_RHO;
     } else if ( var == "rx") {
         return Grasp::GRASP_VAR::ROT_ROLL;
     } else if ( var == "ry") {
@@ -45,7 +53,7 @@ bool load_grasps_from_res(const std::string& file, std::vector<Grasp::GraspData>
         {
             std::string str_var = v.second.get_value<std::string>();
             int var = str_to_var(str_var);
-            if (var < Grasp::GRASP_VAR::TRANS_X || var > Grasp::GRASP_VAR::ROT_YAW) {
+            if (var < Grasp::GRASP_VAR::TRANS_THETA || var > Grasp::GRASP_VAR::ROT_YAW) {
                 std::cout << "Error: active variable " << str_var << " not valid!\n";
                 return false;
             }
@@ -66,7 +74,11 @@ bool load_grasps_from_res(const std::string& file, std::vector<Grasp::GraspData>
             return false;
         }
 
-        default_pos = Eigen::Vector3f(default_pose[GRASP_VAR::TRANS_X], default_pose[GRASP_VAR::TRANS_Y], default_pose[GRASP_VAR::TRANS_Z]);
+        default_pos = Eigen::Vector3f(default_pose[GRASP_VAR::TRANS_THETA], default_pose[GRASP_VAR::TRANS_PHI], default_pose[GRASP_VAR::TRANS_RHO]);
+        //float x = default_pose[GRASP_VAR::TRANS_RHO] * sin(default_pose[GRASP_VAR::TRANS_THETA])*cos(default_pose[GRASP_VAR::TRANS_PHI]);
+        //float y = default_pose[GRASP_VAR::TRANS_RHO] * sin(default_pose[GRASP_VAR::TRANS_THETA])*cos(default_pose[GRASP_VAR::TRANS_PHI]);
+        //float z = default_pose[GRASP_VAR::TRANS_RHO] * cos(default_pose[GRASP_VAR::TRANS_THETA]);
+        //default_pos = Eigen::Vector3f(x, y, z);
         default_ori = Eigen::Vector3f(default_pose[GRASP_VAR::ROT_ROLL], default_pose[GRASP_VAR::ROT_PITCH], default_pose[GRASP_VAR::ROT_YAW]);
 
         // get grasps root

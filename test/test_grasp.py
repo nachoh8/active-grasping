@@ -30,15 +30,15 @@ print("----TEST GRASP PLANNER----")
 
 params = GraspPlannerParams() # empty
 params = GraspPlannerParams( # or with values
-    "/home/nacho/ActiveGrasping/simox/VirtualRobot/data/robots/iCub/iCub.xml",
+    "/home/juangls/ActiveGrasping/simox/mySimox/VirtualRobot/data/robots/iCub/iCub.xml",
     "Left Hand",
     "Grasp Preshape",
-    "/home/nacho/ActiveGrasping/simox/VirtualRobot/data/objects/WaterBottleSmall.xml",
+    "/home/juangls/ActiveGrasping/simox/mySimox/VirtualRobot/data/objects/WaterBottleSmall.xml",
     1000.0, 0.01, True
 )
-is_valid = load_GraspPlannerParams_json("config/grasp/grasp_params.json", params) # or from file
+is_valid = load_GraspPlannerParams_json("/home/juangls/ActiveGrasping/active-grasping/config/grasp/grasp_params.json", params) # or from file
 if not is_valid:
-        print("Error: parsing gras planner params")
+        print("Error: parsing grasp planner params")
         exit(1)
 
 print("Robot file: " + params.robot_file)

@@ -263,7 +263,13 @@ void GraspPlannerWindow::buildVisu()
 
 
     // Object info
-    Eigen::Vector3f o_pos = object->getGlobalPosition();
+    Eigen::Vector3f xyz_o = object->getGlobalPosition();
+    VirtualRobot::MathTools::SphericalCoord o_pos_sc = VirtualRobot::MathTools::toSphericalCoords(xyz_o);
+    Eigen::Vector3f o_pos;
+    o_pos.x() = o_pos_sc.theta;
+    o_pos.y() = o_pos_sc.phi;
+    o_pos.z() = o_pos_sc.r;
+
     Eigen::Matrix3f o_ori = object->getGlobalOrientation();
     
     std::stringstream ss_o;
@@ -274,7 +280,15 @@ void GraspPlannerWindow::buildVisu()
     UI.objectInfo->setText(QString(ss_o.str().c_str()));
 
     // Robot info
-    Eigen::Vector3f r_pos = eefCloned->getGlobalPosition();
+    Eigen::Vector3f xyz = eefCloned->getGlobalPosition();
+    
+    VirtualRobot::MathTools::SphericalCoord r_pos_sc = VirtualRobot::MathTools::toSphericalCoords(xyz);
+    Eigen::Vector3f r_pos;
+    r_pos.x() = r_pos_sc.theta;
+    r_pos.y() = r_pos_sc.phi;
+    r_pos.z() = r_pos_sc.r;
+    
+
     Eigen::Matrix3f r_ori = eefCloned->getGlobalOrientation();
     
     std::stringstream ss;
@@ -321,12 +335,20 @@ void GraspPlannerWindow::measure_quality()
 {
     if (current_grasp >= 0 && current_grasp < grasps.size()) {
         Grasp::GraspData grasp = grasps[current_grasp];
-        grasps[current_grasp].result = executeGrasp(grasp.pos, grasp.ori, false);
+        VirtualRobot::MathTools::SphericalCoord scoords;
+        std::cout << "SPHERICAL COORDS" << std::endl;
+        std::cout << grasp.pos << std::endl;
+        scoords.theta = grasp.pos.x();
+        scoords.phi = grasp.pos.y();
+        scoords.r = grasp.pos.z();
+        Eigen::Vector3f pos = VirtualRobot::MathTools::toPosition(scoords);
+        std::cout << "CARTESIAN COORDS" << std::endl;
+        std::cout << pos << std::endl;
+        grasps[current_grasp].result = executeGrasp(pos, grasp.ori, false);
     } else {
         std::cout << "measure_quality: FIRST YOU HAVE TO SELECT A GRASP\n";
     }
 }
-
 
 void GraspPlannerWindow::previous_grasp() {
     if (current_grasp > 0) {
@@ -404,19 +426,23 @@ bool GraspPlannerWindow::evaluateGrasp(VirtualRobot::GraspPtr g, VirtualRobot::R
 void GraspPlannerWindow::sliderReleased_ObjectX()
 {
     float v = (float)UI.objSliderX->value();
+    v /= 300;
 
     UI.objSliderX->setValue(0);
 
-    updateObj(v, GRASP_VAR::TRANS_X);
+    //updateObj(v, GRASP_VAR::TRANS_X);
+    updateObj(v, GRASP_VAR::TRANS_THETA);
 }
 
 void GraspPlannerWindow::sliderReleased_ObjectY()
 {
     float v = (float)UI.objSliderY->value();
+    v /= 300;
 
     UI.objSliderY->setValue(0);
 
-    updateObj(v, GRASP_VAR::TRANS_Y);
+    //updateObj(v, GRASP_VAR::TRANS_Y);
+    updateObj(v, GRASP_VAR::TRANS_PHI);
 }
 
 void GraspPlannerWindow::sliderReleased_ObjectZ()
@@ -425,7 +451,8 @@ void GraspPlannerWindow::sliderReleased_ObjectZ()
 
     UI.objSliderZ->setValue(0);
 
-    updateObj(v, GRASP_VAR::TRANS_Z);
+    //updateObj(v, GRASP_VAR::TRANS_Z)
+    updateObj(v, GRASP_VAR::TRANS_RHO);;
 }
 
 void GraspPlannerWindow::sliderReleased_ObjectRX()
@@ -458,12 +485,11 @@ void GraspPlannerWindow::sliderReleased_ObjectRZ()
     updateObj(v, GRASP_VAR::ROT_YAW);
 }
 
-
+/*
 void GraspPlannerWindow::updateObj(const float value, const int idx) {
     float x[6] = {0};
     x[idx] = value;
 
-    
     Eigen::Matrix4f m;
     VirtualRobot::MathTools::posrpy2eigen4f(x, m);
 
@@ -473,6 +499,40 @@ void GraspPlannerWindow::updateObj(const float value, const int idx) {
         object->setGlobalPose(m);
     } else {
         m = eefCloned->getGlobalPose() * m;
+        eefCloned->setGlobalPose(m);
+    }
+*/
+
+void GraspPlannerWindow::updateObj(const float value, const int idx) {
+    float x[6] = {0};
+    x[idx] = value;
+
+    VirtualRobot::MathTools::SphericalCoord scoords;
+    Eigen::Vector3f position;
+    Eigen::Vector3f new_position;
+    Eigen::Matrix4f m;
+    VirtualRobot::MathTools::posrpy2eigen4f(x, m);
+
+    bool moveObj = (UI.checkBoxMove->isChecked());
+    if (moveObj) {
+        position = object->getGlobalPosition();
+        scoords = VirtualRobot::MathTools::toSphericalCoords(position);
+        scoords.r = scoords.r + x[2];
+        scoords.theta = scoords.theta + x[0];
+        scoords.phi = scoords.phi + x[1];
+        new_position = VirtualRobot::MathTools::toPosition(scoords);
+        m.block(0, 3, 3, 1) = new_position;
+        object->setGlobalPose(m);
+
+        object->setGlobalPose(m);
+    } else {
+        position = eefCloned->getGlobalPosition();
+        scoords = VirtualRobot::MathTools::toSphericalCoords(position);
+        scoords.r = scoords.r + x[2];
+        scoords.theta = scoords.theta + x[0];
+        scoords.phi = scoords.phi + x[1];
+        new_position = VirtualRobot::MathTools::toPosition(scoords);
+        m.block(0, 3, 3, 1) = new_position;
         eefCloned->setGlobalPose(m);
     }
     
