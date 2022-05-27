@@ -7,11 +7,19 @@ struct GraspResult
     double volume;
     bool force_closure;
 
+    double time; // ms
+    double pos_error; // mm
+    double ori_error; // degrees
+
     GraspResult()
     {
         measure       = 0;
         volume        = 0;
         force_closure = false;
+
+        time = -1;
+        pos_error = -1;
+        ori_error = -1;
     }
 
     GraspResult(const double _measure, const double _volume, bool _force_closure)
@@ -19,6 +27,21 @@ struct GraspResult
         measure       = _measure;
         volume        = _volume;
         force_closure = _force_closure;
+
+        time = -1;
+        pos_error = -1;
+        ori_error = -1;
+    }
+
+    GraspResult(const double _measure, const double _volume, bool _force_closure, double _time, double _pos_error, double _ori_error)
+    {
+        measure       = _measure;
+        volume        = _volume;
+        force_closure = _force_closure;
+
+        time = _time;
+        pos_error = _pos_error;
+        ori_error = _ori_error;
     }
 };
 }

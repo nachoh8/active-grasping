@@ -2,10 +2,17 @@
 
 #include <vector>
 
+#include <Eigen/Geometry>
+
 #include "GraspResult.hpp"
 
 namespace Grasp {
-    
+
+struct GraspData {
+    Eigen::Vector3f pos, ori;
+    GraspResult result;
+};
+
 class GraspExecutor {
 public:
     /**

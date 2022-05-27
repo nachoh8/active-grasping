@@ -23,7 +23,7 @@ If you want to use active grasping with SigOpt platfform you have to add two env
 * SIGOPT_DEV_TOKEN, your sigopt development token
 * SIGOPT_PROD_TOKEN, your sigopt production token
 
-You can choose Dev/Production token by setting the param "mode" to "dev"/"prod" in our sigopt params file.
+You can choose Dev/Production token by setting the param "mode" to "dev"/"prod" in the sigopt params file.
 
 ## Tests
 
@@ -36,37 +36,38 @@ Test c++ lib:
 Test python lib:
 
     >> python3 test_grasp.py
-    >> python3 test_active_grasp.py
-    >> python3 test_gramacy_sigop.py
+    >> python3 test_bopt.py
+    >> python3 test_sigopt.py
 
 ## Execution
 
-### Gramacy optimization
-
-    >> python3 main_gramacy.py   -fgopt <active_grasp_params_file>
-                            -fgrasp <grasp_planner_params_file>
-                            (-fbopt <bayesopt_params_file> |
-                            -fsopt <sigopt_params_file>)
-                            [-flog <log_file>]
-
-To execute with bayesopt set -fbopt or to use sigopt set -fsopt
-
 ### Active Grasping Optimization
 
-    >> python3 main_active_grasping.py   -fgopt <active_grasp_params_file>
-                            -fgrasp <grasp_planner_params_file>
-                            (-fbopt <bayesopt_params_file> |
-                            -fsopt <sigopt_params_file>)
+    >> python3 main_active_grasping.py
+                            -fgrasp <executor> <params_file>
+                            (-fbopt <bayesopt_params> <exp_params> |
+                            -fsopt <sigopt_params>)
                             [-flog <log_file>]
 
-To execute with bayesopt set -fbopt or to use sigopt set -fsopt
+* <executor\>: {0: TestGramacyExecutor, 1: GraspPlanner, 2: GraspPlannerIK}
+* -fbopt: BayesOpt
+* -fsopt: SigOpt
 
 ### Optimization evaluation
 
-    >> python3 evaluation.py -flog <log_file>
+    >> python3 evaluation.py -flogs (<log_file> | <log_folder>)+
 
 ### Grasp visualization
 
-    >> ./build/bin/grasp_visualization <grasp_planner_params_file> [<log_file>]
+#### Grasp EEF
+
+    >> ./build/bin/grasp_visualization <params_file> [<log_file>]
 
 * <log_file>: log file to load grasps from an experiment result
+
+#### Grasp IK BiRRT
+
+    >> ./grasp_ik_visualization <mode> <file>
+
+* <mode\>: 0: from configuration; 1: from log
+* <file\>: configuration or log file

@@ -36,7 +36,7 @@ params = GraspPlannerParams( # or with values
     "/home/juangls/ActiveGrasping/simox/mySimox/VirtualRobot/data/objects/WaterBottleSmall.xml",
     1000.0, 0.01, True
 )
-is_valid = load_GraspPlannerParams_json("/home/juangls/ActiveGrasping/active-grasping/config/grasp/grasp_params.json", params) # or from file
+is_valid = load_GraspPlannerParams_json("config/grasp/tests/grasp_params.json", params) # or from file
 if not is_valid:
         print("Error: parsing grasp planner params")
         exit(1)
@@ -61,3 +61,23 @@ q3 = vectord(6, 0.0)
 for q in [q1, q2, q3]:
     res = planner.executeQueryGrasp(q)
     print(res.measure, res.volume, res.force_closure)
+
+print("----TEST GRASP PLANNER IK----")
+
+ik_params = GraspPlannerIKParams() # empty
+is_valid = load_GraspPlannerIKParams("config/graspIK/tests/grasp_params.json", ik_params)
+if not is_valid:
+        print("Error: parsing grasp planner ik params")
+        exit(1)
+
+
+plannerIK = GraspPlannerIK(ik_params)
+
+# WARNING
+# !!!!!
+# c++ could access elements outside the range of the query vector and does not throw any errors
+# !!!!
+query = np.array([-239.204, -32.972, 586.954, -1.57, 0.0,  3.14])
+
+res = plannerIK.executeQueryGrasp(query)
+print("Result:", res.measure, res.volume, res.force_closure)
