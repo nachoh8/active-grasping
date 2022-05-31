@@ -62,7 +62,7 @@ mkdir -p $RES_FOLDER
 FLOG="$RES_FOLDER/$RES_LOG_PREFIX"
 
 N_ERR=0
-for (( i=1; i<=$NUM_RUNS; ))
+for (( i=3; i<=$NUM_RUNS; ))
 do
     echo "-------------------------------------"
     log="${FLOG}_$i.json"

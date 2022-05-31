@@ -13,17 +13,17 @@ namespace pt = boost::property_tree;
 
 inline int var_to_idx(const std::string& var) {
     if (var == "x") {
-        return Grasp::GRASP_VAR::TRANS_X;
+        return Grasp::CARTESIAN_VARS::TRANS_X;
     } else if (var == "y") {
-        return Grasp::GRASP_VAR::TRANS_Y;
+        return Grasp::CARTESIAN_VARS::TRANS_Y;
     } else if ( var == "z") {
-        return Grasp::GRASP_VAR::TRANS_Z;
+        return Grasp::CARTESIAN_VARS::TRANS_Z;
     } else if ( var == "rx") {
-        return Grasp::GRASP_VAR::ROT_ROLL;
+        return Grasp::CARTESIAN_VARS::ROT_ROLL;
     } else if ( var == "ry") {
-        return Grasp::GRASP_VAR::ROT_PITCH;
+        return Grasp::CARTESIAN_VARS::ROT_PITCH;
     } else if ( var == "rz") {
-        return Grasp::GRASP_VAR::ROT_YAW;
+        return Grasp::CARTESIAN_VARS::ROT_YAW;
     } else {
         return -1;
     }
@@ -92,8 +92,8 @@ bool load_grasps(pt::ptree root, std::vector<Grasp::GraspData>& grasps) {
             grasp.result.measure = root_res.get<float>("outcome");
             grasp.result.volume = root_res.get<float>("volume");
             grasp.result.force_closure = root_res.get<bool>("force_closure");
-            grasp.pos = Eigen::Vector3f(pose[Grasp::GRASP_VAR::TRANS_X], pose[Grasp::GRASP_VAR::TRANS_Y], pose[Grasp::GRASP_VAR::TRANS_Z]);
-            grasp.ori = Eigen::Vector3f(pose[Grasp::GRASP_VAR::ROT_ROLL], pose[Grasp::GRASP_VAR::ROT_PITCH], pose[Grasp::GRASP_VAR::ROT_YAW]);
+            grasp.pos = Eigen::Vector3f(pose[Grasp::CARTESIAN_VARS::TRANS_X], pose[Grasp::CARTESIAN_VARS::TRANS_Y], pose[Grasp::CARTESIAN_VARS::TRANS_Z]);
+            grasp.ori = Eigen::Vector3f(pose[Grasp::CARTESIAN_VARS::ROT_ROLL], pose[Grasp::CARTESIAN_VARS::ROT_PITCH], pose[Grasp::CARTESIAN_VARS::ROT_YAW]);
 
             if (grasp_obj.get_child_optional("others") != boost::none) {
                 pt::ptree root_others = grasp_obj.get_child("others");

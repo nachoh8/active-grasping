@@ -15,6 +15,11 @@
 #include <GraspPlanning/GraspPlanner/GenericGraspPlanner.h>
 #include <GraspPlanning/ApproachMovementSurfaceNormal.h>
 
+#include <VirtualRobot/SceneObject.h>
+#include <VirtualRobot/Visualization/TriMeshModel.h>
+#include <VirtualRobot/CollisionDetection/CollisionModel.h>
+#include <VirtualRobot/MathTools.h>
+
 #include <Eigen/Geometry>
 
 #include "GraspExecutor.hpp"
@@ -40,7 +45,7 @@ public:
      * @brief Execute grasp for an eef pose
      * 
      * @param xyz position @param rpy orientation 
-     * @return Grasp quality 
+     * @return Grasp quality
      */
     GraspResult executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy, bool save_grasp=true);
 
@@ -74,6 +79,10 @@ protected:
 
     void openEE();
 
+    bool RayIntersectsTriangle(Eigen::Vector3f rayOrigin, Eigen::Vector3f rayVector, 
+                                                                Eigen::Vector3f vertex0, Eigen::Vector3f vertex1, Eigen::Vector3f vertex2, 
+                                                                float& rho);
+
     /// Others
     inline std::string modelPoseToStr(const Eigen::Vector3f& pos, const Eigen::Matrix3f& ori_m) {
         Eigen::Vector3f ori = ori_m.eulerAngles(0,1,2);
@@ -90,6 +99,7 @@ protected:
 
     VirtualRobot::RobotPtr robot;
     VirtualRobot::EndEffectorPtr eef;
+    VirtualRobot::TriMeshModelPtr objectModel;
     VirtualRobot::RobotPtr eefCloned;
     VirtualRobot::ManipulationObjectPtr object;
 

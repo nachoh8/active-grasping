@@ -52,10 +52,8 @@ void test_GraspPlanner() {
 
     ActiveGraspingOpt::ActiveGraspingOptParams params;
     //params.active_variables.push_back(GRASP_VAR::TRANS_X);
-    //params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_Y);
-    //params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_Z);
-    params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_PHI);
-    params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_RHO);
+    params.active_variables.push_back(Grasp::CARTESIAN_VARS::TRANS_Y);
+    params.active_variables.push_back(Grasp::CARTESIAN_VARS::TRANS_Z);
     /*params.active_variables.push_back(GRASP_VAR::ROT_ROLL);
     params.active_variables.push_back(GRASP_VAR::ROT_PITCH);
     params.active_variables.push_back(GRASP_VAR::ROT_YAW);*/
@@ -126,8 +124,8 @@ void test_GraspPlannerIK() {
     // Grasp::GraspResult res = planner.executeQueryGrasp(query);
 
     ActiveGraspingOpt::ActiveGraspingOptParams opt_params;
-    opt_params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_X);
-    opt_params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_Y);
+    opt_params.active_variables.push_back(Grasp::CARTESIAN_VARS::TRANS_X);
+    opt_params.active_variables.push_back(Grasp::CARTESIAN_VARS::TRANS_Y);
     
     const int opt_dim = opt_params.active_variables.size();
     opt_params.n_grasp_trials = 1;

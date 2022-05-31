@@ -1,8 +1,6 @@
 import argparse
-from cProfile import label
 import os
 import glob
-from matplotlib import markers
 import numpy as np
 import matplotlib.pyplot as plt
 
