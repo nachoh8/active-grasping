@@ -11,8 +11,23 @@ struct GraspResult
     double pos_error; // mm
     double ori_error; // degrees
 
+    std::string error;
+
     GraspResult()
     {
+        measure       = 0;
+        volume        = 0;
+        force_closure = false;
+
+        time = -1;
+        pos_error = -1;
+        ori_error = -1;
+    }
+
+    GraspResult(const std::string& _error)
+    {
+        error = _error;
+        
         measure       = 0;
         volume        = 0;
         force_closure = false;

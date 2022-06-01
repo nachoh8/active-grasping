@@ -26,10 +26,13 @@ def outcome_iterations(outcomes: np.ndarray, best_acum=False, errors: np.ndarray
             Y = outs
             title = 'Value of best selected sample'
 
-        if errors is not None:
+        """if errors is not None:
             plt.errorbar(iterations, Y, yerr=errors[i], fmt='o', label=names[i], alpha=0.7)
         else:
-            plt.plot(iterations, Y, 'o-')
+            plt.plot(iterations, Y, 'o-')"""
+        plt.plot(iterations, Y, label=names[i])
+        if errors is not None:
+            plt.fill_between(iterations, Y - errors[i], Y + errors[i], alpha=0.3)
     
     if names:
         plt.legend()

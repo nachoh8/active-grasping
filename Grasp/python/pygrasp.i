@@ -26,9 +26,23 @@ namespace std {
 %eigen_typemaps(Eigen::MatrixXf)
 
 %include "Grasp/GraspVars.hpp"
-%include "Grasp/GraspResult.hpp"
+// %include "Grasp/GraspResult.hpp"
 
 namespace Grasp {
+
+    struct GraspResult
+    {
+        double measure;
+        double volume;
+        bool force_closure;
+
+        double time;
+        double pos_error;
+        double ori_error;
+
+        std::string error;
+    };
+
     class GraspExecutor {
     public:
         virtual GraspResult executeQueryGrasp(const std::vector<double>& query) = 0;

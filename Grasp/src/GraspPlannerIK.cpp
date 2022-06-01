@@ -152,7 +152,8 @@ void GraspPlannerIK::loadReach()
 GraspResult GraspPlannerIK::executeQueryGrasp(const std::vector<double>& query) {
     if (query.size() != 6) {
         std::cout << "Error: query needs 6 values (x,y,z,r,p,y)" << std::endl;
-        return GraspResult();
+        // return GraspResult();
+        exit(1);
     }
 
     float x[6];
@@ -191,7 +192,8 @@ GraspResult GraspPlannerIK::executeGrasp(const Eigen::Matrix4f& targetPose) {
 
     /// 2. Plan and execute
     float posError = -1.0f, oriError = -1.0f, planTime = -1.0f;
-    if (plan(targetPose, posError, oriError, planTime)) {
+    std::string error;
+    if (plan(targetPose, posError, oriError, planTime, error)) {
         /// 3. Set final config
         Eigen::VectorXf finalPos;
         birrtSolOptimized->interpolate(1, finalPos);
@@ -201,7 +203,7 @@ GraspResult GraspPlannerIK::executeGrasp(const Eigen::Matrix4f& targetPose) {
         if (eef->getCollisionChecker()->checkCollision(object->getCollisionModel(), eef->createSceneObjectSet())) {
             std::cout << "Error: EEF Collision detected!" << std::endl;
             reset();
-            return GraspResult();
+            return GraspResult("eef_collision");
         }
 
         closeEEF();
@@ -219,7 +221,7 @@ GraspResult GraspPlannerIK::executeGrasp(const Eigen::Matrix4f& targetPose) {
 
     reset();
 
-    return GraspResult();
+    return GraspResult(error);
 }
 
 void GraspPlannerIK::printInfo() {
@@ -242,7 +244,7 @@ void GraspPlannerIK::printInfo() {
 
 /// Grasping
 
-bool GraspPlannerIK::plan(const Eigen::Matrix4f& targetPose, float& posError, float& oriError, float& planTime) {
+bool GraspPlannerIK::plan(const Eigen::Matrix4f& targetPose, float& posError, float& oriError, float& planTime, std::string& error) {
     /// 1. IKSolver setup
     VirtualRobot::GenericIKSolverPtr ikSolver(new VirtualRobot::GenericIKSolver(rns));
 
@@ -272,6 +274,7 @@ bool GraspPlannerIK::plan(const Eigen::Matrix4f& targetPose, float& posError, fl
     bool planOK = ikSolver->solve(targetPose, selection, ikMaxLoops);
     std::cout << "IK Solver success: " << planOK << std::endl;
     if (!planOK) {
+        error = "ik_fail";
         return false;
     }
 
@@ -301,6 +304,7 @@ bool GraspPlannerIK::plan(const Eigen::Matrix4f& targetPose, float& posError, fl
     planTime = rrt->getPlanningTimeMS();
     std::cout << "BiRRT time: " << planTime << " ms" << std::endl;
     if (!planOK) {
+        error = "birrt_fail";
         return false;
     }
 

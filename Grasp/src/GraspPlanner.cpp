@@ -123,7 +123,7 @@ GraspResult GraspPlanner::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::
     grasp.ori = rpy;
     if (eef->getCollisionChecker()->checkCollision(object->getCollisionModel(), eef->createSceneObjectSet())) {
         std::cout << "Error: Collision detected!" << std::endl;
-        grasp.result = GraspResult();
+        grasp.result = GraspResult("eef_collision");
         if (save_grasp) grasps.push_back(grasp);
         return grasp.result;
     }

@@ -48,7 +48,7 @@ protected:
 
     /// EEF
 
-    bool plan(const Eigen::Matrix4f& targetPose, float& posError, float& oriError, float& planTime);
+    bool plan(const Eigen::Matrix4f& targetPose, float& posError, float& oriError, float& planTime, std::string& error);
 
     void closeEEF();
 

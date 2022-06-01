@@ -21,6 +21,9 @@ class SigOptExecutor(ActiveGrasping):
         else:
             raise Exception("Mode not valid, use dev or prod")
         
+        self.report_failures: bool = False
+        if params.get("report_failures"):
+            self.report_failures: bool = params["report_failures"]
         self.exp_params: dict = params["exp_params"]
         self.num_runs: int = self.exp_params["budget"]
         self.experiment = sigopt.create_experiment(**self.exp_params)
@@ -32,14 +35,8 @@ class SigOptExecutor(ActiveGrasping):
 
         ActiveGrasping.__init__(self, executor, active_variables, default_query, ["outcome", "volume", "force_closure"], n_trials=grasp_trials, logger=logger)
 
-        self.run_func: function = None
-        if type(self.executor) == GramacyExecutor:
-            self.run_func = sigopt_executor_gramacy
-        else:
-            self.run_func = sigopt_executor_grasp
-
         if self.logger:
-            data = {"project": self.project_name, "mode": self.token_type, "exp_params": self.exp_params}
+            data = {"project": self.project_name, "mode": self.token_type, "report_failures": self.report_failures, "exp_params": self.exp_params}
             self.logger.log_optimizer(params["name"], data)
         
     def run(self):
@@ -50,6 +47,7 @@ class SigOptExecutor(ActiveGrasping):
         print("Mode: " + ("dev" if self.token_type == "dev" else "production"))
         print("Active variables: " + str(self.active_variables))
         print("Default query: " + str(self.default_query))
+        print("Report failures: " + str(self.report_failures))
 
         print("Begin experiment")
         print("-------------------------------")
@@ -58,7 +56,7 @@ class SigOptExecutor(ActiveGrasping):
             print("----")
             print("Run " + str(it) + "/" + str(self.num_runs))
             with run:
-                self.run_func(self, run)
+                self.execute_run_query(run)
             it += 1
         
         print("-------------------------------")
@@ -74,29 +72,27 @@ class SigOptExecutor(ActiveGrasping):
             
             r = {"query": run.assignments, "metrics": [{"name": metric, "value": value.value} for metric, value in run.values.items()]}
             self.best_results.append(r)
-
-            
-def sigopt_executor_grasp(sigopt_executor: SigOptExecutor, run: sigopt.run_context.RunContext):
-    run.log_model(sigopt_executor.executor.get_name())
     
-    query = dict(run.params)
-    res: GraspResult = sigopt_executor.executeQuery(query)
+    def execute_run_query(self, run: sigopt.run_context.RunContext):
+        run.log_model(self.executor.get_name())
 
-    run.log_metric("outcome", res.measure)
-    run.log_metadata("volume", res.volume)
-    run.log_metadata("force_closure", res.force_closure)
-    run.log_metadata("default_values", sigopt_executor.executor.get_default_values())
+        query = dict(run.params)
+        res: GraspResult = self.executeQuery(query)
 
-    if type(sigopt_executor.executor) == GraspPlannerIKExecutor:
-        run.log_metadata("time(ms)", res.time)
-        run.log_metadata("position_error(mm)", res.pos_error)
-        run.log_metadata("orientation_error(degrees)", res.ori_error)
-    
+        metrics, errors, metadata = self.executor.parse_results(res)
 
-def sigopt_executor_gramacy(sigopt_executor: SigOptExecutor, run: sigopt.run_context.RunContext):
-    run.log_model("Test Gramacy")
-    
-    query = dict(run.params)
-    res: GraspResult = sigopt_executor.executeQuery(query)
+        not_log_metric = (errors != "" and self.report_failures)
 
-    run.log_metric("outcome", res.measure)
+        if not not_log_metric:
+            for name, value in metrics:
+                run.log_metric(name, value)
+        
+        for name, value in metadata:
+            run.log_metadata(name, value)
+
+        run.log_metadata("default_values", self.executor.get_default_values())
+
+        if errors:
+            run.log_metadata("error", errors)
+            if self.report_failures:
+                run.log_failure()

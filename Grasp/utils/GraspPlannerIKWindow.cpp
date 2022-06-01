@@ -129,9 +129,14 @@ void GraspPlannerIKWindow::closeEEFbtn()
 
     Grasp::GraspResult result = graspQuality();
 
-    std::cout << "Grasp Quality (epsilon measure):" << result.measure << std::endl;
-    std::cout << "v measure:" << result.volume << std::endl;
-    std::cout << "Force closure: " << (result.force_closure ? "yes" : "no") << std::endl;
+    if (result.error != "") {
+        std::cout << "Grasp error:" << result.error << std::endl;
+    } else {
+        std::cout << "Grasp Quality (epsilon measure):" << result.measure << std::endl;
+        std::cout << "v measure:" << result.volume << std::endl;
+        std::cout << "Force closure: " << (result.force_closure ? "yes" : "no") << std::endl;
+    }
+    
 }
 
 void GraspPlannerIKWindow::openEEFbtn()
@@ -421,10 +426,14 @@ void GraspPlannerIKWindow::updateTargetGrasp() {
 
     std::stringstream ss;
     ss << std::setprecision(3);
-    ss << "Grasp: " << (current_grasp+1) << "/" << grasps.size() << "\n"
-        << "Quality:" << grasp.result.measure << std::endl
-        << "Volume:" << grasp.result.volume << std::endl
-        << "Force closure: " << (grasp.result.force_closure ? "yes" : "no") << std::endl;
+    ss << "Grasp: " << (current_grasp+1) << "/" << grasps.size() << "\n";
+    if (grasp.result.error != "") {
+        ss << "Error: " << grasp.result.error << std::endl;
+    } else {
+        ss << "Quality:" << grasp.result.measure << std::endl
+            << "Volume:" << grasp.result.volume << std::endl
+            << "Force closure: " << (grasp.result.force_closure ? "yes" : "no") << std::endl;
+    }
 
     UI.graspInfo->setText(QString(ss.str().c_str()));
 

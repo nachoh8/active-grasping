@@ -8,6 +8,6 @@ execute_process ( COMMAND
 
 INSTALL(
     # FILES active_grasping_opt.py datalog.py active_grasping_params.py sigopt_executor.py
-    FILES active_grasping.py datalog.py bayesopt_executor.py sigopt_executor.py grasp_models.py utils.py
+    FILES active_grasping.py datalog.py bayesopt_executor.py sigopt_executor.py grasp_models.py utils.py metrics.py
     DESTINATION "${PYTHON_SITE_PACKAGES}/active_grasping"
 )

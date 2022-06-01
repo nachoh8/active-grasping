@@ -1,6 +1,8 @@
 import json
 from pygrasp.pygrasp import *
 
+from .metrics import *
+
 def construct_grasp_executor_int(gtype: int, fgrasp: str = "") -> GraspExecutor:
     t = None
     if gtype == 0:
@@ -63,13 +65,15 @@ def cartesian_idx_to_var(idx: int) -> str:
         raise Exception("Index " + str(idx) + " is not valid")
 
 class ExecutorModel(object):
-    def __init__(self, values_size: int, gtype: type, fparams: str = "") -> None:
+    def __init__(self, values_size: int, gtype: type, metric_parser: GraspMetric, fparams: str = "") -> None:
         self.executor: GraspExecutor = None
         self.params: any = None
         self.executor, self.params = construct_grasp_executor(gtype, fparams)
 
         self.values_size = values_size
         self.default_values = [None] * values_size
+
+        self.metric_parser: GraspMetric = metric_parser
     
     def var_to_idx(self, var: str) -> int:
         raise Exception("This is an abstract class")
@@ -110,9 +114,12 @@ class ExecutorModel(object):
 
         return self.executor.executeQueryGrasp(values)
 
+    def parse_results(self, res: GraspResult) -> "tuple[list, str, list]":
+        return self.metric_parser.get_data(res)
+
 class GramacyExecutor(ExecutorModel):
     def __init__(self) -> None:
-        super().__init__(2, TestGramacyExecutor), 
+        super().__init__(2, TestGramacyExecutor, GramacyMetric()), 
 
     def var_to_idx(self, var: str) -> int:
         if var == "x1":
@@ -135,7 +142,7 @@ class GramacyExecutor(ExecutorModel):
     
 class GraspPlannerExecutor(ExecutorModel):
     def __init__(self, fgrasp: str) -> None:
-        super().__init__(6, GraspPlanner, fgrasp)
+        super().__init__(6, GraspPlanner, ForceClosure(), fgrasp)
         f = open(fgrasp, 'r')
         self.json_params = json.load(f)
 
@@ -153,7 +160,7 @@ class GraspPlannerExecutor(ExecutorModel):
     
 class GraspPlannerIKExecutor(ExecutorModel):
     def __init__(self, fgrasp: str) -> None:
-        super().__init__(6, GraspPlannerIK, fgrasp)
+        super().__init__(6, GraspPlannerIK, ForceClosureIK(), fgrasp)
         f = open(fgrasp, 'r')
         self.json_params = json.load(f)
 
