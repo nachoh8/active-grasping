@@ -79,7 +79,7 @@ class SigOptExecutor(ActiveGrasping):
         query = dict(run.params)
         res: GraspResult = self.executeQuery(query)
 
-        metrics, errors, metadata = self.executor.parse_results(res)
+        metrics, errors, metadata = self.executor.metric_parser.get_sigopt_data(res)
 
         not_log_metric = (errors != "" and self.report_failures)
 

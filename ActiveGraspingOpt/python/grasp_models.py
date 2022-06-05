@@ -3,13 +3,17 @@ from pygrasp.pygrasp import *
 
 from .metrics import *
 
+GTYPE_GRAMACY = 0
+GTYPE_GRASP_PLANNER = 1
+GTYPE_GRASP_PLANNER_IK = 2
+
 def construct_grasp_executor_int(gtype: int, fgrasp: str = "") -> GraspExecutor:
     t = None
-    if gtype == 0:
+    if gtype == GTYPE_GRAMACY:
         t = TestGramacyExecutor
-    elif gtype == 1:
+    elif gtype == GTYPE_GRASP_PLANNER:
         t = GraspPlanner
-    elif gtype == 2:
+    elif gtype == GTYPE_GRASP_PLANNER_IK:
         t = GraspPlannerIK
     
     return construct_grasp_executor(t, fgrasp)
@@ -114,8 +118,17 @@ class ExecutorModel(object):
 
         return self.executor.executeQueryGrasp(values)
 
-    def parse_results(self, res: GraspResult) -> "tuple[list, str, list]":
-        return self.metric_parser.get_data(res)
+    def parse_results(self, res: GraspResult, is_sigopt: bool) -> "tuple[dict, any]":
+        """
+        return
+        - data to local log
+        - data to evaluate with bayesopt/sigopt
+        """
+
+        if is_sigopt:
+            return self.metric_parser.get_data_log(res), self.metric_parser.get_sigopt_data(res)
+        else:
+            return self.metric_parser.get_data_log(res), self.metric_parser.get_bayesopt_metric(res)
 
 class GramacyExecutor(ExecutorModel):
     def __init__(self) -> None:
@@ -159,8 +172,15 @@ class GraspPlannerExecutor(ExecutorModel):
         return self.json_params
     
 class GraspPlannerIKExecutor(ExecutorModel):
-    def __init__(self, fgrasp: str) -> None:
-        super().__init__(6, GraspPlannerIK, ForceClosureIK(), fgrasp)
+    def __init__(self, fgrasp: str, metric_type: int) -> None:
+        if metric_type == MTYPE_FC_IK:
+            metric = ForceClosureIK()
+        elif metric_type == MTYPE_FC_T_IK:
+            metric = ForceClosureTimeIK()
+        else:
+            raise Exception("Metric not compatible")
+        
+        super().__init__(6, GraspPlannerIK, metric, fgrasp)
         f = open(fgrasp, 'r')
         self.json_params = json.load(f)
 

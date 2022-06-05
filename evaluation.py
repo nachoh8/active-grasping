@@ -128,8 +128,9 @@ def get_folder_values(folder_path: str) -> "tuple[str, list[str], np.ndarray, np
         _, _, grasps, outcomes, best = get_values(file)
         all_grasps.append(grasps)
         all_outcomes.append(outcomes)
-        all_best_grasps.append(best[0])
-        all_best_outcomes.append(best[1])
+        if best[0].shape[0] > 0:
+            all_best_grasps.append(best[0])
+            all_best_outcomes.append(best[1])
     
     all_grasps = np.array(all_grasps)
     all_outcomes = np.array(all_outcomes)
@@ -158,6 +159,7 @@ if __name__ == "__main__":
             print("Optimizer: " + optimizer_name)
             print("Active variables: " + str(act_vars))
             print("Num. total grasps: " + str(all_grasps.shape[1]))
+            print(all_best_grasps.shape)
 
             max_outcomes = np.array([compute_max_until_iteration(outs) for outs in all_outcomes])
             mean_max_outcomes.append(np.mean(max_outcomes, axis=0))

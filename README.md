@@ -5,7 +5,7 @@
 * Python 3
 * C++ 20
 * [Simox](https://gitlab.com/Simox/simox)
-* [BayesOpt](https://github.com/rmcantin/bayesopt)
+* [BayesOpt V2](https://github.com/rmcantin/bayesoptpro)
 * [SigOpt - Python](https://sigopt.com/)
 * SWIG (to create Grasp lib python interface)
 
@@ -35,9 +35,10 @@ Test c++ lib:
 
 Test python lib:
 
-    >> python3 test_grasp.py
-    >> python3 test_bopt.py
-    >> python3 test_sigopt.py
+    >> cd ..
+    >> python3 test/test_grasp.py
+    >> python3 test/test_bopt.py
+    >> python3 test/test_sigopt.py
 
 ## Execution
 

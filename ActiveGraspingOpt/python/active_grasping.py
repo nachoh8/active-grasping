@@ -28,18 +28,16 @@ class ActiveGrasping:
     def executeQuery(self, query: dict) -> GraspResult:
         values = self.executor.query_to_values(query)
         res: GraspResult = self.executor.execute(values)
-        
-        log_data = {"query": query, "metrics": {"outcome": res.measure, "volume": res.volume, "force_closure": res.force_closure}}
+
+        log_data = self.executor.metric_parser.get_data_log(res)
         if res.error != "":
             print("Query:", query, "-> Error:", res.error)
-            log_data["error"] = res.error
         else:
-            print("Query:", query, "-> Outcome:", res.measure, "Volume:", res.volume, "Force closure:", res.force_closure)
+            print("Query:", query)
+            print(log_data)
         
-        if type(self.executor) == GraspPlannerIKExecutor:
-            log_data.update({"others":{"time": res.time, "position_error": res.pos_error, "orientation_error": res.ori_error}})
-            print("Time:", res.time, "Position Error:", res.pos_error, "Orientation Error:", res.ori_error)
-        
+        log_data["query"] = query
+
         self.queries.append(log_data)
 
         return res

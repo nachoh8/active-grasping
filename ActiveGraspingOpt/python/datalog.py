@@ -121,6 +121,8 @@ class DataLog(object):
             
             grasps.append(grasp)
 
-            metrics.append(data_grasp["metrics"][0]['value'])
+            for m in data_grasp["metrics"]:
+                if m["name"] == metric:
+                    metrics.append(m['value'])
         
         return grasps, metrics

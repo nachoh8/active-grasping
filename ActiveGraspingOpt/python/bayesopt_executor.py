@@ -51,5 +51,5 @@ class BayesOptExecutor(ActiveGrasping, BayesOptContinuous):
         query = dict(zip(self.active_variables, list(x_in)))
         res: GraspResult = self.executeQuery(query)
         
-        return -res.measure
+        return self.executor.metric_parser.get_bayesopt_metric(res)
 
