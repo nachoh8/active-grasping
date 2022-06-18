@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <boost/property_tree/json_parser.hpp>
 
 #define MAX_ERROR_POS_DEFAULT 5.0f
 #define MAX_ERROR_ORI_DEFAULT 0.04f
@@ -9,6 +10,8 @@
 #define JACOBIAN_MAX_LOOPS_DEFAULT 100
 #define CSPACE_PATH_STEP_SIZE_DEFAULT 0.04f
 #define CSPACE_COL_STEP_SIZE_DEFAULT 0.08f
+
+namespace pt = boost::property_tree;
 
 namespace Grasp {
 
@@ -28,5 +31,7 @@ struct GraspPlannerIKParams {
 };
 
 bool load_GraspPlannerIKParams(const std::string& json, GraspPlannerIKParams& params);
+
+bool load_GraspPlannerIKParams(pt::ptree root, GraspPlannerIKParams& params);
 
 }

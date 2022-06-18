@@ -66,18 +66,13 @@ namespace Grasp {
         bool has_obj_pose = false;
         Eigen::Vector3f obj_position, obj_orientation;
 
-        float timeout;
-        float min_quality;
-        bool force_closure;
-
         GraspPlannerParams();
 
         GraspPlannerParams(
             const std::string& _robot_file,
             const std::string& _eef_name,
             const std::string& _preshape,
-            const std::string& _object_file,
-            const float _timeout, const float _min_quality, const bool _force_closure
+            const std::string& _object_file
         );
     };
 

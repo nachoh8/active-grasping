@@ -114,31 +114,14 @@ bool load_grasps(pt::ptree root, std::vector<Grasp::GraspData>& grasps) {
     return true;
 }
 
-bool load_GraspPlannerIKParams_root(pt::ptree root, GraspPlannerIKParams& params) {
+bool load_root_params(const std::string& log_file, pt::ptree& root, pt::ptree& root_planner_params) {
     try {
-
-        params.scene = root.get<std::string>("scene");
-        params.reachability = root.get<std::string>("reachability", "");
-        params.eef = root.get<std::string>("eef");
-        params.rns = root.get<std::string>("rns");
-
-        for (pt::ptree::value_type &v_col : root.get_child("robot_cols"))
-        {
-            std::string col = v_col.second.get_value<std::string>();
-            params.robot_cols.push_back(col);
-        }
-
-        params.max_error_pos = root.get<float>("max_error_pos", MAX_ERROR_POS_DEFAULT);
-        params.max_error_ori = root.get<float>("max_error_ori", MAX_ERROR_ORI_DEFAULT);
-
-        params.jacobian_step_size = root.get<float>("jacobian_step_size", JACOBIAN_STEP_SIZE_DEFAULT);
-        params.jacobian_max_loops = root.get<int>("jacobian_max_loops", JACOBIAN_MAX_LOOPS_DEFAULT);
-
-        params.cspace_path_step_size = root.get<float>("cspace_path_step_size", CSPACE_PATH_STEP_SIZE_DEFAULT);
-        params.cspace_col_step_size = root.get<float>("cspace_col_step_size", CSPACE_COL_STEP_SIZE_DEFAULT);
-
+        pt::read_json(log_file, root);
+        pt::ptree root_executor = root.get_child("grasp_executor");
+        root_planner_params = root_executor.get_child("params");
+        
     } catch(std::exception & e) {
-        std::cout << "Error loading GraspPlannerIKParams: " << e.what() << std::endl;
+        std::cout << "Error loading roots from file: " << e.what() << std::endl;
 
         return false;
     }

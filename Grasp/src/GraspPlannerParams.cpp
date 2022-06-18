@@ -39,75 +39,58 @@ namespace Grasp {
 
 bool load_GraspPlannerParams_json(const std::string& json, GraspPlannerParams& params) {
     pt::ptree root;
-    std::string robot_json, obj_json;
     try {
         pt::read_json(json, root);
+    } catch(std::exception & e) {
+        std::cout << "Error loading GraspPlannerParams from file: " << e.what() << std::endl;
 
-        params.timeout = root.get<float>("timeout");
-        params.min_quality = root.get<float>("min_quality");
-        params.force_closure = root.get<bool>("force_closure");
+        return false;
+    }
 
+    return load_GraspPlannerParams_json(root, params);
+}
+
+
+bool load_GraspPlannerParams_json(const pt::ptree root, GraspPlannerParams& params) {
+    std::string robot_json, obj_json;
+    try {
         robot_json = root.get<std::string>("robot");
         obj_json = root.get<std::string>("object");
     } catch(std::exception & e) {
-        std::cout << "Error loading GraspPlannerParams from file: " << e.what() << std::endl;
+        std::cout << "Error loading GraspPlannerParams: " << e.what() << std::endl;
+
+        return false;
+    }
+
+    pt::ptree ro_root;
+    try {
+        pt::read_json(robot_json, ro_root);
+
+        params.robot_file = ro_root.get<std::string>("file");
+        params.eef_name = ro_root.get<std::string>("eef_name");
+        params.preshape = ro_root.get<std::string>("preshape");
+
+        params.has_eef_pose = parse_pose(ro_root, params.eef_position, params.eef_orientation);
+    } catch(std::exception & e) {
+        std::cout << "Error loading GraspPlannerParams, robot file: " << e.what() << std::endl;
 
         return false;
     }
 
     try {
-        pt::read_json(robot_json, root);
+        pt::read_json(obj_json, ro_root);
 
-        params.robot_file = root.get<std::string>("file");
-        params.eef_name = root.get<std::string>("eef_name");
-        params.preshape = root.get<std::string>("preshape");
+        params.object_file = ro_root.get<std::string>("file");
 
-        params.has_eef_pose = parse_pose(root, params.eef_position, params.eef_orientation);
+        params.has_obj_pose = parse_pose(ro_root, params.obj_position, params.obj_orientation);
     } catch(std::exception & e) {
-        std::cout << "Error loading GraspPlannerParams from file: " << e.what() << std::endl;
-
-        return false;
-    }
-
-    try {
-        pt::read_json(obj_json, root);
-
-        params.object_file = root.get<std::string>("file");
-
-        params.has_obj_pose = parse_pose(root, params.obj_position, params.obj_orientation);
-    } catch(std::exception & e) {
-        std::cout << "Error loading GraspPlannerParams from file: " << e.what() << std::endl;
+        std::cout << "Error loading GraspPlannerParams, obj file: " << e.what() << std::endl;
 
         return false;
     }
 
     return true;
 }
-
-/*bool load_GraspPlannerParams_json(const std::string& json, GraspPlannerParams& params) {
-    pt::ptree root;
-    try {
-        pt::read_json(json, root);
-
-        params.robot_file = root.get<std::string>("robot_file");
-        params.eef_name = root.get<std::string>("eef_name");
-        params.preshape = root.get<std::string>("preshape");
-        params.object_file = root.get<std::string>("object_file");
-
-        params.timeout = root.get<float>("timeout");
-        params.min_quality = root.get<float>("min_quality");
-        params.force_closure = root.get<bool>("force_closure");
-
-        params.has_eef_pose = parse_pose(root, "eef_position", "eef_orientation", params.eef_position, params.eef_orientation);
-        params.has_obj_pose = parse_pose(root, "obj_position", "obj_orientation", params.obj_position, params.obj_orientation);
-
-        return true;
-    } catch(std::exception & e) {
-        std::cout << "Error loading GraspPlannerParams from file: " << e.what() << std::endl;
-
-        return false;
-    }
-}*/
 
 }
 

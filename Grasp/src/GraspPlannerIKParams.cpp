@@ -13,6 +13,17 @@ bool load_GraspPlannerIKParams(const std::string& json, GraspPlannerIKParams& pa
     try {
         pt::read_json(json, root);
 
+    } catch(std::exception & e) {
+        std::cout << "Error loading GraspPlannerIKParams: " << e.what() << std::endl;
+
+        return false;
+    }
+
+    return load_GraspPlannerIKParams(root, params);
+}
+
+bool load_GraspPlannerIKParams(pt::ptree root, GraspPlannerIKParams& params) {
+    try {
         params.scene = root.get<std::string>("scene");
         params.reachability = root.get<std::string>("reachability", "");
         params.eef = root.get<std::string>("eef");

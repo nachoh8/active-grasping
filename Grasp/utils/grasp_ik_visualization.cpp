@@ -38,7 +38,7 @@ bool load_params(const std::string& log_file, GraspPlannerIKWindowParams& params
         return false;
     }
 
-    bool ok = load_GraspPlannerIKParams_root(root_executor_params, params.planner_params);
+    bool ok = load_GraspPlannerIKParams(root_executor_params, params.planner_params);
     if (ok) {
         return load_grasps(root, params.grasps);;
     }
@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
         }
     } else if (mode == 1) {
         if (!load_params(file, params)) {
-            std::cout << "Error: parsing grasps from res file\n";
+            std::cout << "Error: parsing params from log file\n";
             exit(1);
         }
     } else {
