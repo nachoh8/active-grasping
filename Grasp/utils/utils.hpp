@@ -29,8 +29,8 @@ inline int var_to_idx(const std::string& var) {
     }
 }
 
-bool load_grasps(pt::ptree root, std::vector<Grasp::GraspData>& grasps) {
-    pt::ptree root_grasps;
+bool load_grasps(pt::ptree root, std::vector<Grasp::GraspData>& grasps, std::vector<Grasp::GraspData>& best_grasps) {
+    pt::ptree root_grasps, root_best_grasps;
     std::map<std::string, float> var_value;
     try {
         pt::ptree root_gopt = root.get_child("basic_params");
@@ -68,8 +68,9 @@ bool load_grasps(pt::ptree root, std::vector<Grasp::GraspData>& grasps) {
 
         // get grasps root
         root_grasps = root.get_child("grasps");
+        root_best_grasps = root.get_child("best_result");
     } catch(std::exception & e) {
-        std::cout << "Error loading Grasps from file: " << e.what() << std::endl;
+        std::cout << "Error loading Grasps: " << e.what() << std::endl;
 
         return false;
     }
@@ -107,6 +108,42 @@ bool load_grasps(pt::ptree root, std::vector<Grasp::GraspData>& grasps) {
 
     } catch (std::exception & e) {
         std::cout << "Error parsing grasps: " << e.what() << std::endl;
+
+        return false;
+    }
+
+    // parse best grasps
+    try {
+        for (auto &grasp_json : root_best_grasps)
+        {
+            pt::ptree grasp_obj = grasp_json.second;
+            pt::ptree root_query = grasp_obj.get_child("query");
+            
+            std::vector<float> pose(6 , 0.0f);
+            for (const auto& var_v : var_value) {
+                pose[var_to_idx(var_v.first)] = root_query.get<float>(var_v.first, var_v.second);
+            }
+
+            Grasp::GraspData grasp;
+            grasp.pos = Eigen::Vector3f(pose[Grasp::CARTESIAN_VARS::TRANS_X], pose[Grasp::CARTESIAN_VARS::TRANS_Y], pose[Grasp::CARTESIAN_VARS::TRANS_Z]);
+            grasp.ori = Eigen::Vector3f(pose[Grasp::CARTESIAN_VARS::ROT_ROLL], pose[Grasp::CARTESIAN_VARS::ROT_PITCH], pose[Grasp::CARTESIAN_VARS::ROT_YAW]);
+
+            float outcome = 0.0f;
+            pt::ptree root_res = grasp_obj.get_child("metrics");
+            for (auto &metric_json : root_res) {
+                pt::ptree metric_obj = metric_json.second;
+                if (metric_obj.get<std::string>("name") == "outcome") {
+                    outcome = metric_obj.get<float>("value");
+                }
+            }
+
+            grasp.result.measure = outcome;
+
+            best_grasps.push_back(grasp);
+        }
+
+    } catch (std::exception & e) {
+        std::cout << "Error parsing best grasps: " << e.what() << std::endl;
 
         return false;
     }

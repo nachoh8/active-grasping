@@ -23,7 +23,7 @@ bool load_params(const std::string& log_file, GraspPlannerWindowParams& params) 
         return false;
     }
 
-    return load_grasps(root, params.grasps);
+    return load_grasps(root, params.grasps, params.best_grasps);
 }
 
 int main(int argc, char *argv[]) {

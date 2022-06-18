@@ -37,7 +37,7 @@ using namespace Grasp;
 
 struct GraspPlannerIKWindowParams {
     GraspPlannerIKParams planner_params;
-    std::vector<Grasp::GraspData> grasps;
+    std::vector<Grasp::GraspData> grasps, best_grasps;
 };
 
 class GraspPlannerIKWindow : public QMainWindow, public GraspPlannerIK

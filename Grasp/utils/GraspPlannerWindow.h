@@ -11,6 +11,7 @@
 #include <VirtualRobot/Obstacle.h>
 #include <VirtualRobot/ManipulationObject.h>
 #include <VirtualRobot/Obstacle.h>
+#include <VirtualRobot/Grasping/GraspSet.h>
 
 #include "GraspPlanning/GraspStudio.h"
 #include "GraspPlanning/GraspQuality/GraspQualityMeasureWrenchSpace.h"
@@ -75,6 +76,8 @@ public slots:
 
     void colModel();
     void frictionConeVisu();
+    void bestGraspsVisu();
+    void buildBestGraspsSetVisu();
 
     void buildVisu();
 
@@ -112,6 +115,9 @@ protected:
     SoSeparator* objectSep;
     SoSeparator* frictionConeSep;
     SoSeparator* graspsSep;
+
+    std::vector<GraspData> best_grasps;
+    std::vector<std::shared_ptr<VirtualRobot::CoinVisualization> > best_grasps_visu;
 
     std::string robotFile;
     std::string eefName;

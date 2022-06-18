@@ -40,7 +40,7 @@ bool load_params(const std::string& log_file, GraspPlannerIKWindowParams& params
 
     bool ok = load_GraspPlannerIKParams(root_executor_params, params.planner_params);
     if (ok) {
-        return load_grasps(root, params.grasps);;
+        return load_grasps(root, params.grasps, params.best_grasps);
     }
     return false;
 }
