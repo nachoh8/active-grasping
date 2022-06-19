@@ -24,6 +24,7 @@
 #include <string>
 #include <cmath>
 #include <iomanip>
+#include <random>
 
 #include <QImage>
 #include <QGLWidget>
@@ -46,6 +47,7 @@ float TIMER_MS = 30.0f;
 GraspPlannerIKWindow::GraspPlannerIKWindow(const GraspPlannerIKWindowParams& params)
     : QMainWindow(nullptr), GraspPlannerIK(params.planner_params)
 {
+    srand((unsigned) time(0));
 
     sceneSep = new SoSeparator;
     sceneSep->ref();
@@ -62,6 +64,7 @@ GraspPlannerIKWindow::GraspPlannerIKWindow(const GraspPlannerIKWindowParams& par
     sceneSep->addChild(robotSep);
     sceneSep->addChild(objectSep);
     sceneSep->addChild(graspsSep);
+    graspsSep->ref();
     sceneSep->addChild(reachableGraspsSep);
     sceneSep->addChild(reachabilitySep);
     sceneSep->addChild(obstaclesSep);
@@ -94,6 +97,9 @@ GraspPlannerIKWindow::GraspPlannerIKWindow(const GraspPlannerIKWindowParams& par
     } else {
         box2TCP();
     }
+
+    best_grasps = params.best_grasps;
+    best_grasps_full_robot = false;
 
     buildVisu();
 
@@ -248,8 +254,8 @@ void GraspPlannerIKWindow::setupUI()
     connect(UI.checkBoxOnlyPosition, SIGNAL(clicked()), this, SLOT(buildVisu()));
     connect(UI.checkBoxTCP, SIGNAL(clicked()), this, SLOT(buildVisu()));
     connect(UI.checkBoxColModel, SIGNAL(clicked()), this, SLOT(colModel()));
-    connect(UI.checkBoxGraspSet, SIGNAL(clicked()), this, SLOT(buildVisu()));
-    connect(UI.checkBoxReachableGrasps, SIGNAL(clicked()), this, SLOT(buildVisu()));
+    connect(UI.checkBoxBestGrasps, SIGNAL(clicked()), this, SLOT(bestGraspsVisu()));
+    connect(UI.checkBoxFullRobotBestGrasps, SIGNAL(clicked()), this, SLOT(bestGraspsVisu()));
     connect(UI.checkBoxReachabilitySpace, SIGNAL(clicked()), this, SLOT(reachVisu()));
     connect(UI.pushButtonIKRRT, SIGNAL(clicked()), this, SLOT(planIKRRT()));
 
@@ -320,7 +326,7 @@ void GraspPlannerIKWindow::buildVisu()
     robotSep->removeAllChildren();
     SceneObject::VisualizationType colModel = (UI.checkBoxColModel->isChecked()) ? SceneObject::Collision : SceneObject::Full;
 
-    if (robot)
+    if (!UI.checkBoxBestGrasps->isChecked() && robot)
     {
         visualizationRobot = robot->getVisualization<CoinVisualization>(colModel);
         SoNode* visualisationNode = visualizationRobot->getCoinVisualization();
@@ -330,6 +336,11 @@ void GraspPlannerIKWindow::buildVisu()
             robotSep->addChild(visualisationNode);
             //visualizationRobot->highlight(true);
         }
+    }
+
+    targetPoseBoxSep->removeAllChildren();
+    if (!UI.checkBoxBestGrasps->isChecked() && targetPoseBox) {
+        targetPoseBoxSep->addChild(CoinVisualization(targetPoseBox->getVisualization()).getCoinVisualization());
     }
 
     objectSep->removeAllChildren();
@@ -372,7 +383,8 @@ void GraspPlannerIKWindow::buildVisu()
     
     UI.targetPose->setText(QString(ss_o.str().c_str()));
 
-    buildGraspSetVisu();
+    // buildGraspSetVisu();
+    buildBestGraspsSetVisu();
 
     buildRRTVisu();
 
@@ -522,7 +534,7 @@ void GraspPlannerIKWindow::buildRRTVisu()
     rrtSep->addChild(sol);
 }
 
-void GraspPlannerIKWindow::buildGraspSetVisu()
+/*void GraspPlannerIKWindow::buildGraspSetVisu()
 {
     graspsSep->removeAllChildren();
 
@@ -550,6 +562,105 @@ void GraspPlannerIKWindow::buildGraspSetVisu()
             if (visu)
             {
                 reachableGraspsSep->addChild(visu);
+            }
+        }
+    }
+}*/
+
+void GraspPlannerIKWindow::bestGraspsVisu()
+{
+    if (best_grasps.size() == 0) {
+        std::cout << "Error: There are not best grasps!!!\n";
+        return;
+    }
+
+    if (best_grasps_visu.size() == 0 || best_grasps_full_robot != UI.checkBoxFullRobotBestGrasps->isChecked()) { // compute grasps
+        best_grasps_full_robot = UI.checkBoxFullRobotBestGrasps->isChecked();
+        best_grasps_visu.clear();
+        for (int i = 0; i < best_grasps.size(); i++) {
+            std::cout << "****Computing best grasp " << (i+1) << "/" << best_grasps.size() << "****\n";
+
+            float x[6];
+            x[0] = best_grasps[i].pos.x();
+            x[1] = best_grasps[i].pos.y();
+            x[2] = best_grasps[i].pos.z();
+            x[3] = best_grasps[i].ori.x();
+            x[4] = best_grasps[i].ori.y();
+            x[5] = best_grasps[i].ori.z();
+
+            Eigen::Matrix4f targetPose;
+            VirtualRobot::MathTools::posrpy2eigen4f(x, targetPose);
+
+            /// move to grasp pose
+            Grasp::GraspResult res = executeGrasp(targetPose);
+
+            /// save visualization
+            VirtualRobot::CoinVisualizationPtr grasp_visu;
+            if (best_grasps_full_robot) {
+                grasp_visu = robot->clone()->getVisualization<CoinVisualization>(SceneObject::Full);
+            } else {
+                VirtualRobot::RobotPtr r = eef->createEefRobot(eef->getName(), eef->getName());
+                VirtualRobot::RobotNodePtr tcpN = r->getEndEffector(eef->getName())->getTcp();
+                r->setGlobalPoseForRobotNode(tcpN, targetPose);
+                
+                grasp_visu = r->getVisualization<CoinVisualization>(SceneObject::Full);
+            }
+
+            best_grasps_visu.push_back(grasp_visu);
+        }
+
+        // reset to start position
+        reset();
+    }
+
+    buildVisu();
+}
+
+void GraspPlannerIKWindow::buildBestGraspsSetVisu()
+{
+    graspsSep->removeAllChildren();
+
+    if (UI.checkBoxBestGrasps->isChecked() && best_grasps.size() > 0)
+    {   
+        std::vector< std::vector<float> > colors;
+        int i = 0;
+        for (auto& grasp_visu : best_grasps_visu) {
+            SoNode* visualisationNode = grasp_visu->getCoinVisualization();
+
+            if (visualisationNode)
+            {
+                graspsSep->addChild(visualisationNode);
+
+                float r = ((double) rand() / (RAND_MAX)) + 1;
+                float g = ((double) rand() / (RAND_MAX)) + 1;
+                float b = ((double) rand() / (RAND_MAX)) + 1;
+                if (i > 0) {
+                    bool ok = false; int it = 0;
+                    do {
+                        r = ((double) rand() / (RAND_MAX)) + 1;
+                        g = ((double) rand() / (RAND_MAX)) + 1;
+                        b = ((double) rand() / (RAND_MAX)) + 1;
+                        for (int j = 0; j < i; j++) {
+                            std::vector<float> c = colors[j];
+                            float dist = (r-c[0]) * (r-c[0]);
+                            dist += (g-c[1]) * (g-c[1]);
+                            dist += (b-c[2]) * (b-c[2]);
+
+                            dist = sqrt(dist);
+                            if (dist > 0.4f) {
+                                ok = true;
+                                break;
+                            }
+                        }
+
+                    } while(!ok && (++it) < 5);
+                }
+
+                std::vector<float> cv = {r,g,b};
+                colors.push_back(cv);
+
+                grasp_visu->colorize(VisualizationFactory::Color(r, g, b));
+                i++;
             }
         }
     }

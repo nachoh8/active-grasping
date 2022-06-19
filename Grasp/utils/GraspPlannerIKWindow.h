@@ -71,6 +71,8 @@ public slots:
     void sliderSolution(int pos);
 
     void buildVisu();
+    void bestGraspsVisu();
+    void buildBestGraspsSetVisu();
 
     void showCoordSystem();
     void reachVisu();
@@ -100,7 +102,7 @@ protected:
     void setupUI();
     QString formatString(const char* s, float f);
 
-    void buildGraspSetVisu();
+    // void buildGraspSetVisu();
 
     void buildRRTVisu();
 
@@ -133,5 +135,9 @@ protected:
     std::shared_ptr<VirtualRobot::CoinVisualization> visualizationObject;
 
     VirtualRobot::ObstaclePtr targetPoseBox;
+
+    std::vector<GraspData> best_grasps;
+    std::vector<std::shared_ptr<VirtualRobot::CoinVisualization> > best_grasps_visu;
+    bool best_grasps_full_robot;
 };
 

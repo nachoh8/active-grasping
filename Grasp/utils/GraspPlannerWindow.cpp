@@ -551,7 +551,6 @@ void GraspPlannerWindow::buildBestGraspsSetVisu()
 
                             dist = sqrt(dist);
                             if (dist > 0.4f) {
-                                std::cout << "aqui\n";
                                 ok = true;
                                 break;
                             }

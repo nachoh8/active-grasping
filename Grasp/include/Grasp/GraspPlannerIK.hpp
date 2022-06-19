@@ -77,7 +77,6 @@ protected:
     VirtualRobot::EndEffectorPtr eef;
     VirtualRobot::EndEffector::ContactInfoVector contacts;
 
-    VirtualRobot::GraspSetPtr graspSet;
     GraspStudio::GraspQualityMeasureWrenchSpacePtr qualityMeasure;
 
     VirtualRobot::ManipulationObjectPtr object;
