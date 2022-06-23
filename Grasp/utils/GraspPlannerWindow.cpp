@@ -263,12 +263,7 @@ void GraspPlannerWindow::buildVisu()
 
 
     // Object info
-    Eigen::Vector3f xyz_o = object->getGlobalPosition();
-    VirtualRobot::MathTools::SphericalCoord o_pos_sc = VirtualRobot::MathTools::toSphericalCoords(xyz_o);
-    Eigen::Vector3f o_pos;
-    o_pos.x() = o_pos_sc.theta;
-    o_pos.y() = o_pos_sc.phi;
-    o_pos.z() = o_pos_sc.r;
+    Eigen::Vector3f o_pos = object->getGlobalPosition();
 
     Eigen::Matrix3f o_ori = object->getGlobalOrientation();
     
@@ -280,7 +275,7 @@ void GraspPlannerWindow::buildVisu()
     UI.objectInfo->setText(QString(ss_o.str().c_str()));
 
     // Robot info
-    Eigen::Vector3f xyz = eefCloned->getGlobalPosition();
+    Eigen::Vector3f xyz = TCP->getGlobalPosition();
     
     VirtualRobot::MathTools::SphericalCoord r_pos_sc = VirtualRobot::MathTools::toSphericalCoords(xyz);
     Eigen::Vector3f r_pos;
@@ -289,7 +284,7 @@ void GraspPlannerWindow::buildVisu()
     r_pos.z() = r_pos_sc.r;
     
 
-    Eigen::Matrix3f r_ori = eefCloned->getGlobalOrientation();
+    Eigen::Matrix3f r_ori = TCP->getGlobalOrientation();
     
     std::stringstream ss;
     ss << std::setprecision(3);
@@ -342,8 +337,10 @@ void GraspPlannerWindow::measure_quality()
         scoords.phi = grasp.pos.y();
         scoords.r = grasp.pos.z();
         Eigen::Vector3f pos = VirtualRobot::MathTools::toPosition(scoords);
-        std::cout << "CARTESIAN COORDS" << std::endl;
-        std::cout << pos << std::endl;
+        //std::cout << "CARTESIAN COORDS" << std::endl;
+        //std::cout << pos << std::endl;
+        std::cout << "ORIENTATION" << std::endl;
+        std::cout << grasp.ori << std::endl;
         grasps[current_grasp].result = executeGrasp(pos, grasp.ori, false);
     } else {
         std::cout << "measure_quality: FIRST YOU HAVE TO SELECT A GRASP\n";
@@ -426,7 +423,7 @@ bool GraspPlannerWindow::evaluateGrasp(VirtualRobot::GraspPtr g, VirtualRobot::R
 void GraspPlannerWindow::sliderReleased_ObjectX()
 {
     float v = (float)UI.objSliderX->value();
-    v /= 300;
+    v /= 100;
 
     UI.objSliderX->setValue(0);
 
@@ -437,7 +434,7 @@ void GraspPlannerWindow::sliderReleased_ObjectX()
 void GraspPlannerWindow::sliderReleased_ObjectY()
 {
     float v = (float)UI.objSliderY->value();
-    v /= 300;
+    v /= 100;
 
     UI.objSliderY->setValue(0);
 
@@ -498,8 +495,8 @@ void GraspPlannerWindow::updateObj(const float value, const int idx) {
         m = object->getGlobalPose() * m;
         object->setGlobalPose(m);
     } else {
-        m = eefCloned->getGlobalPose() * m;
-        eefCloned->setGlobalPose(m);
+        m = eef->getTcp()->getGlobalPose() * m;
+        eefCloned->setGlobalPoseForRobotNode(TCP, m);
     }
 */
 
@@ -515,27 +512,25 @@ void GraspPlannerWindow::updateObj(const float value, const int idx) {
 
     bool moveObj = (UI.checkBoxMove->isChecked());
     if (moveObj) {
-        position = object->getGlobalPosition();
-        scoords = VirtualRobot::MathTools::toSphericalCoords(position);
-        scoords.r = scoords.r + x[2];
-        scoords.theta = scoords.theta + x[0];
-        scoords.phi = scoords.phi + x[1];
-        new_position = VirtualRobot::MathTools::toPosition(scoords);
-        m.block(0, 3, 3, 1) = new_position;
-        object->setGlobalPose(m);
-
+        m = object->getGlobalPose() * m;
         object->setGlobalPose(m);
     } else {
-        position = eefCloned->getGlobalPosition();
-        scoords = VirtualRobot::MathTools::toSphericalCoords(position);
-        scoords.r = scoords.r + x[2];
-        scoords.theta = scoords.theta + x[0];
-        scoords.phi = scoords.phi + x[1];
-        new_position = VirtualRobot::MathTools::toPosition(scoords);
-        m.block(0, 3, 3, 1) = new_position;
-        eefCloned->setGlobalPose(m);
+        if (x[0]!=0 || x[1]!=0 || x[2]!=0){
+            position = eefCloned->getGlobalPosition();
+            scoords = VirtualRobot::MathTools::toSphericalCoords(position);
+            scoords.r = scoords.r + x[2];
+            scoords.theta = scoords.theta + x[0];
+            scoords.phi = scoords.phi + x[1];
+            new_position = VirtualRobot::MathTools::toPosition(scoords);
+            m.block(0, 3, 3, 1) = new_position;
+            eefCloned->setGlobalPoseForRobotNode(TCP, m);
+        }
+        else if (x[3]!=0 || x[4]!=0 || x[5]!=0)
+        {
+            m = TCP->getGlobalPose() * m;
+            eefCloned->setGlobalPoseForRobotNode(TCP, m);
+        }     
     }
-    
 
     buildVisu();
 }

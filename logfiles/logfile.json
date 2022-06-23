@@ -1,0 +1,119 @@
+{
+    "date": "30/05/2022 11:36:13",
+    "basic_params": {
+        "active_variables": [
+            "theta",
+            "phi"
+        ],
+        "default_query": {
+            "theta": 0,
+            "phi": 0,
+            "rho": 0,
+            "rx": 0,
+            "ry": 0,
+            "rz": 0
+        },
+        "metrics": [
+            "outcome",
+            "volume",
+            "force_closure"
+        ],
+        "n_trials": 1
+    },
+    "grasp_executor": {
+        "name": "GraspPlannerS",
+        "params": {
+            "timeout": 1000.0,
+            "min_quality": 0.01,
+            "force_closure": true,
+            "robot": "/home/juangls/ActiveGrasping/active-grasping/config/grasp/params/icub_robot.json",
+            "object": "/home/juangls/ActiveGrasping/active-grasping/config/grasp/params/obj_water.json"
+        }
+    },
+    "optimizer": {
+        "name": "SO",
+        "params": {
+            "project": "active-grasping-opt",
+            "mode": "dev",
+            "exp_params": {
+                "name": "Active grasping optimization - sphericalCoord",
+                "type": "offline",
+                "parallel_bandwidth": 1,
+                "budget": 50,
+                "metrics": [
+                    {
+                        "name": "outcome",
+                        "strategy": "optimize",
+                        "objective": "maximize"
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "theta",
+                        "type": "double",
+                        "bounds": {
+                            "min": 1.5,
+                            "max": 2
+                        }
+                    },
+                    {
+                        "name": "phi",
+                        "type": "double",
+                        "bounds": {
+                            "min": -2.8,
+                            "max": -1.8
+                        }
+                    },
+                    {
+                        "name": "theta",
+                        "type": "double",
+                        "bounds": {
+                            "min": 0,
+                            "max": 100
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "best_result": [
+        {
+            "query": {
+                "theta": 2,
+                "phi": -2.8
+            },
+            "metrics": [
+                {
+                    "name": "outcome",
+                    "value": 0.39169731736183167
+                }
+            ]
+        }
+    ],
+    "grasps": [
+        {
+            "query": {
+                "phi": 0,
+                "theta": 0,
+                "rho": 0
+            },
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            }
+        },
+        {
+            "query": {
+                "phi": -2.8,
+                "theta": 2,
+                "rho": 51.4916
+            },
+            "metrics": {
+                "outcome": 0.391697,
+                "volume": 0.00501573,
+                "force_closure": false
+            }
+        }
+    ]
+}

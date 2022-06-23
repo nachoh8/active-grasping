@@ -31,7 +31,7 @@ class ActiveGrasping:
         
         print("Query:", query, "-> Outcome:", res.measure, "Volume:", res.volume, "Force closure:", res.force_closure)
         
-        log_data = {"query": query, "metrics": {"outcome": res.measure, "volume": res.volume, "force_closure": res.force_closure}}
+        log_data = {"query": query, "metrics": {"outcome": res.measure, "volume": res.volume, "force_closure": res.force_closure, "computed_rho": res.rho}}
         if type(self.executor) == GraspPlannerIKExecutor:
             log_data.update({"others":{"time": res.time, "position_error": res.pos_error, "orientation_error": res.ori_error}})
             print("Time:", res.time, "Position Error:", res.pos_error, "Orientation Error:", res.ori_error)

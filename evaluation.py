@@ -1,8 +1,6 @@
 import argparse
-from cProfile import label
 import os
 import glob
-from matplotlib import markers
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -56,8 +54,25 @@ def outcome_vars(queries: np.ndarray, outcomes: np.ndarray, var_labels: "list[st
         if n_vars == 2:
             sc_plot = ax.scatter(queries[:, 0], queries[:, 1], outcomes, c=outcomes, alpha=0.5)
             ax.set_zlabel("outcome")
-        else:
+        elif n_vars == 3:
             sc_plot = ax.scatter(queries[:, 0], queries[:, 1], queries[:, 2], c=outcomes, alpha=0.5)
+            ax.set_zlabel(var_labels[2])
+        elif n_vars == 6:
+            vars_1 = queries[:,0].reshape(-1,2)
+            vars_2 = queries[:,1].reshape(-1,2)
+            vars_3 = queries[:,2].reshape(-1,2)
+
+            sc_plot_ = ax.scatter(vars_1[:,0], vars_2[:,0], vars_3[:,0], c=outcomes, alpha=0.5)
+            plt.colorbar(sc_plot_, label="outcome", orientation="vertical")
+            plt.title("Distribution of the outcome " + name)
+
+            fig2 = plt.figure()
+            ax_ = fig2.add_subplot(projection='3d')
+            sc_plot = ax_.scatter(vars_1[:,1], vars_2[:,1], vars_3[:,1], c=outcomes, alpha=0.5)
+            ax_.set_zlabel(var_labels[5])
+            ax_.set_xlabel(var_labels[3])
+            ax_.set_ylabel(var_labels[4])
+
             ax.set_zlabel(var_labels[2])
 
         ax.set_xlabel(var_labels[0])
@@ -102,6 +117,7 @@ def get_values(file_path: str) -> "tuple[str, list[str], np.ndarray, np.ndarray,
 
     grasps = np.array(queries)
     res = np.array(outcomes).reshape(-1)
+    print('RES: ', res.shape)
 
     return logger.get_optimizer_name(), act_vars, grasps, res, (np.array(best[0]), np.array(best[1]).reshape(-1))
 

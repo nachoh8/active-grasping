@@ -13,6 +13,10 @@
 #include <VirtualRobot/CollisionDetection/CollisionModel.h>
 #include <VirtualRobot/MathTools.h>
 
+#include <GraspPlanning/GraspQuality/GraspQualityMeasureWrenchSpace.h>
+#include <GraspPlanning/GraspPlanner/GenericGraspPlanner.h>
+#include <GraspPlanning/ApproachMovementSurfaceNormal.h>
+
 #include "../include/Grasp/GraspVars.hpp"
 
 namespace Grasp {
@@ -57,10 +61,17 @@ void GraspPlanner::loadScene() {
 
     eefCloned = _eef->createEefRobot("eef", "icub_eef");
     eef = eefCloned->getEndEffector(params.eef_name);
+    TCP = eef->getTcp();
 
+    /*
     if (params.has_eef_pose) {
         moveEE(params.eef_position, params.eef_orientation);
     }
+    */
+    Eigen::Vector3f pos_ini = {0,0,0};
+    Eigen::Vector3f or_ini = {0,0,0};
+    moveEE(pos_ini, or_ini);
+    wOrigin = eef->getTcp()->getGlobalPose();
 
     /// Load object
     object = VirtualRobot::ObjectIO::loadManipulationObject(params.object_file);
@@ -92,14 +103,13 @@ void GraspPlanner::loadScene() {
     if (params.has_obj_pose) {
         float x[6];
         //x[0] = params.obj_position.x();
-        //x[1] = params.obj_position.y();
+        //x[1] = 100;
         //x[2] = params.obj_position.z();
         x[3] = params.obj_orientation.x();
         x[4] = params.obj_orientation.y();
         x[5] = params.obj_orientation.z();
 
         VirtualRobot::MathTools::posrpy2eigen4f(x, m);
-
         object->setGlobalPose(m);
     } else {
         object->setGlobalPose(m);
@@ -123,7 +133,7 @@ GraspResult GraspPlanner::executeQueryGrasp(const std::vector<double>& query) {
         exit(1);
     }
     objectModel = object->getCollisionModel()->getTriMeshModel();
-    Eigen::Matrix4f poseObject = object->getGlobalPose();
+    
 
     //CARTESIANS:
     /*
@@ -142,12 +152,12 @@ GraspResult GraspPlanner::executeQueryGrasp(const std::vector<double>& query) {
     
 
     Eigen::Vector3f xyz = VirtualRobot::MathTools::toPosition(scoords);
-    */
+    
 
     //std::cout << "***POSE OBJECT: " << poseObject.block(0,3,3,1) << std::endl;
     //std::cout << "***POSE POINT: " << xyz << std::endl;
     
-
+    */
     // SPHERICAL KNOWING RAY INTERSECTION
     
     VirtualRobot::MathTools::SphericalCoord scoords;
@@ -157,7 +167,7 @@ GraspResult GraspPlanner::executeQueryGrasp(const std::vector<double>& query) {
     //scoords.phi = -2.2386673065403975;
     scoords.r = 0;
 
-    Eigen::Vector3f rayOrigin = poseObject.block(0, 3, 3, 1);
+    Eigen::Vector3f rayOrigin = wOrigin.block(0, 3, 3, 1);
     //Eigen::Vector3f outIntersectionPoint;
     float rho = 0;
 
@@ -184,16 +194,16 @@ GraspResult GraspPlanner::executeQueryGrasp(const std::vector<double>& query) {
         //std::cout << "***INTERSECT?: " << intersect << std::endl;
         if (intersect == true)
         {
-            scoords.r = rho;
+            scoords.r = rho + 90;
         }
     }
+    
+    comp_rho = scoords.r;
     std::cout << "***RHO: " << scoords.r << std::endl;
     std::cout << "***THETA: " << scoords.theta << std::endl;
     std::cout << "***PHI: " << scoords.phi << std::endl;
     
     Eigen::Vector3f xyz = VirtualRobot::MathTools::toPosition(scoords);
-    std::cout << "***POSITION: " << xyz << std::endl;
-    
     
     //EULER
     /*
@@ -230,6 +240,12 @@ GraspResult GraspPlanner::executeQueryGrasp(const std::vector<double>& query) {
     Eigen::Vector3f rpy(query[GRASP_VAR::ROT_ROLL], query[GRASP_VAR::ROT_PITCH], query[GRASP_VAR::ROT_YAW]);
 
     // 2. Execute grasp
+    /*
+    openEE();
+    moveEE(xyz, rpy);
+    std::cout << "*** Moving away *** " << std::endl;
+    GraspPlanning::ApproachMovementSurfaceNormal::moveEEFAway(rayVector, 1.0f, 50);
+    */
 
     return executeGrasp(xyz, rpy);
 }
@@ -286,7 +302,9 @@ void GraspPlanner::moveEE(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy
     VirtualRobot::MathTools::posrpy2eigen4f(x, m);
 
     // m = eefCloned->getGlobalPose() * m;
-    eefCloned->setGlobalPose(m);
+    //eefCloned->setGlobalPose(m);
+    //TCP->setGlobalPose(m);
+    eefCloned->setGlobalPoseForRobotNode(TCP, m);
 }
 
 GraspResult GraspPlanner::graspQuality() {
@@ -297,7 +315,7 @@ GraspResult GraspPlanner::graspQuality() {
         float epsilon = qualityMeasure->getGraspQuality();
         bool fc = qualityMeasure->isGraspForceClosure();
 
-        return GraspResult(epsilon, volume, fc);;
+        return GraspResult(epsilon, volume, fc, comp_rho);;
     }
 
     std::cout << "GraspQuality: not contacts!!!\n";

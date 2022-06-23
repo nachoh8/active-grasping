@@ -126,8 +126,8 @@ void test_GraspPlannerIK() {
     // Grasp::GraspResult res = planner.executeQueryGrasp(query);
 
     ActiveGraspingOpt::ActiveGraspingOptParams opt_params;
-    opt_params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_X);
-    opt_params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_Y);
+    opt_params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_THETA);
+    opt_params.active_variables.push_back(Grasp::GRASP_VAR::TRANS_PHI);
     
     const int opt_dim = opt_params.active_variables.size();
     opt_params.n_grasp_trials = 1;

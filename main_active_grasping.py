@@ -18,7 +18,7 @@ if __name__ == "__main__":
     grasp_executor = int(args.fgrasp[0])
     fgrasp = args.fgrasp[1]
 
-    if grasp_executor > 2:
+    if grasp_executor > 3:
         print("Error: executor must be {0: TestGramacyExecutor, 1: GraspPlanner, 2: GraspPlannerIK}")
         exit(-1)
 

@@ -12,12 +12,13 @@
 namespace pt = boost::property_tree;
 
 inline int var_to_idx(const std::string& var) {
-    if (var == "x") {
-        return Grasp::GRASP_VAR::TRANS_X;
-    } else if (var == "y") {
-        return Grasp::GRASP_VAR::TRANS_Y;
-    } else if ( var == "z") {
-        return Grasp::GRASP_VAR::TRANS_Z;
+    // AÑADIR MIS VARIABLES CON SUS INDICES
+    if (var == "theta") {
+        return Grasp::GRASP_VAR::TRANS_THETA;
+    } else if (var == "phi") {
+        return Grasp::GRASP_VAR::TRANS_PHI;
+    } else if ( var == "rho") {
+        return Grasp::GRASP_VAR::TRANS_RHO;
     } else if ( var == "rx") {
         return Grasp::GRASP_VAR::ROT_ROLL;
     } else if ( var == "ry") {
@@ -52,7 +53,7 @@ bool load_grasps(pt::ptree root, std::vector<Grasp::GraspData>& grasps) {
 
         // parse default query
         pt::ptree root_q = root_gopt.get_child("default_query");
-        std::vector<std::string> vars = {"x", "y", "z", "rx", "ry", "rz"};
+        std::vector<std::string> vars = {"theta", "phi", "rho", "rx", "ry", "rz"};
         for (auto& var : vars) {
             float v = root_q.get<float>(var);
             var_value.insert(std::pair<std::string, float>(var, v));
@@ -63,7 +64,7 @@ bool load_grasps(pt::ptree root, std::vector<Grasp::GraspData>& grasps) {
             return false;
         }
 
-        std::cout << "Default pose: (" << var_value["x"] << " " << var_value["y"] << " " << var_value["z"]
+        std::cout << "Default pose: (" << var_value["theta"] << " " << var_value["phi"] << " " << var_value["rho"]
                     << ", " << var_value["rx"] << " " << var_value["ry"] << " " << var_value["rz"] << ")\n";
 
         // get grasps root
@@ -88,12 +89,18 @@ bool load_grasps(pt::ptree root, std::vector<Grasp::GraspData>& grasps) {
 
             pt::ptree root_res = grasp_obj.get_child("metrics");
 
+            float comp_rho = root_res.get<float>("computed_rho");
+
             Grasp::GraspData grasp;
             grasp.result.measure = root_res.get<float>("outcome");
             grasp.result.volume = root_res.get<float>("volume");
             grasp.result.force_closure = root_res.get<bool>("force_closure");
-            grasp.pos = Eigen::Vector3f(pose[Grasp::GRASP_VAR::TRANS_X], pose[Grasp::GRASP_VAR::TRANS_Y], pose[Grasp::GRASP_VAR::TRANS_Z]);
+            grasp.pos = Eigen::Vector3f(pose[Grasp::GRASP_VAR::TRANS_THETA], pose[Grasp::GRASP_VAR::TRANS_PHI], pose[Grasp::GRASP_VAR::TRANS_RHO]);
             grasp.ori = Eigen::Vector3f(pose[Grasp::GRASP_VAR::ROT_ROLL], pose[Grasp::GRASP_VAR::ROT_PITCH], pose[Grasp::GRASP_VAR::ROT_YAW]);
+
+            if (comp_rho != 0){
+                grasp.pos(2) = comp_rho;
+            }
 
             if (grasp_obj.get_child_optional("others") != boost::none) {
                 pt::ptree root_others = grasp_obj.get_child("others");

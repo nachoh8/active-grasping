@@ -88,7 +88,8 @@ protected:
         Eigen::Vector3f ori = ori_m.eulerAngles(0,1,2);
         std::stringstream  ss;
         ss << std::setprecision(3);
-        ss << "Position(x,y,z):\n(" << pos.x() << ", " << pos.y() << ", " << pos.z() << ")\n"
+        //ss << "Position(x,y,z):\n(" << pos.x() << ", " << pos.y() << ", " << pos.z() << ")\n"
+        ss << "Position(theta,phi,rho):\n(" << pos.x() << ", " << pos.y() << ", " << pos.z() << ")\n"
             << "Orientation(r,p,y):\n(" << ori.x() << ", " << ori.y() << ", " << ori.z() << ")\n";
 
         return ss.str();
@@ -101,13 +102,22 @@ protected:
     VirtualRobot::EndEffectorPtr eef;
     VirtualRobot::TriMeshModelPtr objectModel;
     VirtualRobot::RobotPtr eefCloned;
+    VirtualRobot::RobotNodePtr TCP;
     VirtualRobot::ManipulationObjectPtr object;
 
     VirtualRobot::EndEffector::ContactInfoVector contacts;
 
+    float comp_rho;
+    Eigen::Matrix4f wOrigin;
+
     std::vector<GraspData> grasps;
 
     GraspStudio::GraspQualityMeasureWrenchSpacePtr qualityMeasure;
+
+    /// Distribution to draw random retreat distances from.
+    std::uniform_real_distribution<float> distribRetreatDistance;
+
+    std::default_random_engine randomEngine { std::random_device{}() };
 };
 
 }

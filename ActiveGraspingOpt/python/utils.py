@@ -8,6 +8,8 @@ def construct_grasp_executor_model(gtype: int, fgrasp: str = "") -> ExecutorMode
         return GraspPlannerExecutor(fgrasp)
     elif gtype == 2:
         return GraspPlannerIKExecutor(fgrasp)
+    elif gtype == 3:
+        return GraspPlannerExecutorS(fgrasp)
     else:
         raise Exception("Model " + str(gtype) + " is not valid")
 

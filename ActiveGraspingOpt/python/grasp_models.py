@@ -62,6 +62,38 @@ def cartesian_idx_to_var(idx: int) -> str:
     else:
         raise Exception("Index " + str(idx) + " is not valid")
 
+def spherical_var_to_idx(var: str) -> int:
+    if var == "theta":
+        return 0
+    elif var == "phi":
+        return 1
+    elif var == "rho":
+        return 2
+    elif var == "rx":
+        return 3
+    elif var == "ry":
+        return 4
+    elif var == "rz":
+        return 5
+    else:
+        raise Exception("Variable " + var + " is not valid")
+
+def spherical_idx_to_var(idx: int) -> str:
+    if idx == 0:
+        return "theta"
+    elif idx == 1:
+        return "phi"
+    elif idx == 2:
+        return "rho"
+    elif idx == 3:
+        return "rx"
+    elif idx == 4:
+        return "ry"
+    elif idx == 5:
+        return "rz"
+    else:
+        raise Exception("Index " + str(idx) + " is not valid")
+
 class ExecutorModel(object):
     def __init__(self, values_size: int, gtype: type, fparams: str = "") -> None:
         self.executor: GraspExecutor = None
@@ -150,6 +182,25 @@ class GraspPlannerExecutor(ExecutorModel):
     
     def get_params(self) -> dict:
         return self.json_params
+
+class GraspPlannerExecutorS(ExecutorModel):
+    def __init__(self, fgrasp: str) -> None:
+        super().__init__(6, GraspPlanner, fgrasp)
+        f = open(fgrasp, 'r')
+        self.json_params = json.load(f)
+
+    def var_to_idx(self, var: str) -> int:
+        return spherical_var_to_idx(var)
+    
+    def idx_to_var(self, idx: int) -> str:
+        return spherical_idx_to_var(idx)
+    
+    def get_name(self) -> str:
+        return "GraspPlannerS"
+    
+    def get_params(self) -> dict:
+        return self.json_params
+    
     
 class GraspPlannerIKExecutor(ExecutorModel):
     def __init__(self, fgrasp: str) -> None:
