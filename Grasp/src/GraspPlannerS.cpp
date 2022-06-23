@@ -23,13 +23,13 @@ namespace Grasp {
 
 /// Init
 
-GraspPlanner::GraspPlanner(const GraspPlannerParams& params)
+GraspPlannerS::GraspPlannerS(const GraspPlannerSParams& params)
 : params(params)
 {
     loadScene();
 }
 
-GraspPlanner::GraspPlanner(const std::string& json_file)
+GraspPlannerS::GraspPlanner(const std::string& json_file)
 {
     if (!load_GraspPlannerParams_json(json_file, this->params)) {
         throw "Errpr creating GraspPlanner from json";
@@ -38,7 +38,7 @@ GraspPlanner::GraspPlanner(const std::string& json_file)
     loadScene();
 }
 
-void GraspPlanner::loadScene() {
+void GraspPlannerS::loadScene() {
     /// Load robot
     robot.reset();
     
@@ -127,7 +127,7 @@ void GraspPlanner::loadScene() {
 
 /// Public
 
-GraspResult GraspPlanner::executeQueryGrasp(const std::vector<double>& query) {
+GraspResult GraspPlannerS::executeQueryGrasp(const std::vector<double>& query) {
     if (query.size() != NUM_GRASP_VARS) {
         std::cerr << "Error: query size is different of " << NUM_GRASP_VARS << "!!!\n";
         exit(1);
@@ -162,7 +162,7 @@ GraspResult GraspPlanner::executeQueryGrasp(const std::vector<double>& query) {
     return executeGrasp(xyz, rpy);
 }
 
-GraspResult GraspPlanner::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy, bool save_grasp) {
+GraspResult GraspPlannerS::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy, bool save_grasp) {
 
     // 1. Open and Move 
     
@@ -201,7 +201,7 @@ GraspResult GraspPlanner::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::
 
 /// Grasping
 
-void GraspPlanner::moveEE(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy) {
+void GraspPlannerS::moveEE(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy) {
     float x[6];
     x[0] = xyz.x();
     x[1] = xyz.y();
@@ -219,7 +219,7 @@ void GraspPlanner::moveEE(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy
     eefCloned->setGlobalPoseForRobotNode(TCP, m);
 }
 
-GraspResult GraspPlanner::graspQuality() {
+GraspResult GraspPlannerS::graspQuality() {
     if (contacts.size() > 0) {
         qualityMeasure->setContactPoints(contacts);
 
@@ -235,14 +235,14 @@ GraspResult GraspPlanner::graspQuality() {
     return GraspResult();
 }
 
-void GraspPlanner::closeEE()
+void GraspPlannerS::closeEE()
 {
     contacts.clear();
     
     contacts = eef->closeActors(object);
 }
 
-void GraspPlanner::openEE()
+void GraspPlannerS::openEE()
 {
     contacts.clear();
 
@@ -256,7 +256,7 @@ void GraspPlanner::openEE()
     }
 }
 
-bool GraspPlanner::RayIntersectsTriangle(Eigen::Vector3f rayOrigin, Eigen::Vector3f rayVector, 
+bool GraspPlannerS::RayIntersectsTriangle(Eigen::Vector3f rayOrigin, Eigen::Vector3f rayVector, 
                                                             Eigen::Vector3f vertex0, Eigen::Vector3f vertex1, Eigen::Vector3f vertex2, 
                                                             float& rho)
     {

@@ -27,11 +27,11 @@
 
 namespace Grasp {
 
-class GraspPlanner : public GraspExecutor {
+class GraspPlannerS : public GraspExecutor {
 public:
-    GraspPlanner(const GraspPlannerParams& params);
+    GraspPlannerS(const GraspPlannerSParams& params);
 
-    GraspPlanner(const std::string& json_file);
+    GraspPlannerS(const std::string& json_file);
 
     /**
      * @brief Execute grasp from bayesopt query and computes its quality
@@ -96,7 +96,7 @@ protected:
     }
 
     /// Attributes
-    GraspPlannerParams params;
+    GraspPlannerSParams params;
 
     VirtualRobot::RobotPtr robot;
     VirtualRobot::EndEffectorPtr eef;
