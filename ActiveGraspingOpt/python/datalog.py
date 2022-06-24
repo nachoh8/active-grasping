@@ -101,6 +101,14 @@ class DataLog(object):
             metrics.append(data_grasp["metrics"][metric])
         
         return grasps, metrics
+    
+    def get_rho(self, metric: str = "computed_rho") -> "tuple[list]":
+        metrics = []
+        for data_grasp in self.grasps:
+
+            metrics.append(data_grasp["metrics"][metric])
+        
+        return metrics
 
     def get_best_grasps(self, metric: str = "outcome") -> "tuple[list, list]":
         """
@@ -120,7 +128,7 @@ class DataLog(object):
                 grasp[idx] = q[var]
             
             grasps.append(grasp)
-
+            print(data_grasp["metrics"])
             for m in data_grasp["metrics"]:
                 if m["name"] == metric:
                     metrics.append(m['value'])
