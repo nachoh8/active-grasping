@@ -62,9 +62,10 @@ Test python lib:
 
 #### Grasp EEF
 
-    >> ./build/bin/grasp_visualization <params_file> [<log_file>]
+    >> ./build/bin/grasp_visualization <mode> <file>
 
-* <log_file>: log file to load grasps from an experiment result
+* <mode\>: 0: from configuration; 1: from log
+* <file\>: configuration or log file
 
 #### Grasp IK BiRRT
 

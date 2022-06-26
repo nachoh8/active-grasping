@@ -358,13 +358,13 @@ void GraspPlannerWindow::closeEEF()
 {
     closeEE();
 
-    float qual = qualityMeasure->getGraspQuality();
-    bool isFC = qualityMeasure->isGraspForceClosure();
+    GraspResult res = graspQuality();
+
     std::stringstream ss;
     ss << std::setprecision(3);
-    ss << "Grasp Nr " << grasps.size() << "\nQuality: " << qual << "\nForce closure: ";
+    ss << "Grasp Nr " << grasps.size() << "\nQuality: " << res.measure << "\nForce closure: ";
 
-    if (isFC)
+    if (res.force_closure)
     {
         ss << "yes";
     }
