@@ -27,6 +27,7 @@ bool load_GraspPlannerIKParams(pt::ptree root, GraspPlannerIKParams& params) {
         params.scene = root.get<std::string>("scene");
         params.reachability = root.get<std::string>("reachability", "");
         params.eef = root.get<std::string>("eef");
+        params.eef_preshape = root.get<std::string>("eef_preshape", "");
         params.rns = root.get<std::string>("rns");
 
         for (pt::ptree::value_type &v_col : root.get_child("robot_cols"))

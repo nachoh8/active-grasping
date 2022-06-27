@@ -358,19 +358,25 @@ void GraspPlannerWindow::closeEEF()
 {
     closeEE();
 
-    GraspResult res = graspQuality();
-
+    GraspResult res;
     std::stringstream ss;
-    ss << std::setprecision(3);
-    ss << "Grasp Nr " << grasps.size() << "\nQuality: " << res.measure << "\nForce closure: ";
+    if (eef->getCollisionChecker()->checkCollision(object->getCollisionModel(), eef->createSceneObjectSet())) {
+        std::cout << "Error: Collision detected!" << std::endl;
+        res = GraspResult("eef_collision");
+        ss << "Grasp Nr " << grasps.size() << "\nCollision detected\n";
+    } else {
+        res = graspQuality();
+        ss << std::setprecision(3);
+        ss << "Grasp Nr " << grasps.size() << "\nQuality: " << res.measure << "\nForce closure: ";
 
-    if (res.force_closure)
-    {
-        ss << "yes";
-    }
-    else
-    {
-        ss << "no";
+        if (res.force_closure)
+        {
+            ss << "yes";
+        }
+        else
+        {
+            ss << "no";
+        }
     }
 
     UI.graspInfo->setText(QString(ss.str().c_str()));

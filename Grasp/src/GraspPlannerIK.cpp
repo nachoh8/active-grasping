@@ -79,8 +79,6 @@ void GraspPlannerIK::loadScene()
         VR_ERROR << "Need a correct robot node set in robot" << std::endl;
         exit(1);
     }
-
-    rns->getJointValues(startConfig);
     
     /// Load EEF
 
@@ -91,6 +89,11 @@ void GraspPlannerIK::loadScene()
         VR_ERROR << "Need a correct EEF in robot" << std::endl;
         exit(1);
     }
+
+    if (!params.eef_preshape.empty()) {
+        eef->setPreshape(params.eef_preshape);
+    }
+    rns->getJointValues(startConfig);
 
     /// Load Object
 
@@ -229,6 +232,7 @@ void GraspPlannerIK::printInfo() {
     std::cout << "Scene: " << params.scene << std::endl;
     std::cout << "Robot: " << robot->getName() << std::endl;
     std::cout << "EEF: " << eef->getName() << std::endl;
+    std::cout << "EEF Prehsape: " << params.eef_preshape << std::endl;
     std::cout << "Kinematic chain: " << rns->getName() << std::endl;
     std::cout << "Manipulation Object: " << object->getName() << std::endl;
 
@@ -326,7 +330,13 @@ void GraspPlannerIK::openEEF()
 {
     contacts.clear();
 
-    eef->openActors();
+    if (!params.eef_preshape.empty()) {
+        eef->setPreshape(params.eef_preshape);
+    }
+    else
+    {
+        eef->openActors();
+    }
 }
 
 GraspResult GraspPlannerIK::graspQuality() {
@@ -350,6 +360,7 @@ GraspResult GraspPlannerIK::graspQuality() {
 void GraspPlannerIK::reset() {
     openEEF();
     robot->setJointValues(rns, startConfig);
+    openEEF();
 }
 
 }

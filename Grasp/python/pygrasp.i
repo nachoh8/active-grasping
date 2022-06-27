@@ -80,6 +80,7 @@ namespace Grasp {
         std::string scene;
         std::string reachability;
         std::string eef;
+        std::string eef_preshape;
         std::string rns;
         std::vector<std::string> robot_cols;
 
