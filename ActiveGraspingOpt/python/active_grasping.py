@@ -27,11 +27,17 @@ class ActiveGrasping:
 
     def executeQuery(self, query: dict) -> GraspResult:
         values = self.executor.query_to_values(query)
-        res: GraspResult = self.executor.execute(values)
+        ok = False
+        i = 0
+        while i < self.n_trials and not ok:
+            res: GraspResult = self.executor.execute(values)
+            ok = res.error == ""
+            i +=1
 
         log_data = self.executor.metric_parser.get_data_log(res)
+        log_data["others"]["trials"] = i
         if res.error != "":
-            print("Query:", query, "-> Error:", res.error)
+            print("Query:", query, "-> Error:", res.error, " trials:", i)
         else:
             print("Query:", query)
             print(log_data)
