@@ -1,0 +1,141 @@
+{
+    "basic_params": {
+        "active_variables": [
+            "x1",
+            "x2"
+        ],
+        "default_query": {
+            "x1": 0,
+            "x2": 0
+        },
+        "metrics": [
+            "outcome",
+            "volume",
+            "force_closure"
+        ],
+        "n_trials": 1
+    },
+    "grasp_executor": {
+        "name": "Gramacy",
+        "params": {}
+    },
+    "optimizer": {
+        "name": "sigopt",
+        "params": {
+            "project": "test-opt",
+            "mode": "dev",
+            "exp_params": {
+                "name": "Gramacy optimization test",
+                "type": "offline",
+                "parallel_bandwidth": 1,
+                "budget": 5,
+                "metrics": [
+                    {
+                        "name": "outcome",
+                        "strategy": "optimize",
+                        "objective": "maximize"
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "x1",
+                        "type": "double",
+                        "bounds": {
+                            "min": 0.0001,
+                            "max": 1.0
+                        },
+                        "prior": {
+                            "mean": 0.5,
+                            "name": "normal",
+                            "scale": 0.2
+                        }
+                    },
+                    {
+                        "name": "x2",
+                        "type": "double",
+                        "bounds": {
+                            "min": 0.0001,
+                            "max": 1.0
+                        },
+                        "prior": {
+                            "mean": 0.5,
+                            "name": "normal",
+                            "scale": 0.2
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "best_result": [
+        {
+            "query": {
+                "x2": 1,
+                "x1": 1
+            },
+            "metrics": [
+                {
+                    "name": "outcome",
+                    "value": 3.228111696012683e-31
+                }
+            ]
+        }
+    ],
+    "grasps": [
+        {
+            "query": {
+                "x2": 0.0001,
+                "x1": 0.0001
+            },
+            "metrics": {
+                "outcome": -0.0006749619902207061,
+                "volume": 0.0,
+                "force_closure": false
+            }
+        },
+        {
+            "query": {
+                "x1": 0.0001,
+                "x2": 1
+            },
+            "metrics": {
+                "outcome": -8.520526497655427e-18,
+                "volume": 0.0,
+                "force_closure": false
+            }
+        },
+        {
+            "query": {
+                "x1": 0.0001,
+                "x2": 1
+            },
+            "metrics": {
+                "outcome": -8.520526497655427e-18,
+                "volume": 0.0,
+                "force_closure": false
+            }
+        },
+        {
+            "query": {
+                "x1": 0.0001,
+                "x2": 0.0001
+            },
+            "metrics": {
+                "outcome": -0.0006749619902207061,
+                "volume": 0.0,
+                "force_closure": false
+            }
+        },
+        {
+            "query": {
+                "x1": 1,
+                "x2": 1
+            },
+            "metrics": {
+                "outcome": 3.228111696012683e-31,
+                "volume": 0.0,
+                "force_closure": false
+            }
+        }
+    ]
+}

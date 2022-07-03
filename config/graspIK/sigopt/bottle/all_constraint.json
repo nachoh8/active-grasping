@@ -1,6 +1,6 @@
 {
     "project": "active-grasping-opt",
-    "name": "SO",
+    "name": "SO-cnt",
     "mode": "prod",
     "default_query": {
         "x": -239.204,
@@ -11,43 +11,19 @@
         "rz": 3.14
     },
     "grasp_trials": 1,
-    "exp_params_xy": {
-        "name": "Grasp Planner IK - Optimization - X,Y",
-        "type": "offline",
-        "parallel_bandwidth": 1,
-        "budget": 100,
-        "num_solutions": 1,
-        "metrics": [
-            {
-                "name":"outcome",
-                "strategy":"optimize",
-                "objective":"maximize"
-            }
-        ],
-        "parameters": [
-            {
-                "name": "x",
-                "type":"double",
-                "bounds": {"min": -236.0, "max": -191.0}
-            },
-            {
-                "name": "y",
-                "type":"double",
-                "bounds": {"min": -80.0, "max": -26.0}
-            }
-        ]
-    },
+    "report_failures": false,
     "exp_params": {
-        "name": "Grasp Planner IK - Optimization - X,Y,Z",
+        "name": "Grasp Planner IK - CNT - X,Y,Z",
         "type": "offline",
         "parallel_bandwidth": 1,
         "budget": 150,
         "num_solutions": 1,
         "metrics": [
             {
-                "name":"outcome",
-                "strategy":"optimize",
-                "objective":"maximize"
+                "name": "outcome",
+                "objective": "maximize",
+                "strategy": "constraint",
+                "threshold": 0.6
             }
         ],
         "parameters": [

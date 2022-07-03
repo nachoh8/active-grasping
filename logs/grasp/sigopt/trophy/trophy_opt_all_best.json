@@ -1,0 +1,215 @@
+{
+    "date": "26/06/2022 14:02:35",
+    "basic_params": {
+        "active_variables": [
+            "x",
+            "y",
+            "z"
+        ],
+        "default_query": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "rx": 0,
+            "ry": 0,
+            "rz": 0
+        },
+        "metrics": [
+            "outcome",
+            "volume",
+            "force_closure"
+        ],
+        "n_trials": 1
+    },
+    "grasp_executor": {
+        "name": "GraspPlanner",
+        "params": {
+            "timeout": 1000.0,
+            "min_quality": 0.01,
+            "force_closure": true,
+            "robot": "/home/nacho/ActiveGrasping/active-grasping/config/grasp/params/icub_robot.json",
+            "object": "/home/nacho/ActiveGrasping/active-grasping/config/grasp/params/obj_trophy.json"
+        }
+    },
+    "optimizer": {
+        "name": "SO",
+        "params": {
+            "project": "active-grasping-opt",
+            "mode": "prod",
+            "report_failures": false,
+            "exp_params": {
+                "name": "Grasp Planner - Trophy - Opt - X,Y,Z",
+                "type": "offline",
+                "parallel_bandwidth": 1,
+                "budget": 150,
+                "num_solutions": 1,
+                "metrics": [
+                    {
+                        "name": "outcome",
+                        "strategy": "optimize",
+                        "objective": "maximize"
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "x",
+                        "type": "double",
+                        "bounds": {
+                            "min": -60.0,
+                            "max": 20.0
+                        }
+                    },
+                    {
+                        "name": "y",
+                        "type": "double",
+                        "bounds": {
+                            "min": -70.0,
+                            "max": 170.0
+                        }
+                    },
+                    {
+                        "name": "z",
+                        "type": "double",
+                        "bounds": {
+                            "min": -70.0,
+                            "max": 20.0
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "best_result": [
+        {
+            "query": {
+                "z": -5.536908979147552,
+                "y": -45.427646623863716,
+                "x": -20.908104231988602
+            },
+            "metrics": [
+                {
+                    "name": "outcome",
+                    "value": 0.21485215425491333
+                }
+            ]
+        },
+        {
+            "query": {
+                "x": -0.32149124353534025,
+                "z": 3.4481139166810153,
+                "y": 56.6775704514611
+            },
+            "metrics": [
+                {
+                    "name": "outcome",
+                    "value": 0.35413071513175964
+                }
+            ]
+        },
+        {
+            "query": {
+                "y": 153.74717543837724,
+                "z": -54.617506780432834,
+                "x": -49.24556674425363
+            },
+            "metrics": [
+                {
+                    "name": "outcome",
+                    "value": 0.1659715622663498
+                }
+            ]
+        },
+        {
+            "query": {
+                "z": -4.61845356793644,
+                "x": -56.2776378656403,
+                "y": 68.75497046726574
+            },
+            "metrics": [
+                {
+                    "name": "outcome",
+                    "value": 0.10421940684318542
+                }
+            ]
+        },
+        {
+            "query": {
+                "z": 0.6431373585960257,
+                "y": 58.59163368462939,
+                "x": -2.068813783079812
+            },
+            "metrics": [
+                {
+                    "name": "outcome",
+                    "value": 0.33253079652786255
+                }
+            ]
+        },
+        {
+            "query": {
+                "x": -12.82207238599145,
+                "z": 0.2565847102496234,
+                "y": 60.04942446534945
+            },
+            "metrics": [
+                {
+                    "name": "outcome",
+                    "value": 0.2815064787864685
+                }
+            ]
+        },
+        {
+            "query": {
+                "x": 9.964773674983814,
+                "y": 39.93868229928271,
+                "z": -16.776491387496858
+            },
+            "metrics": [
+                {
+                    "name": "outcome",
+                    "value": 0.2626282572746277
+                }
+            ]
+        },
+        {
+            "query": {
+                "y": 39.73819522613891,
+                "x": 13.856950848714884,
+                "z": -17.188516217474675
+            },
+            "metrics": [
+                {
+                    "name": "outcome",
+                    "value": 0.2721962630748749
+                }
+            ]
+        },
+        {
+            "query": {
+                "x": 18.14335527379806,
+                "z": -9.360439694567987,
+                "y": 74.82380577744765
+            },
+            "metrics": [
+                {
+                    "name": "outcome",
+                    "value": 0.22839665412902832
+                }
+            ]
+        },
+        {
+            "query": {
+                "z": -15.965826795469239,
+                "x": 1.8177101032047136,
+                "y": -62.43615541822081
+            },
+            "metrics": [
+                {
+                    "name": "outcome",
+                    "value": 0.20674127340316772
+                }
+            ]
+        }
+    ],
+    "grasps": []
+}

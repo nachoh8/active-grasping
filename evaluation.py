@@ -132,8 +132,13 @@ def get_values(file_path: str) -> "tuple[str, list[str], np.ndarray, np.ndarray,
     mean_dist = np.mean(dist)
     std_dist = np.std(dist)
     
-    var_dist = np.var(grasps, axis=0)
-    var_dist = np.mean(var_dist)
+    # var_dist = np.var(grasps, axis=0)
+    # var_dist = np.mean(var_dist)
+    gs = grasps + np.abs(np.min(grasps, axis=0))
+    _std = np.std(gs, axis=0)
+    _mean = np.mean(gs, axis=0)
+    _coef = _std / _mean
+    var_dist = np.mean(_coef)
 
     return logger.get_optimizer_name(), act_vars, grasps, res, (np.array(best[0]), np.array(best[1]).reshape(-1)), np.array([mean_dist, std_dist, var_dist])
 
@@ -228,7 +233,6 @@ if __name__ == "__main__":
         print("Optimizer: " + optimizer_name)
         print("Active variables: " + str(act_vars))
         print("Num. total grasps: " + str(all_grasps.shape[0]))
-        # print(all_dists)
         print("Avg. distance between grasps: " + str(np.mean(all_dists[:,0])))
         # print("Avg. std dev between grasps: " + str(np.mean(all_dists[:,1])))
         print("Avg. variance between queries: " + str(np.mean(all_dists[:,2])))
