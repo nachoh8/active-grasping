@@ -119,7 +119,7 @@ def get_values(file_path: str) -> "tuple[str, list[str], np.ndarray, np.ndarray,
     res = np.array(outcomes).reshape(-1)
 
     n_grasps = grasps.shape[0]
-    dist = np.zeros(n_grasps)
+    """dist = np.zeros(n_grasps)
     for i in range(n_grasps):
         dg = 0
         n = 1
@@ -138,9 +138,13 @@ def get_values(file_path: str) -> "tuple[str, list[str], np.ndarray, np.ndarray,
     _std = np.std(gs, axis=0)
     _mean = np.mean(gs, axis=0)
     _coef = _std / _mean
-    var_dist = np.mean(_coef)
+    coef_var = np.mean(_coef)
+    
+    _size = np.max(grasps, axis=0) - np.min(grasps, axis=0)
+    gs = gs / _size
+    var_norm = np.var(gs)"""
 
-    return logger.get_optimizer_name(), act_vars, grasps, res, (np.array(best[0]), np.array(best[1]).reshape(-1)), np.array([mean_dist, std_dist, var_dist])
+    return logger.get_optimizer_name(), act_vars, grasps, res, (np.array(best[0]), np.array(best[1]).reshape(-1)), None#np.array([mean_dist, var_norm, coef_var])
 
 def get_folder_values(folder_path: str) -> "tuple[str, list[str], np.ndarray, np.ndarray, np.ndarray, np.ndarray]":
     """
@@ -176,7 +180,7 @@ def get_folder_values(folder_path: str) -> "tuple[str, list[str], np.ndarray, np
     
     all_grasps = np.array(all_grasps)
     all_outcomes = np.array(all_outcomes)
-    all_dists = np.array(all_dists)
+    all_dists = None # np.array(all_dists)
 
     return optimizer_name, act_vars, all_grasps, all_outcomes, all_best_grasps, all_best_outcomes, all_dists
 
@@ -233,9 +237,9 @@ if __name__ == "__main__":
         print("Optimizer: " + optimizer_name)
         print("Active variables: " + str(act_vars))
         print("Num. total grasps: " + str(all_grasps.shape[0]))
-        print("Avg. distance between grasps: " + str(np.mean(all_dists[:,0])))
-        # print("Avg. std dev between grasps: " + str(np.mean(all_dists[:,1])))
-        print("Avg. variance between queries: " + str(np.mean(all_dists[:,2])))
+        # print("Avg. distance between grasps: " + str(np.mean(all_dists[:,0])))
+        # print("Avg. normalized variance between queries: " + str(np.mean(all_dists[:,1])))
+        # print("Avg. coef. of var. between queries: " + str(np.mean(all_dists[:,2])))
         print("Mean Best grasp: " + str(mean_max_outcomes[-1][-1]))
         print("Best grasp: " + str(np.max(all_outcomes)))
 
@@ -244,14 +248,15 @@ if __name__ == "__main__":
         # plot_best(all_best_grasps, all_best_outcomes.reshape((-1,)), act_vars, name=optimizer_name, plot_text=True)
 
         n_exp = len(all_best_grasps)
+        print("Experiments with solution: " + str(n_exp))
         if n_exp > 0:
-            best_dists = np.zeros(n_exp)
+            """best_dists = np.zeros(n_exp)
             best_axis_dists = np.zeros((n_exp, 3))
             best_std_dists = np.zeros(n_exp)
-            best_std_axis_dists = np.zeros((n_exp, 3))
+            best_std_axis_dists = np.zeros((n_exp, 3))"""
             n_bests = np.zeros(n_exp)
             
-            _b_g = all_best_grasps[0]
+            """_b_g = all_best_grasps[0]
             _b_o = all_best_outcomes[0]
 
             for idx_exp in range(n_exp):
@@ -304,8 +309,25 @@ if __name__ == "__main__":
             d2 = np.power(d, 2)
             sd2 = np.power(best_std_axis_dists, 2)
             comb_std_axis_dist = np.sqrt(np.sum((weights * (sd2 + d2).T).T, axis=0))
-            print("Axis distance between best grasps per experiment: mean = " + str(comb_mean_axis_dist) + " mm, std dev = " + str(comb_std_axis_dist) + " mm")
+            print("Axis distance between best grasps per experiment: mean = " + str(comb_mean_axis_dist) + " mm, std dev = " + str(comb_std_axis_dist) + " mm")"""
             
+            var_exps = np.zeros((n_exp,3))
+            var_outcomes = np.zeros(n_exp)
+            a = 0
+            for i in range(n_exp):
+                bg = all_best_grasps[i]
+                n_bests[i] = bg.shape[0]
+
+                gs = bg + np.abs(np.min(bg, axis=0))
+                var_exps[i] = np.var(gs, axis=0)
+                a += np.var(gs[:,0])
+                #print(var_exps[i])
+
+                var_outcomes[i] = np.var(all_best_outcomes[i])
+                #print(var_outcomes[i])
+            #print(var_exps)
+            #print(a/n_exp)
+            total_bests = np.sum(n_bests)
             print("Num. total best grasps: " + str(total_bests))
             n_sols = np.zeros(n_logs)
             n_sols[:n_exp] = n_bests
@@ -313,13 +335,20 @@ if __name__ == "__main__":
             std_dev_solutions = np.std(n_sols)
             print("Avg. solutions per experiment: " + str(avg_solutions))
             print("Std. dev. solutions per experiment: " + str(std_dev_solutions))
+
+            print("Variance best grasps (params): mean = " + str(np.mean(var_exps, axis=0)) + ", std dev = " + str(np.std(var_exps, axis=0)))
+            #print(list(np.mean(var_exps, axis=0)), list(np.std(var_exps, axis=0)))
+            print("Variance best grasps (metric): mean = " + str(np.mean(var_outcomes)) + ", std dev = " + str(np.std(var_outcomes)))
+            #print(np.mean(var_outcomes), np.std(var_outcomes))
+
+
             
-            best_grasps[0].append(_b_g)
-            best_grasps[1].append(_b_o)
+            # best_grasps[0].append(_b_g)
+            # best_grasps[1].append(_b_o)
 
     outcome_iterations(np.array(mean_max_outcomes), errors=np.array(std_dev_max_outcomes), names=names)
 
-    if len(best_grasps) > 0:
-        plot_best_cmp(best_grasps[0], names, act_vars)
+    # if len(best_grasps) > 0:
+    #     plot_best_cmp(best_grasps[0], names, act_vars)
 
-    plt.show()
+    # plt.show()

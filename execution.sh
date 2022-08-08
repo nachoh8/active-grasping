@@ -4,34 +4,46 @@
 
 OPT_EXECUTOR=1
 GRASP_EXECUTOR=2
-NUM_RUNS=10
+START=4
+NUM_RUNS=4
 
 RES_LOG_PREFIX="res_xyz"
+OBJ="trophy"
 
 if [ $GRASP_EXECUTOR -eq 1 ]; then
     FGRASP="config/grasp/params/grasp_params.json"
+    METRIC=1
     
-    FBOPT="config/bayesopt/bopt_params_default.json"
-    FGOPT="config/grasp/gopt/gopt_xyz.json"
+    FBOPT="config/bayesopt/bopt_default.json"
+    FGOPT="config/grasp/gopt/${OBJ}/gopt_yzr.json"
 
-    FSOPT_OPT="config/grasp/sigopt/opt.json"
-    FSOPT_MS="config/grasp/sigopt/multisol.json"
-    FSOPT=$FSOPT_MS
+    FSOPT_OPT="config/grasp/sigopt/${OBJ}/opt.json"
+    FSOPT_MS="config/grasp/sigopt/${OBJ}/multisol.json"
+    FSOPT_CNT="config/grasp/sigopt/${OBJ}/all_constraint.json"
+    FSOPT=$FSOPT_CNT
 
-    RES_FOLDER="logs/grasp/sigopt/xyz/ms"
+    RES_FOLDER_BOPT="bayesopt/${OBJ}"
+    RES_FOLDER_SOPT="sigopt/${OBJ}/opt"
+    RES_FOLDER_SMS="sigopt/${OBJ}/ms"
+    RES_FOLDER_SCNT="sigopt/${OBJ}/all_constraint_2"
+    RES_FOLDER="logs/grasp/${RES_FOLDER_SCNT}"
 elif [ $GRASP_EXECUTOR -eq 2 ]; then
     FGRASP="config/graspIK/params/grasp_params.json"
+    METRIC=3
 
-    FBOPT="config/bayesopt/bopt_params_default.json"
-    FGOPT="config/graspIK/gopt/gopt_xyz.json"
+    FBOPT="config/bayesopt/bopt_default.json"
+    FGOPT="config/graspIK/gopt/${OBJ}/gopt_xyz.json"
 
-    FSOPT_OPT="config/graspIK/sigopt/opt.json"
-    FSOPT_MS="config/graspIK/sigopt/multisol.json"
-    FSOPT=$FSOPT_MS
+    FSOPT_OPT="config/graspIK/sigopt/${OBJ}/opt.json"
+    FSOPT_MS="config/graspIK/sigopt/${OBJ}/multisol.json"
+    FSOPT_CNT="config/graspIK/sigopt/${OBJ}/all_constraint.json"
+    FSOPT=$FSOPT_CNT
 
-    RES_FOLDER_OPT="logs/graspIK/sigopt/xyz/opt"
-    RES_FOLDER_MS="logs/graspIK/sigopt/xyz/ms"
-    RES_FOLDER=$RES_FOLDER_MS
+    RES_FOLDER_BOPT="bayesopt/${OBJ}_ntrials"
+    RES_FOLDER_SOPT="sigopt/${OBJ}/opt"
+    RES_FOLDER_SMS="sigopt/${OBJ}/ms"
+    RES_FOLDER_SCNT="sigopt/${OBJ}/all_constraint"
+    RES_FOLDER="logs/graspIK/${RES_FOLDER_SCNT}"
 else
     echo "Error: Grasp executor must be 1: GraspPlanner, 2: GraspPlannerIK"
     exit 1
@@ -62,12 +74,12 @@ mkdir -p $RES_FOLDER
 FLOG="$RES_FOLDER/$RES_LOG_PREFIX"
 
 N_ERR=0
-for (( i=3; i<=$NUM_RUNS; ))
+for (( i=$START; i<=$NUM_RUNS; ))
 do
     echo "-------------------------------------"
     log="${FLOG}_$i.json"
     echo "Execution $i/$NUM_RUNS -> $log"
-    python3 main_active_grasping.py -fgrasp $GRASP_EXECUTOR $FGRASP $PARAMS -flog $log
+    python3 main_active_grasping.py -fgrasp $GRASP_EXECUTOR $FGRASP $PARAMS -flog $log -metric $METRIC
     if [ $? -eq 0 ]; then
         i=$(( $i + 1 ))
         N_ERR=0
@@ -79,5 +91,4 @@ do
             exit 1
         fi
     fi
-
 done
