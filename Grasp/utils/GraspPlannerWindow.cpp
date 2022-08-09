@@ -29,6 +29,7 @@
 #include <iomanip>
 #include <cmath>
 #include <sstream>
+#include <random>
 
 #include "Inventor/actions/SoLineHighlightRenderAction.h"
 #include <Inventor/nodes/SoShapeHints.h>
@@ -37,6 +38,7 @@
 #include <Inventor/nodes/SoEventCallback.h>
 #include <Inventor/nodes/SoMatrixTransform.h>
 #include <Inventor/nodes/SoScale.h>
+#include <Inventor/nodes/SoUnits.h>
 
 #include "../include/Grasp/GraspVars.hpp"
 
@@ -49,6 +51,8 @@ using namespace Grasp;
 GraspPlannerWindow::GraspPlannerWindow(const GraspPlannerWindowParams& params)
 : QMainWindow(nullptr), GraspPlanner(params.planner_params)
 {
+    srand((unsigned) time(0));
+
     VR_INFO << " start " << std::endl;
 
     robotFile = params.planner_params.robot_file;
@@ -68,6 +72,7 @@ GraspPlannerWindow::GraspPlannerWindow(const GraspPlannerWindowParams& params)
     sceneSep->addChild(robotSep);
     sceneSep->addChild(objectSep);
     sceneSep->addChild(frictionConeSep);
+    sceneSep->addChild(graspsSep);
 
     /// UI
     setupUI();
@@ -80,6 +85,8 @@ GraspPlannerWindow::GraspPlannerWindow(const GraspPlannerWindowParams& params)
         current_grasp = 0;
         executeGrasp(grasps[0].pos, grasps[0].ori, false);
     }
+
+    //best_grasps = params.best_grasps;
 
     buildVisu();
 
@@ -148,6 +155,7 @@ void GraspPlannerWindow::setupUI()
 
     connect(UI.checkBoxColModel, SIGNAL(clicked()), this, SLOT(colModel()));
     connect(UI.checkBoxCones, SIGNAL(clicked()), this, SLOT(frictionConeVisu()));
+    //connect(UI.checkBoxShowBestGrasps, SIGNAL(clicked()), this, SLOT(bestGraspsVisu()));
     connect(UI.checkBoxMove, SIGNAL(clicked()), this, nullptr);
 
     connect(UI.objSliderX, SIGNAL(sliderReleased()), this, SLOT(sliderReleased_ObjectX()));
@@ -172,8 +180,13 @@ void GraspPlannerWindow::buildVisu()
         if (visualisationNode)
         {
             robotSep->addChild(visualisationNode);
-            visualizationRobot->highlight(UI.checkBoxHighlight->isChecked());
+            // visualizationRobot->highlight(UI.checkBoxHighlight->isChecked());
         }
+    }
+
+    if (TCP)
+    {
+        TCP->showCoordinateSystem(true);
     }
 
     /*
@@ -203,13 +216,11 @@ void GraspPlannerWindow::buildVisu()
         }
 
 #else
-
         if (UI.checkBoxColModel->isChecked())
         {
             VirtualRobot::MathTools::ConvexHull3DPtr ch = ConvexHullGenerator::CreateConvexHull(object->getCollisionModel()->getTriMeshModel());
             CoinConvexHullVisualizationPtr chv(new CoinConvexHullVisualization(ch));
             SoSeparator* s = chv->getCoinVisualization();
-
             if (s)
             {
                 objectSep->addChild(s);
@@ -218,13 +229,11 @@ void GraspPlannerWindow::buildVisu()
         else
         {
             SoNode* visualisationNode = CoinVisualizationFactory::getCoinVisualization(object, SceneObject::Full);
-
             if (visualisationNode)
             {
                 objectSep->addChild(visualisationNode);
             }
         }
-
 #endif
         /*SoNode *s = CoinVisualizationFactory::getCoinVisualization(object->getCollisionModel()->getTriMeshModel(),true);
         if (s)
@@ -264,7 +273,6 @@ void GraspPlannerWindow::buildVisu()
 
     // Object info
     Eigen::Vector3f o_pos = object->getGlobalPosition();
-
     Eigen::Matrix3f o_ori = object->getGlobalOrientation();
     
     std::stringstream ss_o;
@@ -276,21 +284,32 @@ void GraspPlannerWindow::buildVisu()
 
     // Robot info
     Eigen::Vector3f xyz = TCP->getGlobalPosition();
-    
+
+    xyz.z() += 100;
+
     VirtualRobot::MathTools::SphericalCoord r_pos_sc = VirtualRobot::MathTools::toSphericalCoords(xyz);
     Eigen::Vector3f r_pos;
     r_pos.x() = r_pos_sc.theta;
     r_pos.y() = r_pos_sc.phi;
     r_pos.z() = r_pos_sc.r;
-    
 
     Eigen::Matrix3f r_ori = TCP->getGlobalOrientation();
+    Eigen::Matrix4f m_ori = Eigen::Matrix4f::Identity(4,4);
+    m_ori.block(0,0,3,3) = r_ori;
+
+    Eigen::Vector3f comprobacion_rpy;
+
+    VirtualRobot::MathTools::eigen4f2rpy(m_ori, comprobacion_rpy);
+
+    std::cout << "Comprobacion RPY" << comprobacion_rpy << std::endl;
     
     std::stringstream ss;
     ss << std::setprecision(3);
     ss << modelPoseToStr(r_pos, r_ori);
     
     UI.robotInfo->setText(QString(ss.str().c_str()));
+
+    //buildBestGraspsSetVisu();
 
     viewer->scheduleRedraw();
 }
@@ -311,15 +330,14 @@ void GraspPlannerWindow::quit()
 /*void GraspPlannerWindow::plan()
 {
     planGrasp();
-
     openEEF();
     closeEEF();
 }
 */
 
 void GraspPlannerWindow::add_grasp() {
-    Eigen::Vector3f pos = eefCloned->getGlobalPosition();
-    Eigen::Vector3f ori = eefCloned->getGlobalOrientation().eulerAngles(0, 1, 2);
+    Eigen::Vector3f pos = TCP->getGlobalPosition();
+    Eigen::Vector3f ori = TCP->getGlobalOrientation().eulerAngles(0, 1, 2);
     
     current_grasp = grasps.size();
     
@@ -337,15 +355,20 @@ void GraspPlannerWindow::measure_quality()
         scoords.phi = grasp.pos.y();
         scoords.r = grasp.pos.z();
         Eigen::Vector3f pos = VirtualRobot::MathTools::toPosition(scoords);
-        //std::cout << "CARTESIAN COORDS" << std::endl;
-        //std::cout << pos << std::endl;
+        
+        pos.z() += -100;
+
+        std::cout << "CARTESIAN COORDS" << std::endl;
+        std::cout << pos << std::endl;
         std::cout << "ORIENTATION" << std::endl;
         std::cout << grasp.ori << std::endl;
+        //pos = {0,0,400};
         grasps[current_grasp].result = executeGrasp(pos, grasp.ori, false);
     } else {
         std::cout << "measure_quality: FIRST YOU HAVE TO SELECT A GRASP\n";
     }
 }
+
 
 void GraspPlannerWindow::previous_grasp() {
     if (current_grasp > 0) {
@@ -367,19 +390,25 @@ void GraspPlannerWindow::closeEEF()
 {
     closeEE();
 
-    float qual = qualityMeasure->getGraspQuality();
-    bool isFC = qualityMeasure->isGraspForceClosure();
+    GraspResult res;
     std::stringstream ss;
-    ss << std::setprecision(3);
-    ss << "Grasp Nr " << grasps.size() << "\nQuality: " << qual << "\nForce closure: ";
+    if (eef->getCollisionChecker()->checkCollision(object->getCollisionModel(), eef->createSceneObjectSet())) {
+        std::cout << "Error: Collision detected!" << std::endl;
+        res = GraspResult(comp_rho, comp_roll, comp_pitch, comp_yaw);
+        ss << "Grasp Nr " << grasps.size() << "\nCollision detected\n";
+    } else {
+        res = graspQuality();
+        ss << std::setprecision(3);
+        ss << "Grasp Nr " << grasps.size() << "\nQuality: " << res.measure << "\nForce closure: ";
 
-    if (isFC)
-    {
-        ss << "yes";
-    }
-    else
-    {
-        ss << "no";
+        if (res.force_closure)
+        {
+            ss << "yes";
+        }
+        else
+        {
+            ss << "no";
+        }
     }
 
     UI.graspInfo->setText(QString(ss.str().c_str()));
@@ -427,7 +456,6 @@ void GraspPlannerWindow::sliderReleased_ObjectX()
 
     UI.objSliderX->setValue(0);
 
-    //updateObj(v, GRASP_VAR::TRANS_X);
     updateObj(v, GRASP_VAR::TRANS_THETA);
 }
 
@@ -482,23 +510,6 @@ void GraspPlannerWindow::sliderReleased_ObjectRZ()
     updateObj(v, GRASP_VAR::ROT_YAW);
 }
 
-/*
-void GraspPlannerWindow::updateObj(const float value, const int idx) {
-    float x[6] = {0};
-    x[idx] = value;
-
-    Eigen::Matrix4f m;
-    VirtualRobot::MathTools::posrpy2eigen4f(x, m);
-
-    bool moveObj = (UI.checkBoxMove->isChecked());
-    if (moveObj) {
-        m = object->getGlobalPose() * m;
-        object->setGlobalPose(m);
-    } else {
-        m = eef->getTcp()->getGlobalPose() * m;
-        eefCloned->setGlobalPoseForRobotNode(TCP, m);
-    }
-*/
 
 void GraspPlannerWindow::updateObj(const float value, const int idx) {
     float x[6] = {0};
@@ -516,12 +527,15 @@ void GraspPlannerWindow::updateObj(const float value, const int idx) {
         object->setGlobalPose(m);
     } else {
         if (x[0]!=0 || x[1]!=0 || x[2]!=0){
-            position = eefCloned->getGlobalPosition();
+            position = TCP->getGlobalPosition();
             scoords = VirtualRobot::MathTools::toSphericalCoords(position);
             scoords.r = scoords.r + x[2];
             scoords.theta = scoords.theta + x[0];
             scoords.phi = scoords.phi + x[1];
             new_position = VirtualRobot::MathTools::toPosition(scoords);
+
+            new_position.z() += -100;
+
             m.block(0, 3, 3, 1) = new_position;
             eefCloned->setGlobalPoseForRobotNode(TCP, m);
         }
@@ -529,8 +543,9 @@ void GraspPlannerWindow::updateObj(const float value, const int idx) {
         {
             m = TCP->getGlobalPose() * m;
             eefCloned->setGlobalPoseForRobotNode(TCP, m);
-        }     
+        }   
     }
+    
 
     buildVisu();
 }

@@ -90,6 +90,9 @@ bool load_grasps(pt::ptree root, std::vector<Grasp::GraspData>& grasps) {
             pt::ptree root_res = grasp_obj.get_child("metrics");
 
             float comp_rho = root_res.get<float>("computed_rho");
+            float comp_roll = root_res.get<float>("computed_roll");
+            float comp_pitch = root_res.get<float>("computed_pitch");
+            float comp_yaw = root_res.get<float>("computed_yaw");
 
             Grasp::GraspData grasp;
             grasp.result.measure = root_res.get<float>("outcome");
@@ -97,6 +100,12 @@ bool load_grasps(pt::ptree root, std::vector<Grasp::GraspData>& grasps) {
             grasp.result.force_closure = root_res.get<bool>("force_closure");
             grasp.pos = Eigen::Vector3f(pose[Grasp::GRASP_VAR::TRANS_THETA], pose[Grasp::GRASP_VAR::TRANS_PHI], pose[Grasp::GRASP_VAR::TRANS_RHO]);
             grasp.ori = Eigen::Vector3f(pose[Grasp::GRASP_VAR::ROT_ROLL], pose[Grasp::GRASP_VAR::ROT_PITCH], pose[Grasp::GRASP_VAR::ROT_YAW]);
+
+            if (comp_roll != 0 && comp_pitch != 0 && comp_yaw != 0){
+                grasp.ori(0) = comp_roll;
+                grasp.ori(1) = comp_pitch;
+                grasp.ori(2) = comp_yaw;
+            }
 
             if (comp_rho != 0){
                 grasp.pos(2) = comp_rho;

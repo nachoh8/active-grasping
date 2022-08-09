@@ -23,13 +23,13 @@ namespace Grasp {
 
 /// Init
 
-GraspPlanner::GraspPlanner(const GraspPlannerParams& params)
+GraspPlannerS::GraspPlannerS(const GraspPlannerSParams& params)
 : params(params)
 {
     loadScene();
 }
 
-GraspPlanner::GraspPlanner(const std::string& json_file)
+GraspPlannerS::GraspPlanner(const std::string& json_file)
 {
     if (!load_GraspPlannerParams_json(json_file, this->params)) {
         throw "Errpr creating GraspPlanner from json";
@@ -38,7 +38,7 @@ GraspPlanner::GraspPlanner(const std::string& json_file)
     loadScene();
 }
 
-void GraspPlanner::loadScene() {
+void GraspPlannerS::loadScene() {
     /// Load robot
     robot.reset();
     
@@ -62,11 +62,16 @@ void GraspPlanner::loadScene() {
     eefCloned = _eef->createEefRobot("eef", "icub_eef");
     eef = eefCloned->getEndEffector(params.eef_name);
     TCP = eef->getTcp();
+
     /*
     if (params.has_eef_pose) {
         moveEE(params.eef_position, params.eef_orientation);
     }
     */
+    Eigen::Vector3f pos_ini = {0,0,0};
+    Eigen::Vector3f or_ini = {0,0,0};
+    moveEE(pos_ini, or_ini);
+    wOrigin = eef->getTcp()->getGlobalPose();
 
     /// Load object
     object = VirtualRobot::ObjectIO::loadManipulationObject(params.object_file);
@@ -95,8 +100,21 @@ void GraspPlanner::loadScene() {
     }
     */
     Eigen::Matrix4f m = Eigen::Matrix4f::Identity(4,4);
-    object->setGlobalPose(m);
-    eefCloned->setGlobalPose(m);
+    if (params.has_obj_pose) {
+        float x[6];
+        //x[0] = params.obj_position.x();
+        //x[1] = 100;
+        //x[2] = params.obj_position.z();
+        x[3] = params.obj_orientation.x();
+        x[4] = params.obj_orientation.y();
+        x[5] = params.obj_orientation.z();
+
+        VirtualRobot::MathTools::posrpy2eigen4f(x, m);
+        object->setGlobalPose(m);
+    } else {
+        object->setGlobalPose(m);
+    }
+    
 
     /// Set quality measure
     qualityMeasure.reset(new GraspStudio::GraspQualityMeasureWrenchSpace(object));
@@ -109,58 +127,24 @@ void GraspPlanner::loadScene() {
 
 /// Public
 
-GraspResult GraspPlanner::executeQueryGrasp(const std::vector<double>& query) {
+GraspResult GraspPlannerS::executeQueryGrasp(const std::vector<double>& query) {
     if (query.size() != NUM_GRASP_VARS) {
         std::cerr << "Error: query size is different of " << NUM_GRASP_VARS << "!!!\n";
         exit(1);
     }
     objectModel = object->getCollisionModel()->getTriMeshModel();
+    
+    // SPHERICAL ray intersection know:
 
-    // 1. query to position
     VirtualRobot::MathTools::SphericalCoord scoords;
-
-    //Simple planner
-    //scoords.r = query[GRASP_VAR::TRANS_RHO];
-    //Intersection planner:
-    scoords.r = 0;
     scoords.theta = query[GRASP_VAR::TRANS_THETA];
+    //scoords.theta = 1.8171027536166593;
     scoords.phi = query[GRASP_VAR::TRANS_PHI];
+    //scoords.phi = -2.2386673065403975;
+    scoords.r = 0;
 
-    //Simple planner:
-    //Eigen::Vector3f xyz = VirtualRobot::MathTools::toPosition(scoords);
-
-    Eigen::Vector3f n = {1, 0, 0};
-    Eigen::Vector3f o = {0, 1, 0};
-    Eigen::Vector3f a = {0, 0, 1};
-
-    //Orientation from spherical coords
-    Eigen::Vector3f rx = sin(scoords.theta)*cos(scoords.phi)*n + sin(scoords.theta)*sin(scoords.phi)*o + cos(scoords.theta)*a;
-    Eigen::Vector3f ry = cos(scoords.theta)*cos(scoords.phi)*n + cos(scoords.theta)*sin(scoords.phi)*o - sin(scoords.theta)*a;
-    Eigen::Vector3f rz = -sin(scoords.phi)*n + cos(scoords.phi)*o;
-    rx *= -1;
-
-    Eigen::Matrix4f m = Eigen::Matrix4f::Identity();
-    m.block(0, 0, 3, 1) = rx;
-    m.block(0, 1, 3, 1) = ry;
-    m.block(0, 2, 3, 1) = rz;
-
-    Eigen::Vector3f comp_rpy;
-
-    VirtualRobot::MathTools::eigen4f2rpy(m, comp_rpy);
-
-    
-    comp_roll = comp_rpy.x();
-    comp_pitch = comp_rpy.y();
-    comp_yaw = comp_rpy.z() + 0.7854; //45 degrees correction
-    comp_rho = 0;
-    
-    //INTERSECTION:
-    //Set origin
-    Eigen::Vector3f rayOrigin = {0,0,100};
-
-    //ORIGIN OPTIMIZATION [-150, -50]
-    //Eigen::Vector3f rayOrigin = {0,0,query[GRASP_VAR::TRANS_RHO]};
-
+    Eigen::Vector3f rayOrigin = wOrigin.block(0, 3, 3, 1);
+    //Eigen::Vector3f outIntersectionPoint;
     float rho = 0;
 
     float x_ = sin(scoords.theta)*cos(scoords.phi);
@@ -186,45 +170,46 @@ GraspResult GraspPlanner::executeQueryGrasp(const std::vector<double>& query) {
         //std::cout << "***INTERSECT?: " << intersect << std::endl;
         if (intersect == true)
         {
-            scoords.r = rho + 10; //hand length correction (middle grasps)
-            //scoords.r = rho + 30; //hand length correction (upper grasps)
+            scoords.r = rho + 90;
         }
     }
     
     comp_rho = scoords.r;
-
-    Eigen::Vector3f xyz = VirtualRobot::MathTools::toPosition(scoords);
+    std::cout << "***RHO: " << scoords.r << std::endl;
+    std::cout << "***THETA: " << scoords.theta << std::endl;
+    std::cout << "***PHI: " << scoords.phi << std::endl;
     
+    Eigen::Vector3f xyz = VirtualRobot::MathTools::toPosition(scoords);
 
-    xyz.z() += 100; // origin correction
-    //xyz.z() += query[GRASP_VAR::TRANS_RHO]; // origin optimization
+    //rpy
+    Eigen::Vector3f rpy(query[GRASP_VAR::ROT_ROLL], query[GRASP_VAR::ROT_PITCH], query[GRASP_VAR::ROT_YAW]);
 
-    //ORIENTATION OPTIMIZATION:
-
-    //comp_roll = comp_rpy.x() + query[GRASP_VAR::ROT_ROLL];
-    //comp_pitch = comp_rpy.y() + query[GRASP_VAR::ROT_PITCH];
-    //comp_yaw = comp_rpy.z() + query[GRASP_VAR::ROT_YAW];
-
-    Eigen::Vector3f rpy = {comp_roll, comp_pitch, comp_yaw};
-
-    // Execute grasp
+    // 2. Execute grasp
+    /*
+    openEE();
+    moveEE(xyz, rpy);
+    std::cout << "*** Moving away *** " << std::endl;
+    GraspPlanning::ApproachMovementSurfaceNormal::moveEEFAway(rayVector, 1.0f, 50);
+    */
 
     return executeGrasp(xyz, rpy);
 }
 
-GraspResult GraspPlanner::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy, bool save_grasp) {
+GraspResult GraspPlannerS::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy, bool save_grasp) {
 
-    // 1. Open and Move EE
+    // 1. Open and Move 
+    
     openEE();
     moveEE(xyz, rpy);
 
     // 2. Check Collisions
+    
     GraspData grasp;
     grasp.pos = xyz;
     grasp.ori = rpy;
     if (eef->getCollisionChecker()->checkCollision(object->getCollisionModel(), eef->createSceneObjectSet())) {
         std::cout << "Error: Collision detected!" << std::endl;
-        grasp.result = GraspResult(comp_rho, comp_roll, comp_pitch, comp_yaw);
+        grasp.result = GraspResult();
         if (save_grasp) grasps.push_back(grasp);
         return grasp.result;
     }
@@ -242,14 +227,14 @@ GraspResult GraspPlanner::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::
 
     std::cout << "Grasp Quality (epsilon measure):" << grasp.result.measure << std::endl;
     std::cout << "v measure:" << grasp.result.volume << std::endl;
-    std::cout << "Force closure: " << (grasp.result.force_closure ? "yes" : "no") << std::endl;
+    //std::cout << "Force closure: " << (grasp.result.force_closure ? "yes" : "no") << std::endl;
 
     return grasp.result;
 }
 
 /// Grasping
 
-void GraspPlanner::moveEE(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy) {
+void GraspPlannerS::moveEE(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy) {
     float x[6];
     x[0] = xyz.x();
     x[1] = xyz.y();
@@ -263,10 +248,11 @@ void GraspPlanner::moveEE(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy
 
     // m = eefCloned->getGlobalPose() * m;
     //eefCloned->setGlobalPose(m);
+    //TCP->setGlobalPose(m);
     eefCloned->setGlobalPoseForRobotNode(TCP, m);
 }
 
-GraspResult GraspPlanner::graspQuality() {
+GraspResult GraspPlannerS::graspQuality() {
     if (contacts.size() > 0) {
         qualityMeasure->setContactPoints(contacts);
 
@@ -274,22 +260,22 @@ GraspResult GraspPlanner::graspQuality() {
         float epsilon = qualityMeasure->getGraspQuality();
         bool fc = qualityMeasure->isGraspForceClosure();
 
-        return GraspResult(epsilon, volume, fc, comp_rho, comp_roll, comp_pitch, comp_yaw);;
+        return GraspResult(epsilon, volume, fc, comp_rho);;
     }
 
     std::cout << "GraspQuality: not contacts!!!\n";
 
-    return GraspResult(comp_rho, comp_roll, comp_pitch, comp_yaw);
+    return GraspResult();
 }
 
-void GraspPlanner::closeEE()
+void GraspPlannerS::closeEE()
 {
     contacts.clear();
     
     contacts = eef->closeActors(object);
 }
 
-void GraspPlanner::openEE()
+void GraspPlannerS::openEE()
 {
     contacts.clear();
 
@@ -303,7 +289,7 @@ void GraspPlanner::openEE()
     }
 }
 
-bool GraspPlanner::RayIntersectsTriangle(Eigen::Vector3f rayOrigin, Eigen::Vector3f rayVector, 
+bool GraspPlannerS::RayIntersectsTriangle(Eigen::Vector3f rayOrigin, Eigen::Vector3f rayVector, 
                                                             Eigen::Vector3f vertex0, Eigen::Vector3f vertex1, Eigen::Vector3f vertex2, 
                                                             float& rho)
     {

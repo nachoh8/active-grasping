@@ -1,6 +1,6 @@
 {
     "project": "active-grasping-opt",
-    "name": "SO",
+    "name": "SO-cnt",
     "mode": "prod",
     "default_query": {
         "theta": 0,
@@ -12,15 +12,17 @@
     },
     "grasp_trials": 1,
     "exp_params": {
-        "name": "Active grasping optimization - sphericalCoords",
+        "name": "Grasp Planner - All constraint - Spherical",
         "type": "offline",
         "parallel_bandwidth": 1,
         "budget": 150,
+        "num_solutions": 1,
         "metrics": [
             {
                 "name":"outcome",
-                "strategy":"optimize",
-                "objective":"maximize"
+                "strategy":"constraint",
+                "objective":"maximize",
+                "threshold": 0.68
             }
         ],
         "parameters": [
@@ -37,7 +39,7 @@
             {
                 "name": "rho",
                 "type":"double",
-                "bounds": {"min": 0, "max": 200}
+                "bounds": {"min": -150, "max": -50}
             }
         ]
     }

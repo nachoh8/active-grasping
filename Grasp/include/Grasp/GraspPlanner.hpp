@@ -85,7 +85,16 @@ protected:
 
     /// Others
     inline std::string modelPoseToStr(const Eigen::Vector3f& pos, const Eigen::Matrix3f& ori_m) {
-        Eigen::Vector3f ori = ori_m.eulerAngles(0,1,2);
+        //Eigen::Vector3f ori = ori_m.eulerAngles(0,1,2);
+        //***
+        Eigen::Matrix4f m_ori = Eigen::Matrix4f::Identity(4,4);
+        m_ori.block(0,0,3,3) = ori_m;
+
+        Eigen::Vector3f ori;
+
+        VirtualRobot::MathTools::eigen4f2rpy(m_ori, ori);
+        //***
+
         std::stringstream  ss;
         ss << std::setprecision(3);
         //ss << "Position(x,y,z):\n(" << pos.x() << ", " << pos.y() << ", " << pos.z() << ")\n"
@@ -108,6 +117,10 @@ protected:
     VirtualRobot::EndEffector::ContactInfoVector contacts;
 
     float comp_rho;
+    float comp_roll;
+    float comp_pitch;
+    float comp_yaw;
+
     Eigen::Matrix4f wOrigin;
 
     std::vector<GraspData> grasps;

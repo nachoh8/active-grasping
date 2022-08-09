@@ -11,6 +11,9 @@ struct GraspResult
     double pos_error; // mm
     double ori_error; // degrees
     float rho; // Computed intersection rho
+    float roll; //Computed or from spherical coords
+    float pitch;
+    float yaw;
 
     GraspResult()
     {
@@ -23,9 +26,28 @@ struct GraspResult
         ori_error = -1;
 
         rho = 0;
+        roll = 0;
+        pitch = 0;
+        yaw = 0;
     }
 
-    GraspResult(const double _measure, const double _volume, bool _force_closure, float _rho)
+    GraspResult(float _rho, float _roll, float _pitch, float _yaw)
+    {
+        measure       = 0;
+        volume        = 0;
+        force_closure = false;
+
+        time = -1;
+        pos_error = -1;
+        ori_error = -1;
+
+        rho = 0;
+        roll = _roll;
+        pitch = _pitch;
+        yaw = _yaw;
+    }
+
+    GraspResult(const double _measure, const double _volume, bool _force_closure, float _rho, float _roll, float _pitch, float _yaw)
     {
         measure       = _measure;
         volume        = _volume;
@@ -36,6 +58,9 @@ struct GraspResult
         ori_error = -1;
 
         rho = _rho;
+        roll = _roll;
+        pitch = _pitch;
+        yaw = _yaw;
     }
 
     GraspResult(const double _measure, const double _volume, bool _force_closure)

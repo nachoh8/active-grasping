@@ -2,9 +2,21 @@ import argparse
 import os
 import glob
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 
 from active_grasping.datalog import DataLog
+
+
+#matplotlib.rcParams['pdf.fonttype'] = 42
+#matplotlib.rcParams['ps.fonttype'] = 42
+
+font = {'family' : 'monospace',
+        'size'   : 40}
+
+matplotlib.rc('font', **font)
+
+COLORS=['b', 'r', 'g', '#ff7700']
 
 def compute_max_until_iteration(outcomes: np.ndarray) -> np.ndarray:
     res = np.array([outcomes[0]])
@@ -31,72 +43,16 @@ def outcome_iterations(outcomes: np.ndarray, best_acum=False, errors: np.ndarray
         else:
             plt.plot(iterations, Y, 'o-')"""
 
-        plt.plot(iterations, Y, label=names[i])
+        plt.plot(iterations, Y, label=names[i], color = COLORS[i])
         if errors is not None:
-            plt.fill_between(iterations, Y - errors[i], Y + errors[i], alpha=0.3)
+            plt.fill_between(iterations, Y - errors[i], Y + errors[i], alpha=0.3, color=COLORS[i])
     
     if names:
         plt.legend()
     plt.xlabel('Iteration')
     plt.ylabel('Outcome')
-    plt.title(title)
+    plt.title(title, fontsize=40)
 
-def outcome_vars(queries: np.ndarray, outcomes: np.ndarray, rhos: np.ndarray, var_labels: "list[str]", plot2D=False, name: str = ""):
-    n_vars = len(var_labels)
-
-    fig = plt.figure()
-    if n_vars == 1:
-        sc_plot = plt.scatter(queries[:, 0], outcomes, c=outcomes, alpha=0.5)
-        plt.xlabel(var_labels[0])
-        plt.ylabel("outcome")
-    elif plot2D:
-        sc_plot = plt.scatter(queries[:, 0], queries[:, 1], c=outcomes, alpha=0.5)
-        plt.xlabel(var_labels[0])
-        plt.ylabel(var_labels[1])
-    else:
-        ax = fig.add_subplot(projection='3d')
-        if n_vars == 2 and rhos.any != 0:
-            sc_plot = ax.scatter(queries[:, 0], queries[:, 1], rhos, c=outcomes, alpha=0.5)
-            ax.set_zlabel('rho')
-        elif n_vars == 2:
-            sc_plot = ax.scatter(queries[:, 0], queries[:, 1], outcomes, c=outcomes, alpha=0.5)
-            ax.set_zlabel("outcome")
-        elif n_vars == 3:
-            sc_plot = ax.scatter(queries[:, 0], queries[:, 1], queries[:, 2], c=outcomes, alpha=0.5)
-            ax.set_zlabel(var_labels[2])
-        elif n_vars == 5:
-            sc_plot_ = ax.scatter(queries[:,0], queries[:,1], rhos[:], c=outcomes, alpha=0.5)
-            plt.colorbar(sc_plot_, label="outcome", orientation="vertical")
-            plt.title("Distribution of the outcome " + name)
-
-            fig2 = plt.figure()
-            ax_ = fig2.add_subplot(projection='3d')
-            sc_plot = ax_.scatter(queries[:,2], queries[:,3], queries[:,4], c=outcomes, alpha=0.5)
-            ax_.set_zlabel(var_labels[4])
-            ax_.set_xlabel(var_labels[2])
-            ax_.set_ylabel(var_labels[3])
-
-            ax.set_zlabel('rho')
-        elif n_vars == 6:
-            sc_plot_ = ax.scatter(queries[:,0], queries[:,1], queries[:,2], c=outcomes, alpha=0.5)
-            plt.colorbar(sc_plot_, label="outcome", orientation="vertical")
-            plt.title("Distribution of the outcome " + name)
-
-            fig2 = plt.figure()
-            ax_ = fig2.add_subplot(projection='3d')
-            sc_plot = ax_.scatter(queries[:,3], queries[:,4], queries[:,5], c=outcomes, alpha=0.5)
-            ax_.set_zlabel(var_labels[5])
-            ax_.set_xlabel(var_labels[4])
-            ax_.set_ylabel(var_labels[3])
-
-            ax.set_zlabel(var_labels[2])
-
-        ax.set_xlabel(var_labels[0])
-        ax.set_ylabel(var_labels[1])
-
-    plt.colorbar(sc_plot, label="outcome", orientation="vertical")
-    
-    plt.title("Distribution of the outcome " + name)
 
 def plot_best(grasps: np.ndarray, outcomes: np.ndarray, rhos: np.ndarray, var_labels: "list[str]", plot_text = False, name: str = ""):
     fig = plt.figure()
@@ -107,8 +63,6 @@ def plot_best(grasps: np.ndarray, outcomes: np.ndarray, rhos: np.ndarray, var_la
             ax.scatter(gs[:, 0], gs[:, 1], rhos[i], marker='o', alpha=1.0)
             if plot_text:
                 for j in range(gs.shape[0]):
-                    # print(gs[j], gs[j].shape)
-                    # print(outcomes[i], outcomes[i][j].shape)
                     ax.text(gs[j, 0], gs[j, 1], rhos[i], str(round(outcomes[i][j], 3)))
 
         ax.set_xlabel(var_labels[0])
@@ -118,9 +72,6 @@ def plot_best(grasps: np.ndarray, outcomes: np.ndarray, rhos: np.ndarray, var_la
         for i, gs in zip(range(grasps.shape[0]), grasps):
             ax.scatter(gs[:, 0], gs[:, 1], gs[:, 2], marker='o', alpha=1.0)
             if plot_text:
-                for j in range(gs.shape[0]):
-                    # print(gs[j], gs[j].shape)
-                    # print(outcomes[i], outcomes[i][j].shape)
                     ax.text(gs[j, 0], gs[j, 1], gs[j, 2], str(round(outcomes[i][j], 3)))
 
         ax.set_xlabel(var_labels[0])
@@ -129,7 +80,6 @@ def plot_best(grasps: np.ndarray, outcomes: np.ndarray, rhos: np.ndarray, var_la
     
     
     plt.title("Best grasps " + name)
-
 
 def get_values(file_path: str) -> "tuple[str, list[str], np.ndarray, np.ndarray, tuple[np.ndarray, np.ndarray]]":
     """
@@ -143,13 +93,46 @@ def get_values(file_path: str) -> "tuple[str, list[str], np.ndarray, np.ndarray,
     act_vars = logger.get_active_vars()
     queries, outcomes = logger.get_grasps()
     best = logger.get_best_grasps()
-    rhos = logger.get_rho()
+    #rhos = logger.get_rho()
+    #rolls, pitchs, yaws = logger.get_rpy()
 
     grasps = np.array(queries)
     res = np.array(outcomes).reshape(-1)
-    rhos = np.array(rhos).reshape(-1)
+    #rhos = np.array(rhos).reshape(-1)
 
-    return logger.get_optimizer_name(), act_vars, grasps, res, rhos, (np.array(best[0]), np.array(best[1]).reshape(-1))
+    best_outcomes = np.array(best[1]).reshape(-1)
+    # best_queries = np.array(best[0]).reshape(-1)
+
+    n_grasps = grasps.shape[0]
+    #sum_rhos = sum(rhos)
+    x = []
+    y = []
+    z = []
+    roll = []
+    pitch = []
+    yaw = []
+    """"
+    for i in range(n_grasps):
+
+        s1 = grasps[i]
+
+        if sum_rhos != 0. and grasps.shape[1] == 3 :
+            s1[2] = rhos[i]
+        elif sum_rhos != 0.:
+            s1 = np.append(s1, rhos[i])
+        
+        if np.any(res[i] == best_outcomes):
+
+            x.append(s1[2]*np.sin(s1[0])*np.cos(s1[1]))
+            y.append(s1[2]*np.sin(s1[0])*np.sin(s1[1]))
+            z.append(s1[2]*np.cos(s1[0]))
+
+            roll.append(rolls[i])
+            pitch.append(pitchs[i])
+            yaw.append(yaws[i])
+    """
+    print("SHAPE: ", res.shape)
+    return logger.get_optimizer_name(), act_vars,x,y,z,roll,pitch,yaw, res
 
 def get_folder_values(folder_path: str) -> "tuple[str, list[str], np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]":
     """
@@ -161,38 +144,37 @@ def get_folder_values(folder_path: str) -> "tuple[str, list[str], np.ndarray, np
     print("Num. log files: " + str(len(logs)))
 
     print("Adding", logs[0])
-    optimizer_name, act_vars, grasps, outcomes, rhos, best = get_values(logs[0])
-    all_grasps = [grasps]
+    optimizer_name, act_vars, x, y, z, roll, pitch , yaw, outcomes = get_values(logs[0])
+    all_x = [x]
+    all_y = [y]
+    all_z = [z]
+    all_roll = [roll]
+    all_pitch = [pitch]
+    all_yaw = [yaw]
     all_outcomes = [outcomes]
-    all_rhos = [rhos]
-    all_best_grasps = [best[0]]
-    all_best_outcomes = [best[1]]
-    logs.pop(0)
 
-    for file in logs:
+    for file in logs[1:]:
+        
         print("Adding", file)
-        _, _, grasps, outcomes, rhos, best = get_values(file)
-        all_grasps.append(grasps)
+        _, _, x, y, z, roll, pitch , yaw, outcomes = get_values(file)
+        all_x.append(x)
+        all_y.append(y)
+        all_z.append(z)
+        all_roll.append(roll)
+        all_pitch.append(pitch)
+        all_yaw.append(yaw)
         all_outcomes.append(outcomes)
-        all_rhos.append(rhos)
-        all_best_grasps.append(best[0])
-        all_best_outcomes.append(best[1])
-    
-    all_grasps = np.array(all_grasps)
+
+    all_x = np.array(x)
+    all_y = np.array(y)
+    all_z = np.array(z)
+    all_roll = np.array(roll)
+    all_pitch = np.array(pitch)
+    all_yaw = np.array(yaw)
     all_outcomes = np.array(all_outcomes)
-    all_rhos = np.array(all_rhos)
-    all_best_grasps = np.array(all_best_grasps)
-    all_best_outcomes = np.array(all_best_outcomes)
 
-    all_best_rhos = []
-    for i in range(all_rhos.shape[0]):
-        index = np.where(all_outcomes[i] == all_best_outcomes[i])
-        all_best_rhos.append(all_rhos[i][index[0][0]])
-    
-    all_best_rhos = np.array(all_best_rhos)
-    all_best_rhos = all_best_rhos.reshape(all_best_grasps.shape[0],1)
 
-    return optimizer_name, act_vars, all_grasps, all_outcomes, all_rhos, all_best_grasps, all_best_rhos, all_best_outcomes
+    return optimizer_name, act_vars, all_x, all_y, all_z, all_roll, all_pitch, all_yaw, all_outcomes
 
 
 if __name__ == "__main__":
@@ -202,53 +184,35 @@ if __name__ == "__main__":
     args = parser.parse_args()
     flogs = args.flogs
 
-    names = []
+    names = ["GP", "GPS", "GPSi", "GPSo"]
+    #names = ["SO-ms", "SO-constraint"]
     mean_max_outcomes = []
     std_dev_max_outcomes = []
+    best_grasps = [[], []]
 
     for flog in flogs:
+        print("-------------------------------------------------")
+        n_logs = 0
+        var_queries = []
         if os.path.isdir(flog):  
             print("Loading results from " + flog + " folder")
-            optimizer_name, act_vars, all_grasps, all_outcomes, all_rhos, all_best_grasps, all_best_rhos, all_best_outcomes = get_folder_values(flog)
-
-            print("Optimizer: " + optimizer_name)
-            print("Active variables: " + str(act_vars))
-            print("Num. total grasps: " + str(all_grasps.shape[0] * all_grasps.shape[1]))
-
+            optimizer_name, act_vars, all_x, all_y, all_z, all_roll, all_pitch, all_yaw, all_outcomes = get_folder_values(flog)
+            n_logs = all_outcomes.shape[0]
             max_outcomes = np.array([compute_max_until_iteration(outs) for outs in all_outcomes])
+            
             mean_max_outcomes.append(np.mean(max_outcomes, axis=0))
+
             std_dev_max_outcomes.append(np.std(max_outcomes, axis=0))
 
-            all_grasps = all_grasps.reshape(-1,all_grasps.shape[2])
             all_outcomes = all_outcomes.reshape(-1,)
-            all_rhos = all_rhos.reshape(-1,)
 
         else:  
             print("Loading results from " + flog + " file")
-            optimizer_name, act_vars, grasps, outcomes, rhos, best = get_values(flog)
+            n_logs = 1
+            optimizer_name, act_vars, x,y,z,roll,pitch,yaw, res = get_values(flog)
 
-            print("Optimizer: " + optimizer_name)
-            print("Active variables: " + str(act_vars))
-            print("Num. grasps: " + str(grasps.shape[0]))
-
-            all_grasps = grasps
-            all_outcomes = outcomes
-            all_rhos = rhos
-
-            all_best_grasps = np.array([best[0]])
-            all_best_rhos = np.array([best[1]])
-            all_best_outcomes = np.array([best[1]])
-
-            max_outcomes = compute_max_until_iteration(outcomes)
-            mean_max_outcomes.append(max_outcomes)
-            std_dev_max_outcomes.append(np.zeros((max_outcomes.shape)))
         
-        names.append(optimizer_name)
-
-        outcome_vars(all_grasps, all_outcomes, all_rhos, plot2D=False, var_labels=act_vars, name=optimizer_name)
-
-        plot_best(all_best_grasps, all_best_outcomes, all_best_rhos, act_vars, name=optimizer_name, plot_text=True)
-    
     outcome_iterations(np.array(mean_max_outcomes), errors=np.array(std_dev_max_outcomes), names=names)
+
 
     plt.show()

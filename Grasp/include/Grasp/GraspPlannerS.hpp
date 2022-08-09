@@ -108,6 +108,7 @@ protected:
     VirtualRobot::EndEffector::ContactInfoVector contacts;
 
     float comp_rho;
+    Eigen::Vector3f comp_rpy;
     Eigen::Matrix4f wOrigin;
 
     std::vector<GraspData> grasps;

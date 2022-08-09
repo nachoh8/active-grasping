@@ -22,7 +22,7 @@ if __name__ == "__main__":
         print("Error: executor must be {0: TestGramacyExecutor, 1: GraspPlanner, 2: GraspPlannerIK}")
         exit(-1)
 
-    executor = construct_grasp_executor_model(grasp_executor, fgrasp)
+    executor = construct_grasp_executor_model(grasp_executor, fgrasp = fgrasp)
     
     flog = args.flog
     if flog:

@@ -1,4 +1,4 @@
-#include "../include/Grasp/GraspPlanner.hpp"
+#include "../include/Grasp/GraspPlannerS.hpp"
 
 #include <iomanip>
 #include <stdexcept>
