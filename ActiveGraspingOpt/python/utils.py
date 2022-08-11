@@ -3,12 +3,14 @@ from .metrics import *
 
 def construct_grasp_executor_model(gtype: int, mtype: int = -1, fgrasp: str = "") -> ExecutorModel:
     t = None
-    if gtype == 0:
+    if gtype == GTYPE_GRAMACY:
         return GramacyExecutor()
-    elif gtype == 1:
+    elif gtype == GTYPE_GRASP_PLANNER:
         return GraspPlannerExecutor(fgrasp)
-    elif gtype == 2:
+    elif gtype == GTYPE_GRASP_PLANNER_IK:
         return GraspPlannerIKExecutor(fgrasp, mtype)
+    elif gtype == GTYPE_GRASP_PLANNER_S:
+        return GraspPlannerExecutorS(fgrasp)
     else:
         raise Exception("Model " + str(gtype) + " is not valid")
 

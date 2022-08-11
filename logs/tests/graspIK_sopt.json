@@ -1,0 +1,176 @@
+{
+    "basic_params": {
+        "active_variables": [
+            "x",
+            "y"
+        ],
+        "default_query": {
+            "x": -239.204,
+            "y": -32.972,
+            "z": 586.954,
+            "rx": -1.57,
+            "ry": 0,
+            "rz": 3.14
+        },
+        "metrics": [
+            "outcome",
+            "volume",
+            "force_closure"
+        ],
+        "n_trials": 1
+    },
+    "grasp_executor": {
+        "name": "GraspPlannerIK",
+        "params": {
+            "scene": "/home/nacho/ActiveGrasping/active-grasping/config/graspIK/tests/test_graspIK.xml",
+            "eef": "Left Hand",
+            "rns": "Hip Left Arm",
+            "robot_cols": [
+                "Left HandArm ColModel",
+                "BodyHeadLegsColModel",
+                "Right HandArm ColModel"
+            ],
+            "max_error_pos": 2.0,
+            "max_error_ori": 0.04,
+            "jacobian_step_size": 0.3,
+            "jacobian_max_loops": 100,
+            "cspace_path_step_size": 0.02,
+            "cspace_col_step_size": 0.04
+        }
+    },
+    "optimizer": {
+        "name": "sigopt",
+        "params": {
+            "project": "test-opt",
+            "mode": "dev",
+            "exp_params": {
+                "name": "Grasp Planner IK optimization test - X,Y",
+                "type": "offline",
+                "parallel_bandwidth": 1,
+                "budget": 5,
+                "num_solutions": 1,
+                "metrics": [
+                    {
+                        "name": "outcome",
+                        "strategy": "optimize",
+                        "objective": "maximize"
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "x",
+                        "type": "double",
+                        "bounds": {
+                            "min": -236.0,
+                            "max": -191.0
+                        }
+                    },
+                    {
+                        "name": "y",
+                        "type": "double",
+                        "bounds": {
+                            "min": -80.0,
+                            "max": -26.0
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "best_result": [
+        {
+            "query": {
+                "x": -236,
+                "y": -80
+            },
+            "metrics": [
+                {
+                    "name": "outcome",
+                    "value": 0.14815980195999146
+                }
+            ]
+        }
+    ],
+    "grasps": [
+        {
+            "query": {
+                "x": -191,
+                "y": -80
+            },
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": 2038.0,
+                "position_error": 1.4968291521072388,
+                "orientation_error": 0.0012664794921875
+            }
+        },
+        {
+            "query": {
+                "x": -236,
+                "y": -80
+            },
+            "metrics": {
+                "outcome": 0.14815980195999146,
+                "volume": 0.0007832657429389656,
+                "force_closure": false
+            },
+            "others": {
+                "time": 984.0,
+                "position_error": 1.9155242443084717,
+                "orientation_error": 0.004791259765625
+            }
+        },
+        {
+            "query": {
+                "y": -80,
+                "x": -191
+            },
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": 1032.0,
+                "position_error": 1.9835692644119263,
+                "orientation_error": 0.0012054443359375
+            }
+        },
+        {
+            "query": {
+                "y": -80,
+                "x": -236
+            },
+            "metrics": {
+                "outcome": 0.14815980195999146,
+                "volume": 0.0007832657429389656,
+                "force_closure": false
+            },
+            "others": {
+                "time": 1481.0,
+                "position_error": 1.9155242443084717,
+                "orientation_error": 0.004791259765625
+            }
+        },
+        {
+            "query": {
+                "y": -80,
+                "x": -191
+            },
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": 901.0,
+                "position_error": 1.7329820394515991,
+                "orientation_error": 179.99923706054688
+            }
+        }
+    ]
+}

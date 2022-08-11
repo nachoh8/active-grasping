@@ -1,0 +1,217 @@
+{
+    "basic_params": {
+        "active_variables": [
+            "x",
+            "y",
+            "z"
+        ],
+        "default_query": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "rx": 0,
+            "ry": 0,
+            "rz": 0
+        },
+        "metrics": [
+            "outcome",
+            "volume",
+            "force_closure"
+        ],
+        "n_trials": 1
+    },
+    "grasp_executor": {
+        "name": "GraspPlanner",
+        "params": {
+            "timeout": 1000.0,
+            "min_quality": 0.01,
+            "force_closure": true,
+            "robot": "/home/nacho/ActiveGrasping/active-grasping/config/grasp/tests/icub_robot.json",
+            "object": "/home/nacho/ActiveGrasping/active-grasping/config/grasp/tests/obj_water.json"
+        }
+    },
+    "optimizer": {
+        "name": "sigopt",
+        "params": {
+            "project": "test-opt",
+            "mode": "dev",
+            "exp_params": {
+                "name": "Grasp Planner optimization test - X,Y,Z",
+                "type": "offline",
+                "parallel_bandwidth": 1,
+                "budget": 10,
+                "num_solutions": 1,
+                "metrics": [
+                    {
+                        "name": "outcome",
+                        "strategy": "optimize",
+                        "objective": "maximize"
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "x",
+                        "type": "double",
+                        "bounds": {
+                            "min": -50.0,
+                            "max": 15.0
+                        }
+                    },
+                    {
+                        "name": "y",
+                        "type": "double",
+                        "bounds": {
+                            "min": -150.0,
+                            "max": 34.0
+                        }
+                    },
+                    {
+                        "name": "z",
+                        "type": "double",
+                        "bounds": {
+                            "min": -25.0,
+                            "max": 5.0
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "best_result": [
+        {
+            "query": {
+                "z": 5,
+                "x": 15,
+                "y": 34
+            },
+            "metrics": [
+                {
+                    "name": "outcome",
+                    "value": 0.12400247156620026
+                }
+            ]
+        }
+    ],
+    "grasps": [
+        {
+            "query": {
+                "z": 5,
+                "x": -50,
+                "y": -150
+            },
+            "metrics": {
+                "outcome": 2.640504703776969e-07,
+                "volume": 1.497901602016613e-13,
+                "force_closure": false
+            }
+        },
+        {
+            "query": {
+                "z": -25,
+                "y": 34,
+                "x": 15
+            },
+            "metrics": {
+                "outcome": 0.058456696569919586,
+                "volume": 8.580226131016389e-05,
+                "force_closure": false
+            }
+        },
+        {
+            "query": {
+                "z": -25,
+                "x": 15,
+                "y": 34
+            },
+            "metrics": {
+                "outcome": 0.058456696569919586,
+                "volume": 8.580226131016389e-05,
+                "force_closure": false
+            }
+        },
+        {
+            "query": {
+                "z": -25,
+                "y": -150,
+                "x": 15
+            },
+            "metrics": {
+                "outcome": 1.914852987283666e-08,
+                "volume": 1.0479175727693524e-30,
+                "force_closure": false
+            }
+        },
+        {
+            "query": {
+                "x": 15,
+                "z": 5,
+                "y": 34
+            },
+            "metrics": {
+                "outcome": 0.12400247156620026,
+                "volume": 0.0004426560190040618,
+                "force_closure": false
+            }
+        },
+        {
+            "query": {
+                "z": -25,
+                "y": -150,
+                "x": 15
+            },
+            "metrics": {
+                "outcome": 1.914852987283666e-08,
+                "volume": 1.0479175727693524e-30,
+                "force_closure": false
+            }
+        },
+        {
+            "query": {
+                "x": -50,
+                "y": 34,
+                "z": -25
+            },
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            }
+        },
+        {
+            "query": {
+                "y": 34,
+                "z": -25,
+                "x": 15
+            },
+            "metrics": {
+                "outcome": 0.058456696569919586,
+                "volume": 8.580226131016389e-05,
+                "force_closure": false
+            }
+        },
+        {
+            "query": {
+                "x": -50,
+                "z": 5,
+                "y": 34
+            },
+            "metrics": {
+                "outcome": 5.940962637396296e-07,
+                "volume": 3.2118478016096574e-11,
+                "force_closure": false
+            }
+        },
+        {
+            "query": {
+                "z": -25,
+                "y": 34,
+                "x": 15
+            },
+            "metrics": {
+                "outcome": 0.058456696569919586,
+                "volume": 8.580226131016389e-05,
+                "force_closure": false
+            }
+        }
+    ]
+}

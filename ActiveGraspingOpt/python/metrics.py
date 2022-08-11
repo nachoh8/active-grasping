@@ -4,6 +4,7 @@ MTYPE_GRAMACY = 0
 MTYPE_FC = 1
 MTYPE_FC_IK = 2
 MTYPE_FC_T_IK = 3
+MTYPE_FC_S = 4
 
 class GraspMetric(object):
 
@@ -82,6 +83,25 @@ class ForceClosure(GraspMetric):
 
     def get_sigopt_metadata(self, res: GraspResult) -> "list[tuple[str, any]]":
         return [("volume", res.volume), ("force_closure", res.force_closure)]
+
+class ForceClosureS(ForceClosure):
+    def get_data_log(self, res: GraspResult) -> dict:
+        data = {}
+        data["metrics"] = {"outcome": res.measure, "volume": res.volume, "force_closure": res.force_closure}
+        data["others"] = {"computed_rho": res.rho, "computed_roll": res.roll, "computed_pitch": res.pitch, "computed_yaw": res.yaw}
+
+        if res.error != "":
+            data["error"] = res.error
+
+        return data
+
+    def get_sigopt_metadata(self, res: GraspResult) -> "list[tuple[str, any]]":
+        return [("volume", res.volume),
+                ("force_closure", res.force_closure),
+                ("computed_rho", res.rho),
+                ("computed_roll", res.roll),
+                ("computed_pitch", res.pitch),
+                ("computed_yaw", res.yaw)]
 
 class ForceClosureIK(ForceClosure):
     def get_data_log(self, res: GraspResult) -> dict:
