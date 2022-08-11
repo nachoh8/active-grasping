@@ -120,11 +120,11 @@ GraspResult GraspPlannerS::executeQueryGrasp(const std::vector<double>& query) {
     VirtualRobot::MathTools::SphericalCoord scoords;
 
     //Simple planner
-    //scoords.r = query[GRASP_VAR::TRANS_RHO];
+    //scoords.r = query[SPHERICAL_VARS::TRANS_RHO];
     //Intersection planner:
     scoords.r = 0;
-    scoords.theta = query[GRASP_VAR::TRANS_THETA];
-    scoords.phi = query[GRASP_VAR::TRANS_PHI];
+    scoords.theta = query[SPHERICAL_VARS::TRANS_THETA];
+    scoords.phi = query[SPHERICAL_VARS::TRANS_PHI];
 
     //Simple planner:
     //Eigen::Vector3f xyz = VirtualRobot::MathTools::toPosition(scoords);
@@ -159,7 +159,7 @@ GraspResult GraspPlannerS::executeQueryGrasp(const std::vector<double>& query) {
     Eigen::Vector3f rayOrigin = {0,0,100};
 
     //ORIGIN OPTIMIZATION [-150, -50]
-    //Eigen::Vector3f rayOrigin = {0,0,query[GRASP_VAR::TRANS_RHO]};
+    //Eigen::Vector3f rayOrigin = {0,0,query[SPHERICAL_VARS::TRANS_RHO]};
 
     float rho = 0;
 
@@ -197,13 +197,13 @@ GraspResult GraspPlannerS::executeQueryGrasp(const std::vector<double>& query) {
     
 
     xyz.z() += 100; // origin correction
-    //xyz.z() += query[GRASP_VAR::TRANS_RHO]; // origin optimization
+    //xyz.z() += query[SPHERICAL_VARS::TRANS_RHO]; // origin optimization
 
     //ORIENTATION OPTIMIZATION:
 
-    //comp_roll = comp_rpy.x() + query[GRASP_VAR::ROT_ROLL];
-    //comp_pitch = comp_rpy.y() + query[GRASP_VAR::ROT_PITCH];
-    //comp_yaw = comp_rpy.z() + query[GRASP_VAR::ROT_YAW];
+    //comp_roll = comp_rpy.x() + query[SPHERICAL_VARS::ROT_ROLL];
+    //comp_pitch = comp_rpy.y() + query[SPHERICAL_VARS::ROT_PITCH];
+    //comp_yaw = comp_rpy.z() + query[SPHERICAL_VARS::ROT_YAW];
 
     Eigen::Vector3f rpy = {comp_roll, comp_pitch, comp_yaw};
 

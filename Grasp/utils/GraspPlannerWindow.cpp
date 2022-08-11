@@ -1,4 +1,4 @@
-#include "GraspPlannerWindowS.h"
+#include "GraspPlannerWindow.h"
 
 #include "GraspPlanning/Visualization/CoinVisualization/CoinConvexHullVisualization.h"
 #include "GraspPlanning/ContactConeGenerator.h"
@@ -48,8 +48,8 @@ using namespace GraspStudio;
 
 using namespace Grasp;
 
-GraspPlannerWindowS::GraspPlannerWindowS(const GraspPlannerWindowSParams& params)
-: QMainWindow(nullptr), GraspPlannerS(params.planner_params)
+GraspPlannerWindow::GraspPlannerWindow(const GraspPlannerWindowParams& params)
+: QMainWindow(nullptr), GraspPlanner(params.planner_params)
 {
     srand((unsigned) time(0));
 
@@ -86,14 +86,14 @@ GraspPlannerWindowS::GraspPlannerWindowS(const GraspPlannerWindowSParams& params
         executeGrasp(grasps[0].pos, grasps[0].ori, false);
     }
 
-    //best_grasps = params.best_grasps;
+    best_grasps = params.best_grasps;
 
     buildVisu();
 
     viewer->viewAll();
 }
 
-GraspPlannerWindowS::~GraspPlannerWindowS()
+GraspPlannerWindow::~GraspPlannerWindow()
 {
     sceneSep->unref();
     graspsSep->unref();
@@ -104,15 +104,15 @@ GraspPlannerWindowS::~GraspPlannerWindowS()
     }
 }
 
-int GraspPlannerWindowS::main()
+int GraspPlannerWindow::main()
 {
     SoQt::show(this);
     SoQt::mainLoop();
     return 0;
 }
 
-GraspResult GraspPlannerWindowS::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy, bool save_grasp) {
-    GraspResult res = GraspPlannerS::executeGrasp(xyz, rpy, save_grasp);
+GraspResult GraspPlannerWindow::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy, bool save_grasp) {
+    GraspResult res = GraspPlanner::executeGrasp(xyz, rpy, save_grasp);
 
     std::stringstream ss;
     ss << std::setprecision(3);
@@ -128,7 +128,7 @@ GraspResult GraspPlannerWindowS::executeGrasp(const Eigen::Vector3f& xyz, const 
     return res;
 }
 
-void GraspPlannerWindowS::setupUI()
+void GraspPlannerWindow::setupUI()
 {
     UI.setupUi(this);
     viewer = new SoQtExaminerViewer(UI.frameViewer, "", TRUE, SoQtExaminerViewer::BUILD_POPUP);
@@ -155,7 +155,7 @@ void GraspPlannerWindowS::setupUI()
 
     connect(UI.checkBoxColModel, SIGNAL(clicked()), this, SLOT(colModel()));
     connect(UI.checkBoxCones, SIGNAL(clicked()), this, SLOT(frictionConeVisu()));
-    //connect(UI.checkBoxShowBestGrasps, SIGNAL(clicked()), this, SLOT(bestGraspsVisu()));
+    connect(UI.checkBoxShowBestGrasps, SIGNAL(clicked()), this, SLOT(bestGraspsVisu()));
     connect(UI.checkBoxMove, SIGNAL(clicked()), this, nullptr);
 
     connect(UI.objSliderX, SIGNAL(sliderReleased()), this, SLOT(sliderReleased_ObjectX()));
@@ -166,13 +166,13 @@ void GraspPlannerWindowS::setupUI()
     connect(UI.objSliderRZ, SIGNAL(sliderReleased()), this, SLOT(sliderReleased_ObjectRZ()));
 }
 
-void GraspPlannerWindowS::buildVisu()
+void GraspPlannerWindow::buildVisu()
 {
 
     robotSep->removeAllChildren();
     SceneObject::VisualizationType colModel = (UI.checkBoxColModel->isChecked()) ? SceneObject::Collision : SceneObject::Full;
 
-    if (eefCloned)
+    if (eefCloned && !UI.checkBoxShowBestGrasps->isChecked())
     {
         visualizationRobot = eefCloned->getVisualization<CoinVisualization>(colModel);
         SoNode* visualisationNode = visualizationRobot->getCoinVisualization();
@@ -182,11 +182,6 @@ void GraspPlannerWindowS::buildVisu()
             robotSep->addChild(visualisationNode);
             // visualizationRobot->highlight(UI.checkBoxHighlight->isChecked());
         }
-    }
-
-    if (TCP)
-    {
-        TCP->showCoordinateSystem(true);
     }
 
     /*
@@ -216,11 +211,13 @@ void GraspPlannerWindowS::buildVisu()
         }
 
 #else
+
         if (UI.checkBoxColModel->isChecked())
         {
             VirtualRobot::MathTools::ConvexHull3DPtr ch = ConvexHullGenerator::CreateConvexHull(object->getCollisionModel()->getTriMeshModel());
             CoinConvexHullVisualizationPtr chv(new CoinConvexHullVisualization(ch));
             SoSeparator* s = chv->getCoinVisualization();
+
             if (s)
             {
                 objectSep->addChild(s);
@@ -229,11 +226,13 @@ void GraspPlannerWindowS::buildVisu()
         else
         {
             SoNode* visualisationNode = CoinVisualizationFactory::getCoinVisualization(object, SceneObject::Full);
+
             if (visualisationNode)
             {
                 objectSep->addChild(visualisationNode);
             }
         }
+
 #endif
         /*SoNode *s = CoinVisualizationFactory::getCoinVisualization(object->getCollisionModel()->getTriMeshModel(),true);
         if (s)
@@ -283,25 +282,8 @@ void GraspPlannerWindowS::buildVisu()
     UI.objectInfo->setText(QString(ss_o.str().c_str()));
 
     // Robot info
-    Eigen::Vector3f xyz = TCP->getGlobalPosition();
-
-    xyz.z() += 100;
-
-    VirtualRobot::MathTools::SphericalCoord r_pos_sc = VirtualRobot::MathTools::toSphericalCoords(xyz);
-    Eigen::Vector3f r_pos;
-    r_pos.x() = r_pos_sc.theta;
-    r_pos.y() = r_pos_sc.phi;
-    r_pos.z() = r_pos_sc.r;
-
-    Eigen::Matrix3f r_ori = TCP->getGlobalOrientation();
-    Eigen::Matrix4f m_ori = Eigen::Matrix4f::Identity(4,4);
-    m_ori.block(0,0,3,3) = r_ori;
-
-    Eigen::Vector3f comprobacion_rpy;
-
-    VirtualRobot::MathTools::eigen4f2rpy(m_ori, comprobacion_rpy);
-
-    std::cout << "Comprobacion RPY" << comprobacion_rpy << std::endl;
+    Eigen::Vector3f r_pos = eefCloned->getGlobalPosition();
+    Eigen::Matrix3f r_ori = eefCloned->getGlobalOrientation();
     
     std::stringstream ss;
     ss << std::setprecision(3);
@@ -309,68 +291,54 @@ void GraspPlannerWindowS::buildVisu()
     
     UI.robotInfo->setText(QString(ss.str().c_str()));
 
-    //buildBestGraspsSetVisu();
+    buildBestGraspsSetVisu();
 
     viewer->scheduleRedraw();
 }
 
-void GraspPlannerWindowS::closeEvent(QCloseEvent* event)
+void GraspPlannerWindow::closeEvent(QCloseEvent* event)
 {
     quit();
     QMainWindow::closeEvent(event);
 }
 
-void GraspPlannerWindowS::quit()
+void GraspPlannerWindow::quit()
 {
-    std::cout << "GraspPlannerWindowS: Closing" << std::endl;
+    std::cout << "GraspPlannerWindow: Closing" << std::endl;
     this->close();
     SoQt::exitMainLoop();
 }
 
-/*void GraspPlannerWindowS::plan()
+/*void GraspPlannerWindow::plan()
 {
     planGrasp();
+
     openEEF();
     closeEEF();
 }
 */
 
-void GraspPlannerWindowS::add_grasp() {
-    Eigen::Vector3f pos = TCP->getGlobalPosition();
-    Eigen::Vector3f ori = TCP->getGlobalOrientation().eulerAngles(0, 1, 2);
+void GraspPlannerWindow::add_grasp() {
+    Eigen::Vector3f pos = eefCloned->getGlobalPosition();
+    Eigen::Vector3f ori = eefCloned->getGlobalOrientation().eulerAngles(0, 1, 2);
     
     current_grasp = grasps.size();
     
     executeGrasp(pos, ori, true);
 }
 
-void GraspPlannerWindowS::measure_quality()
+void GraspPlannerWindow::measure_quality()
 {
     if (current_grasp >= 0 && current_grasp < grasps.size()) {
         Grasp::GraspData grasp = grasps[current_grasp];
-        VirtualRobot::MathTools::SphericalCoord scoords;
-        std::cout << "SPHERICAL COORDS" << std::endl;
-        std::cout << grasp.pos << std::endl;
-        scoords.theta = grasp.pos.x();
-        scoords.phi = grasp.pos.y();
-        scoords.r = grasp.pos.z();
-        Eigen::Vector3f pos = VirtualRobot::MathTools::toPosition(scoords);
-        
-        pos.z() += -100;
-
-        std::cout << "CARTESIAN COORDS" << std::endl;
-        std::cout << pos << std::endl;
-        std::cout << "ORIENTATION" << std::endl;
-        std::cout << grasp.ori << std::endl;
-        //pos = {0,0,400};
-        grasps[current_grasp].result = executeGrasp(pos, grasp.ori, false);
+        grasps[current_grasp].result = executeGrasp(grasp.pos, grasp.ori, false);
     } else {
         std::cout << "measure_quality: FIRST YOU HAVE TO SELECT A GRASP\n";
     }
 }
 
 
-void GraspPlannerWindowS::previous_grasp() {
+void GraspPlannerWindow::previous_grasp() {
     if (current_grasp > 0) {
         current_grasp--;
 
@@ -378,7 +346,7 @@ void GraspPlannerWindowS::previous_grasp() {
     }
 }
 
-void GraspPlannerWindowS::next_grasp() {
+void GraspPlannerWindow::next_grasp() {
     if (current_grasp < grasps.size() - 1) {
         current_grasp++;
 
@@ -386,7 +354,7 @@ void GraspPlannerWindowS::next_grasp() {
     }
 }
 
-void GraspPlannerWindowS::closeEEF()
+void GraspPlannerWindow::closeEEF()
 {
     closeEE();
 
@@ -394,7 +362,7 @@ void GraspPlannerWindowS::closeEEF()
     std::stringstream ss;
     if (eef->getCollisionChecker()->checkCollision(object->getCollisionModel(), eef->createSceneObjectSet())) {
         std::cout << "Error: Collision detected!" << std::endl;
-        res = GraspResult(comp_rho, comp_roll, comp_pitch, comp_yaw);
+        res = GraspResult("eef_collision");
         ss << "Grasp Nr " << grasps.size() << "\nCollision detected\n";
     } else {
         res = graspQuality();
@@ -416,7 +384,7 @@ void GraspPlannerWindowS::closeEEF()
     buildVisu();
 }
 
-void GraspPlannerWindowS::openEEF()
+void GraspPlannerWindow::openEEF()
 {
     openEE();
 
@@ -424,17 +392,45 @@ void GraspPlannerWindowS::openEEF()
 }
 
 
-void GraspPlannerWindowS::frictionConeVisu()
+void GraspPlannerWindow::frictionConeVisu()
 {
     buildVisu();
 }
 
-void GraspPlannerWindowS::colModel()
+void GraspPlannerWindow::bestGraspsVisu()
+{
+    if (best_grasps.size() == 0) {
+        std::cout << "Error: There are not best grasps!!!\n";
+        return;
+    }
+
+    if (best_grasps_visu.size() == 0) { // compute grasps
+        Eigen::Vector3f pos = eefCloned->getGlobalPosition();
+        Eigen::Vector3f ori = eefCloned->getGlobalOrientation().eulerAngles(0, 1, 2);
+
+        for (int i = 0; i < best_grasps.size(); i++) {
+            // move to grasp pose
+            GraspResult res = executeGrasp(best_grasps[i].pos, best_grasps[i].ori, false);
+
+            // save visualization
+            VirtualRobot::CoinVisualizationPtr grasp_visu = eefCloned->clone()->getVisualization<CoinVisualization>(SceneObject::Full);
+            best_grasps_visu.push_back(grasp_visu);
+        }
+
+        // reset to current grasp
+        executeGrasp(pos, ori, false);
+    }
+
+    buildVisu();
+}
+
+
+void GraspPlannerWindow::colModel()
 {
     buildVisu();
 }
  
-bool GraspPlannerWindowS::evaluateGrasp(VirtualRobot::GraspPtr g, VirtualRobot::RobotPtr eefRobot, VirtualRobot::EndEffectorPtr eef, int nrEvalLoops, GraspEvaluationPoseUncertainty::PoseEvalResults& results)
+bool GraspPlannerWindow::evaluateGrasp(VirtualRobot::GraspPtr g, VirtualRobot::RobotPtr eefRobot, VirtualRobot::EndEffectorPtr eef, int nrEvalLoops, GraspEvaluationPoseUncertainty::PoseEvalResults& results)
 {
     if (!g || !eefRobot || !eef)
     {
@@ -449,75 +445,69 @@ bool GraspPlannerWindowS::evaluateGrasp(VirtualRobot::GraspPtr g, VirtualRobot::
 }
 
 
-void GraspPlannerWindowS::sliderReleased_ObjectX()
+void GraspPlannerWindow::sliderReleased_ObjectX()
 {
     float v = (float)UI.objSliderX->value();
-    v /= 100;
 
     UI.objSliderX->setValue(0);
 
-    updateObj(v, SPHERICAL_VARS::TRANS_THETA);
+    updateObj(v, CARTESIAN_VARS::TRANS_X);
 }
 
-void GraspPlannerWindowS::sliderReleased_ObjectY()
+void GraspPlannerWindow::sliderReleased_ObjectY()
 {
     float v = (float)UI.objSliderY->value();
-    v /= 100;
 
     UI.objSliderY->setValue(0);
 
-    //updateObj(v, SPHERICAL_VARS::TRANS_Y);
-    updateObj(v, SPHERICAL_VARS::TRANS_PHI);
+    updateObj(v, CARTESIAN_VARS::TRANS_Y);
 }
 
-void GraspPlannerWindowS::sliderReleased_ObjectZ()
+void GraspPlannerWindow::sliderReleased_ObjectZ()
 {
     float v = (float)UI.objSliderZ->value();
 
     UI.objSliderZ->setValue(0);
 
-    //updateObj(v, SPHERICAL_VARS::TRANS_Z)
-    updateObj(v, SPHERICAL_VARS::TRANS_RHO);;
+    updateObj(v, CARTESIAN_VARS::TRANS_Z);
 }
 
-void GraspPlannerWindowS::sliderReleased_ObjectRX()
+void GraspPlannerWindow::sliderReleased_ObjectRX()
 {
     float v = (float)UI.objSliderRX->value();
     v /= 300;
     
     UI.objSliderRX->setValue(0);
 
-    updateObj(v, SPHERICAL_VARS::R_ROLL);
+    updateObj(v, CARTESIAN_VARS::ROT_ROLL);
 }
 
-void GraspPlannerWindowS::sliderReleased_ObjectRY()
+void GraspPlannerWindow::sliderReleased_ObjectRY()
 {
     float v = (float)UI.objSliderRY->value();
     v /= 300;
 
     UI.objSliderRY->setValue(0);
 
-    updateObj(v, SPHERICAL_VARS::R_PITCH);
+    updateObj(v, CARTESIAN_VARS::ROT_PITCH);
 }
 
-void GraspPlannerWindowS::sliderReleased_ObjectRZ()
+void GraspPlannerWindow::sliderReleased_ObjectRZ()
 {
     float v = (float)UI.objSliderRZ->value();
     v /= 300;
 
     UI.objSliderRZ->setValue(0);
 
-    updateObj(v, SPHERICAL_VARS::R_YAW);
+    updateObj(v, CARTESIAN_VARS::ROT_YAW);
 }
 
 
-void GraspPlannerWindowS::updateObj(const float value, const int idx) {
+void GraspPlannerWindow::updateObj(const float value, const int idx) {
     float x[6] = {0};
     x[idx] = value;
 
-    VirtualRobot::MathTools::SphericalCoord scoords;
-    Eigen::Vector3f position;
-    Eigen::Vector3f new_position;
+    
     Eigen::Matrix4f m;
     VirtualRobot::MathTools::posrpy2eigen4f(x, m);
 
@@ -526,26 +516,61 @@ void GraspPlannerWindowS::updateObj(const float value, const int idx) {
         m = object->getGlobalPose() * m;
         object->setGlobalPose(m);
     } else {
-        if (x[0]!=0 || x[1]!=0 || x[2]!=0){
-            position = TCP->getGlobalPosition();
-            scoords = VirtualRobot::MathTools::toSphericalCoords(position);
-            scoords.r = scoords.r + x[2];
-            scoords.theta = scoords.theta + x[0];
-            scoords.phi = scoords.phi + x[1];
-            new_position = VirtualRobot::MathTools::toPosition(scoords);
-
-            new_position.z() += -100;
-
-            m.block(0, 3, 3, 1) = new_position;
-            eefCloned->setGlobalPoseForRobotNode(TCP, m);
-        }
-        else if (x[3]!=0 || x[4]!=0 || x[5]!=0)
-        {
-            m = TCP->getGlobalPose() * m;
-            eefCloned->setGlobalPoseForRobotNode(TCP, m);
-        }   
+        m = eefCloned->getGlobalPose() * m;
+        eefCloned->setGlobalPose(m);
     }
     
 
     buildVisu();
+}
+
+
+void GraspPlannerWindow::buildBestGraspsSetVisu()
+{
+    graspsSep->removeAllChildren();
+
+    if (UI.checkBoxShowBestGrasps->isChecked() && best_grasps.size() > 0)
+    {   
+        std::vector< std::vector<float> > colors;
+        int i = 0;
+        for (auto& grasp_visu : best_grasps_visu) {
+            SoNode* visualisationNode = grasp_visu->getCoinVisualization();
+
+            if (visualisationNode)
+            {
+                graspsSep->addChild(visualisationNode);
+
+                float r = ((double) rand() / (RAND_MAX)) + 1;
+                float g = ((double) rand() / (RAND_MAX)) + 1;
+                float b = ((double) rand() / (RAND_MAX)) + 1;
+                if (i > 0) {
+                    bool ok = false; int it = 0;
+                    do {
+                        r = ((double) rand() / (RAND_MAX)) + 1;
+                        g = ((double) rand() / (RAND_MAX)) + 1;
+                        b = ((double) rand() / (RAND_MAX)) + 1;
+                        for (int j = 0; j < i; j++) {
+                            std::vector<float> c = colors[j];
+                            float dist = (r-c[0]) * (r-c[0]);
+                            dist += (g-c[1]) * (g-c[1]);
+                            dist += (b-c[2]) * (b-c[2]);
+
+                            dist = sqrt(dist);
+                            if (dist > 0.4f) {
+                                ok = true;
+                                break;
+                            }
+                        }
+
+                    } while(!ok && (++it) < 5);
+                }
+
+                std::vector<float> cv = {r,g,b};
+                colors.push_back(cv);
+
+                grasp_visu->colorize(VisualizationFactory::Color(r, g, b));
+                i++;
+            }
+        }
+    }
 }

@@ -12,17 +12,19 @@ if __name__ == "__main__":
     parser.add_argument("-fbopt", nargs=2, help="bayesopt params", metavar=('<bayesopt_params>', '<exp_params>'))
     parser.add_argument("-fsopt", type=str, help="sigopt params", metavar='<sigopt_params>')
     parser.add_argument("-flog", type=str, help="log file", metavar='<log_file>', default="")
+    parser.add_argument("-metric", type=int, help="metric type for Grasp Planner IK", metavar='<metric_type>', default=-1)
 
     args = parser.parse_args()
     
     grasp_executor = int(args.fgrasp[0])
     fgrasp = args.fgrasp[1]
 
-    if grasp_executor > 3:
+    if grasp_executor > 2:
         print("Error: executor must be {0: TestGramacyExecutor, 1: GraspPlanner, 2: GraspPlannerIK}")
         exit(-1)
 
-    executor = construct_grasp_executor_model(grasp_executor, fgrasp = fgrasp)
+    metric = int(args.metric)
+    executor = construct_grasp_executor_model(grasp_executor, fgrasp=fgrasp, mtype=metric)
     
     flog = args.flog
     if flog:
