@@ -1,0 +1,44 @@
+{
+    "project": "active-grasping-opt",
+    "name": "SO",
+    "mode": "prod",
+    "default_query": {
+        "theta": 0,
+        "phi": 0,
+        "rho": 0,
+        "rx": 0,
+        "ry": 0,
+        "rz": 0
+    },
+    "grasp_trials": 1,
+    "exp_params": {
+        "name": "Active grasping optimization - sphericalCoords",
+        "type": "offline",
+        "parallel_bandwidth": 1,
+        "budget": 150,
+        "metrics": [
+            {
+                "name":"outcome",
+                "strategy":"optimize",
+                "objective":"maximize"
+            }
+        ],
+        "parameters": [
+            {
+                "name": "theta",
+                "type":"double",
+                "bounds": {"min": 0, "max": 3.1416}
+            },
+            {
+                "name": "phi",
+                "type":"double",
+                "bounds": {"min": 0, "max": 3.1416}
+            },
+            {
+                "name": "rho",
+                "type":"double",
+                "bounds": {"min": 0, "max": 200}
+            }
+        ]
+    }
+}
