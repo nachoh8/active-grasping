@@ -2,17 +2,17 @@
 
 ### PARAMS
 
-OPT_EXECUTOR=1
-GRASP_EXECUTOR=2
-START=4
-NUM_RUNS=4
+OPT_EXECUTOR=1 # 0: bayesopt, 1: sigopt
+GRASP_EXECUTOR=2 # 0: TestGramacyExecutor, 1: GraspPlanner, 2: GraspPlannerIK, 3: GraspPlannerS
+METRIC=1 # 0: Gramacy, 1: ForceClosure_GraspPlanner, 2: ForceClosure_GraspPlannerIK, 3: 2: ForceClosure_TIME_GraspPlannerIK, 4: ForceClosure_GraspPlannerS
+START=1
+NUM_RUNS=10
 
 RES_LOG_PREFIX="res_xyz"
 OBJ="trophy"
 
 if [ $GRASP_EXECUTOR -eq 1 ]; then
     FGRASP="config/grasp/params/grasp_params.json"
-    METRIC=1
     
     FBOPT="config/bayesopt/bopt_default.json"
     FGOPT="config/grasp/gopt/${OBJ}/gopt_yzr.json"
@@ -29,7 +29,6 @@ if [ $GRASP_EXECUTOR -eq 1 ]; then
     RES_FOLDER="logs/grasp/${RES_FOLDER_SCNT}"
 elif [ $GRASP_EXECUTOR -eq 2 ]; then
     FGRASP="config/graspIK/params/grasp_params.json"
-    METRIC=3
 
     FBOPT="config/bayesopt/bopt_default.json"
     FGOPT="config/graspIK/gopt/${OBJ}/gopt_xyz.json"

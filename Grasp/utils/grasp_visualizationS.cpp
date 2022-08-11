@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    GraspPlannerWindowParams params;
+    GraspPlannerWindowSParams params;
     params.planner_params = plannerParams;
 
     if (argc == 3) {

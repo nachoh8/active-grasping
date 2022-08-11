@@ -33,7 +33,7 @@ struct GraspResult
         yaw = 0;
     }
 
-    GraspResult(float _rho, float _roll, float _pitch, float _yaw)
+    GraspResult(const float _rho, const float _roll, const float _pitch, const float _yaw)
     {
         measure       = 0;
         volume        = 0;
@@ -49,7 +49,7 @@ struct GraspResult
         yaw = _yaw;
     }
 
-    GraspResult(const double _measure, const double _volume, bool _force_closure, float _rho, float _roll, float _pitch, float _yaw)
+    GraspResult(const double _measure, const double _volume, bool _force_closure, const float _rho, const float _roll, const float _pitch, const float _yaw)
     {
         measure       = _measure;
         volume        = _volume;
@@ -78,7 +78,7 @@ struct GraspResult
         ori_error = -1;
     }
 
-    GraspResult(const double _measure, const double _volume, bool _force_closure)
+    GraspResult(const double _measure, const double _volume, const bool _force_closure)
     {
         measure       = _measure;
         volume        = _volume;
@@ -89,7 +89,7 @@ struct GraspResult
         ori_error = -1;
     }
 
-    GraspResult(const double _measure, const double _volume, bool _force_closure, double _time, double _pos_error, double _ori_error, float _rho)
+    GraspResult(const double _measure, const double _volume, const bool _force_closure, const double _time, const double _pos_error, const double _ori_error)
     {
         measure       = _measure;
         volume        = _volume;
@@ -98,8 +98,6 @@ struct GraspResult
         time = _time;
         pos_error = _pos_error;
         ori_error = _ori_error;
-
-        rho = _rho;
     }
 };
 }

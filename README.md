@@ -50,7 +50,7 @@ Test python lib:
                             -fsopt <sigopt_params>)
                             [-flog <log_file>]
 
-* <executor\>: {0: TestGramacyExecutor, 1: GraspPlanner, 2: GraspPlannerIK}
+* <executor\>: {0: TestGramacyExecutor, 1: GraspPlanner, 2: GraspPlannerIK, 3: GraspPlannerS}
 * -fbopt: BayesOpt
 * -fsopt: SigOpt
 
@@ -66,6 +66,13 @@ Test python lib:
 
 * <mode\>: 0: from configuration; 1: from log
 * <file\>: configuration or log file
+
+#### Grasp Spherical
+
+    >> ./build/bin/grasp_visualizationS <grasp_params> [<log_file>]
+
+* <grasp_params\>: config file
+* <log_file\>: log file
 
 #### Grasp IK BiRRT
 

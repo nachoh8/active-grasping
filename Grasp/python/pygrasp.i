@@ -41,6 +41,11 @@ namespace Grasp {
         double pos_error;
         double ori_error;
 
+        float rho;
+        float roll;
+        float pitch;
+        float yaw;
+
         std::string error;
     };
 

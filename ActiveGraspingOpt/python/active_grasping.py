@@ -35,7 +35,11 @@ class ActiveGrasping:
             i +=1
 
         log_data = self.executor.metric_parser.get_data_log(res)
-        log_data["others"]["trials"] = i
+        if log_data.get("others"):
+            log_data["others"]["trials"] = i
+        else:
+            log_data["others"] = {"trials": i}
+
         if res.error != "":
             print("Query:", query, "-> Error:", res.error, " trials:", i)
         else:
