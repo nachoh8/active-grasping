@@ -32,24 +32,24 @@
 
 #include <vector>
 
-#include "../include/Grasp/GraspPlanner.hpp"
+#include "../include/Grasp/GraspPlannerS.hpp"
 #include "../include/Grasp/GraspPlannerParams.hpp"
 
-#include "ui_GraspPlanner.h"
+#include "ui_GraspPlannerS.h"
 
 using namespace Grasp;
 
-struct GraspPlannerWindowParams {
+struct GraspPlannerWindowSParams {
     GraspPlannerParams planner_params;
     std::vector<Grasp::GraspData> grasps;
 };
 
-class GraspPlannerWindow : public QMainWindow, public GraspPlanner
+class GraspPlannerWindowS : public QMainWindow, public GraspPlannerS
 {
     Q_OBJECT
 public:
-    GraspPlannerWindow(const GraspPlannerWindowParams& params);
-    ~GraspPlannerWindow() override;
+    GraspPlannerWindowS(const GraspPlannerWindowSParams& params);
+    ~GraspPlannerWindowS() override;
 
     /*!< Executes the SoQt mainLoop. You need to call this in order to execute the application. */
     int main();
@@ -104,7 +104,7 @@ protected:
 
     int current_grasp = -1;
 
-    Ui::GraspPlanner UI;
+    Ui::GraspPlannerS UI;
     SoQtExaminerViewer* viewer; /*!< Viewer to display the 3D model of the robot and the environment. */
 
     SoSeparator* sceneSep;

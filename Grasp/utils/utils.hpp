@@ -30,7 +30,7 @@ inline int var_to_idx(const std::string& var) {
     }
 }
 
-bool load_grasps(pt::ptree root, std::vector<Grasp::GraspData>& grasps) {
+bool load_graspsS(pt::ptree root, std::vector<Grasp::GraspData>& grasps) {
     pt::ptree root_grasps;
     std::map<std::string, float> var_value;
     try {

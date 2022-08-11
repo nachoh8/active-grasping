@@ -1,4 +1,4 @@
-#include "GraspPlannerWindow.h"
+#include "GraspPlannerWindowS.h"
 
 #include "GraspPlanning/Visualization/CoinVisualization/CoinConvexHullVisualization.h"
 #include "GraspPlanning/ContactConeGenerator.h"
@@ -48,8 +48,8 @@ using namespace GraspStudio;
 
 using namespace Grasp;
 
-GraspPlannerWindow::GraspPlannerWindow(const GraspPlannerWindowParams& params)
-: QMainWindow(nullptr), GraspPlanner(params.planner_params)
+GraspPlannerWindowS::GraspPlannerWindowS(const GraspPlannerWindowSParams& params)
+: QMainWindow(nullptr), GraspPlannerS(params.planner_params)
 {
     srand((unsigned) time(0));
 
@@ -93,7 +93,7 @@ GraspPlannerWindow::GraspPlannerWindow(const GraspPlannerWindowParams& params)
     viewer->viewAll();
 }
 
-GraspPlannerWindow::~GraspPlannerWindow()
+GraspPlannerWindowS::~GraspPlannerWindowS()
 {
     sceneSep->unref();
     graspsSep->unref();
@@ -104,15 +104,15 @@ GraspPlannerWindow::~GraspPlannerWindow()
     }
 }
 
-int GraspPlannerWindow::main()
+int GraspPlannerWindowS::main()
 {
     SoQt::show(this);
     SoQt::mainLoop();
     return 0;
 }
 
-GraspResult GraspPlannerWindow::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy, bool save_grasp) {
-    GraspResult res = GraspPlanner::executeGrasp(xyz, rpy, save_grasp);
+GraspResult GraspPlannerWindowS::executeGrasp(const Eigen::Vector3f& xyz, const Eigen::Vector3f& rpy, bool save_grasp) {
+    GraspResult res = GraspPlannerS::executeGrasp(xyz, rpy, save_grasp);
 
     std::stringstream ss;
     ss << std::setprecision(3);
@@ -128,7 +128,7 @@ GraspResult GraspPlannerWindow::executeGrasp(const Eigen::Vector3f& xyz, const E
     return res;
 }
 
-void GraspPlannerWindow::setupUI()
+void GraspPlannerWindowS::setupUI()
 {
     UI.setupUi(this);
     viewer = new SoQtExaminerViewer(UI.frameViewer, "", TRUE, SoQtExaminerViewer::BUILD_POPUP);
@@ -166,7 +166,7 @@ void GraspPlannerWindow::setupUI()
     connect(UI.objSliderRZ, SIGNAL(sliderReleased()), this, SLOT(sliderReleased_ObjectRZ()));
 }
 
-void GraspPlannerWindow::buildVisu()
+void GraspPlannerWindowS::buildVisu()
 {
 
     robotSep->removeAllChildren();
@@ -314,20 +314,20 @@ void GraspPlannerWindow::buildVisu()
     viewer->scheduleRedraw();
 }
 
-void GraspPlannerWindow::closeEvent(QCloseEvent* event)
+void GraspPlannerWindowS::closeEvent(QCloseEvent* event)
 {
     quit();
     QMainWindow::closeEvent(event);
 }
 
-void GraspPlannerWindow::quit()
+void GraspPlannerWindowS::quit()
 {
-    std::cout << "GraspPlannerWindow: Closing" << std::endl;
+    std::cout << "GraspPlannerWindowS: Closing" << std::endl;
     this->close();
     SoQt::exitMainLoop();
 }
 
-/*void GraspPlannerWindow::plan()
+/*void GraspPlannerWindowS::plan()
 {
     planGrasp();
     openEEF();
@@ -335,7 +335,7 @@ void GraspPlannerWindow::quit()
 }
 */
 
-void GraspPlannerWindow::add_grasp() {
+void GraspPlannerWindowS::add_grasp() {
     Eigen::Vector3f pos = TCP->getGlobalPosition();
     Eigen::Vector3f ori = TCP->getGlobalOrientation().eulerAngles(0, 1, 2);
     
@@ -344,7 +344,7 @@ void GraspPlannerWindow::add_grasp() {
     executeGrasp(pos, ori, true);
 }
 
-void GraspPlannerWindow::measure_quality()
+void GraspPlannerWindowS::measure_quality()
 {
     if (current_grasp >= 0 && current_grasp < grasps.size()) {
         Grasp::GraspData grasp = grasps[current_grasp];
@@ -370,7 +370,7 @@ void GraspPlannerWindow::measure_quality()
 }
 
 
-void GraspPlannerWindow::previous_grasp() {
+void GraspPlannerWindowS::previous_grasp() {
     if (current_grasp > 0) {
         current_grasp--;
 
@@ -378,7 +378,7 @@ void GraspPlannerWindow::previous_grasp() {
     }
 }
 
-void GraspPlannerWindow::next_grasp() {
+void GraspPlannerWindowS::next_grasp() {
     if (current_grasp < grasps.size() - 1) {
         current_grasp++;
 
@@ -386,7 +386,7 @@ void GraspPlannerWindow::next_grasp() {
     }
 }
 
-void GraspPlannerWindow::closeEEF()
+void GraspPlannerWindowS::closeEEF()
 {
     closeEE();
 
@@ -416,7 +416,7 @@ void GraspPlannerWindow::closeEEF()
     buildVisu();
 }
 
-void GraspPlannerWindow::openEEF()
+void GraspPlannerWindowS::openEEF()
 {
     openEE();
 
@@ -424,17 +424,17 @@ void GraspPlannerWindow::openEEF()
 }
 
 
-void GraspPlannerWindow::frictionConeVisu()
+void GraspPlannerWindowS::frictionConeVisu()
 {
     buildVisu();
 }
 
-void GraspPlannerWindow::colModel()
+void GraspPlannerWindowS::colModel()
 {
     buildVisu();
 }
  
-bool GraspPlannerWindow::evaluateGrasp(VirtualRobot::GraspPtr g, VirtualRobot::RobotPtr eefRobot, VirtualRobot::EndEffectorPtr eef, int nrEvalLoops, GraspEvaluationPoseUncertainty::PoseEvalResults& results)
+bool GraspPlannerWindowS::evaluateGrasp(VirtualRobot::GraspPtr g, VirtualRobot::RobotPtr eefRobot, VirtualRobot::EndEffectorPtr eef, int nrEvalLoops, GraspEvaluationPoseUncertainty::PoseEvalResults& results)
 {
     if (!g || !eefRobot || !eef)
     {
@@ -449,7 +449,7 @@ bool GraspPlannerWindow::evaluateGrasp(VirtualRobot::GraspPtr g, VirtualRobot::R
 }
 
 
-void GraspPlannerWindow::sliderReleased_ObjectX()
+void GraspPlannerWindowS::sliderReleased_ObjectX()
 {
     float v = (float)UI.objSliderX->value();
     v /= 100;
@@ -459,7 +459,7 @@ void GraspPlannerWindow::sliderReleased_ObjectX()
     updateObj(v, GRASP_VAR::TRANS_THETA);
 }
 
-void GraspPlannerWindow::sliderReleased_ObjectY()
+void GraspPlannerWindowS::sliderReleased_ObjectY()
 {
     float v = (float)UI.objSliderY->value();
     v /= 100;
@@ -470,7 +470,7 @@ void GraspPlannerWindow::sliderReleased_ObjectY()
     updateObj(v, GRASP_VAR::TRANS_PHI);
 }
 
-void GraspPlannerWindow::sliderReleased_ObjectZ()
+void GraspPlannerWindowS::sliderReleased_ObjectZ()
 {
     float v = (float)UI.objSliderZ->value();
 
@@ -480,7 +480,7 @@ void GraspPlannerWindow::sliderReleased_ObjectZ()
     updateObj(v, GRASP_VAR::TRANS_RHO);;
 }
 
-void GraspPlannerWindow::sliderReleased_ObjectRX()
+void GraspPlannerWindowS::sliderReleased_ObjectRX()
 {
     float v = (float)UI.objSliderRX->value();
     v /= 300;
@@ -490,7 +490,7 @@ void GraspPlannerWindow::sliderReleased_ObjectRX()
     updateObj(v, GRASP_VAR::ROT_ROLL);
 }
 
-void GraspPlannerWindow::sliderReleased_ObjectRY()
+void GraspPlannerWindowS::sliderReleased_ObjectRY()
 {
     float v = (float)UI.objSliderRY->value();
     v /= 300;
@@ -500,7 +500,7 @@ void GraspPlannerWindow::sliderReleased_ObjectRY()
     updateObj(v, GRASP_VAR::ROT_PITCH);
 }
 
-void GraspPlannerWindow::sliderReleased_ObjectRZ()
+void GraspPlannerWindowS::sliderReleased_ObjectRZ()
 {
     float v = (float)UI.objSliderRZ->value();
     v /= 300;
@@ -511,7 +511,7 @@ void GraspPlannerWindow::sliderReleased_ObjectRZ()
 }
 
 
-void GraspPlannerWindow::updateObj(const float value, const int idx) {
+void GraspPlannerWindowS::updateObj(const float value, const int idx) {
     float x[6] = {0};
     x[idx] = value;
 

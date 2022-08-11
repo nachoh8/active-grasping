@@ -17,6 +17,7 @@ SET( GRASP_INCS
   ${CMAKE_CURRENT_SOURCE_DIR}/include/Grasp/TestGramacyExecutor.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/Grasp/GraspPlannerParams.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/Grasp/GraspPlanner.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Grasp/GraspPlannerS.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/Grasp/GraspPlannerIKParams.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/Grasp/GraspPlannerIK.hpp
 )
@@ -25,6 +26,7 @@ SET( GRASP_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/src/GraspPlannerParams.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/TestGramacyExecutor.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/GraspPlanner.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/GraspPlannerS.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/GraspPlannerIKParams.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/GraspPlannerIK.cpp
 )

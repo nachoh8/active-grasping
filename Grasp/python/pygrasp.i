@@ -9,6 +9,7 @@
     #include <Grasp/GraspExecutor.hpp>
     #include <Grasp/TestGramacyExecutor.hpp>
     #include <Grasp/GraspPlanner.hpp>
+    #include <Grasp/GraspPlannerS.hpp>
     #include <Grasp/GraspPlannerIK.hpp>
 %}
 
@@ -89,6 +90,14 @@ namespace Grasp {
     public:
         GraspPlanner(const GraspPlannerParams& params);
         GraspPlanner(const std::string& json_file);
+
+        GraspResult executeQueryGrasp(const std::vector<double>& query);
+    };
+
+    class GraspPlannerS : public GraspExecutor {
+    public:
+        GraspPlannerS(const GraspPlannerParams& params);
+        GraspPlannerS(const std::string& json_file);
 
         GraspResult executeQueryGrasp(const std::vector<double>& query);
     };

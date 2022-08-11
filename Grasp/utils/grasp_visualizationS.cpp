@@ -7,7 +7,7 @@
 
 #include "../include/Grasp/GraspPlannerParams.hpp"
 
-#include "GraspPlannerWindow.h"
+#include "GraspPlannerWindowS.h"
 #include "utils.hpp"
 
 namespace pt = boost::property_tree;
@@ -23,20 +23,20 @@ bool load_params(const std::string& log_file, std::vector<Grasp::GraspData>& gra
         return false;
     }
 
-    return load_grasps(root, grasps);
+    return load_graspsS(root, grasps);
 }
 
 int main(int argc, char *argv[]) {
 
     if (argc < 2 || argc > 3) {
         std::cout   << "Error: incorrect number of parameters!!!\n"
-                    << "Execution: ./grasp_visualization <grasp_params> [<log_file>]\n";
+                    << "Execution: ./grasp_visualizationS <grasp_params> [<log_file>]\n";
         exit(1);
     }
 
     std::string params_file = argv[1];
 
-    VirtualRobot::init(argc, argv, "Grasp Planner Visualizer");
+    VirtualRobot::init(argc, argv, "Grasp PlannerS Visualizer");
 
     Grasp::GraspPlannerParams plannerParams;
     if (!Grasp::load_GraspPlannerParams_json(params_file, plannerParams)) {
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    GraspPlannerWindow graspPlanner(params);
+    GraspPlannerWindowS graspPlanner(params);
 
     graspPlanner.main();
 
