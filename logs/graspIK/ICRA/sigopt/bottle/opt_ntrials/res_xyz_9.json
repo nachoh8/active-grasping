@@ -1,0 +1,2839 @@
+{
+    "date": "12/09/2022 17:49:35",
+    "basic_params": {
+        "active_variables": [
+            "x",
+            "y",
+            "z"
+        ],
+        "default_query": {
+            "x": -239.204,
+            "y": -32.972,
+            "z": 586.954,
+            "rx": -1.57,
+            "ry": 0,
+            "rz": 3.14
+        },
+        "metrics": [
+            "outcome",
+            "volume",
+            "force_closure"
+        ],
+        "n_trials": 3
+    },
+    "grasp_executor": {
+        "name": "GraspPlannerIK",
+        "params": {
+            "scene": "/home/nacho/ActiveGrasping/active-grasping/config/scenes/graspIK.xml",
+            "eef": "Left Hand",
+            "rns": "Hip Left Arm",
+            "robot_cols": [
+                "Left HandArm ColModel",
+                "BodyHeadLegsColModel",
+                "Right HandArm ColModel"
+            ],
+            "max_error_pos": 2.0,
+            "max_error_ori": 0.04,
+            "jacobian_step_size": 0.3,
+            "jacobian_max_loops": 100,
+            "cspace_path_step_size": 0.02,
+            "cspace_col_step_size": 0.04
+        }
+    },
+    "optimizer": {
+        "name": "SO",
+        "params": {
+            "project": "active-grasping-opt",
+            "mode": "prod",
+            "report_failures": false,
+            "exp_params": {
+                "name": "Grasp Planner IK - Bottle - Opt - X,Y,Z",
+                "type": "offline",
+                "parallel_bandwidth": 1,
+                "budget": 150,
+                "num_solutions": 1,
+                "metrics": [
+                    {
+                        "name": "outcome",
+                        "strategy": "optimize",
+                        "objective": "maximize"
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "x",
+                        "type": "double",
+                        "bounds": {
+                            "min": -236.0,
+                            "max": -191.0
+                        }
+                    },
+                    {
+                        "name": "y",
+                        "type": "double",
+                        "bounds": {
+                            "min": -80.0,
+                            "max": -26.0
+                        }
+                    },
+                    {
+                        "name": "z",
+                        "type": "double",
+                        "bounds": {
+                            "min": 494.0,
+                            "max": 693.0
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "best_result": [
+        {
+            "query": {
+                "x": -235.39874356906554,
+                "y": -26,
+                "z": 599.4557854391089
+            },
+            "metrics": [
+                {
+                    "name": "outcome",
+                    "value": 0.6341075301170349
+                }
+            ]
+        }
+    ],
+    "grasps": [
+        {
+            "metrics": {
+                "outcome": 0.20326192677021027,
+                "volume": 0.0018116086721420288,
+                "force_closure": false
+            },
+            "others": {
+                "time": 383.0,
+                "position_error": 1.944435715675354,
+                "orientation_error": 0.0012664794921875,
+                "trials": 1
+            },
+            "query": {
+                "z": 641.4413775405397,
+                "x": -229.09536519631425,
+                "y": -40.65664099117083
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 6.056036454538116e-07,
+                "volume": 2.6032325600722217e-11,
+                "force_closure": false
+            },
+            "others": {
+                "time": 637.0,
+                "position_error": 1.8649994134902954,
+                "orientation_error": 0.001068115234375,
+                "trials": 1
+            },
+            "query": {
+                "z": 581.4128962184291,
+                "x": -201.98374924577885,
+                "y": -64.69211016154352
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": 741.0,
+                "position_error": 1.942120909690857,
+                "orientation_error": 0.000946044921875,
+                "trials": 1
+            },
+            "query": {
+                "y": -79.11488577670067,
+                "x": -202.36390333788407,
+                "z": 648.2415281399085
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.3310372233390808,
+                "volume": 0.005839710123836994,
+                "force_closure": true
+            },
+            "others": {
+                "time": 912.0,
+                "position_error": 1.969321608543396,
+                "orientation_error": 0.0050048828125,
+                "trials": 1
+            },
+            "query": {
+                "z": 540.3642028348792,
+                "x": -220.56973297774562,
+                "y": -38.03230053839883
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.3998396098613739,
+                "volume": 0.009432502090930939,
+                "force_closure": true
+            },
+            "others": {
+                "time": 380.0,
+                "position_error": 1.994474172592163,
+                "orientation_error": 0.00054931640625,
+                "trials": 1
+            },
+            "query": {
+                "z": 578.3518948973443,
+                "x": -224.86900371029833,
+                "y": -29.04270160310523
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.40775877237319946,
+                "volume": 0.006324286572635174,
+                "force_closure": true
+            },
+            "others": {
+                "time": 529.0,
+                "position_error": 1.93732750415802,
+                "orientation_error": 0.0016937255859375,
+                "trials": 1
+            },
+            "query": {
+                "y": -37.12286133765115,
+                "z": 555.1951229474055,
+                "x": -235.92649774869585
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.41921260952949524,
+                "volume": 0.00991490762680769,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1834.0,
+                "position_error": 1.9782280921936035,
+                "orientation_error": 0.00872802734375,
+                "trials": 1
+            },
+            "query": {
+                "y": -32.32427514488402,
+                "x": -229.30669306881907,
+                "z": 521.4834699628693
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5031091570854187,
+                "volume": 0.017902350053191185,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1257.0,
+                "position_error": 1.575401782989502,
+                "orientation_error": 0.003265380859375,
+                "trials": 1
+            },
+            "query": {
+                "z": 527.9936513137175,
+                "y": -26.254701182884972,
+                "x": -235.90323690614443
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5420295000076294,
+                "volume": 0.018016379326581955,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1221.0,
+                "position_error": 1.9588643312454224,
+                "orientation_error": 0.0038299560546875,
+                "trials": 2
+            },
+            "query": {
+                "y": -26,
+                "z": 555.2218307398698,
+                "x": -236
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5566067695617676,
+                "volume": 0.015885332599282265,
+                "force_closure": true
+            },
+            "others": {
+                "time": 750.0,
+                "position_error": 1.8885471820831299,
+                "orientation_error": 0.00067138671875,
+                "trials": 1
+            },
+            "query": {
+                "z": 600.2704876558851,
+                "y": -26.69905098863977,
+                "x": -236
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "z": 620.5672085739533,
+                "y": -26,
+                "x": -191
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5968136191368103,
+                "volume": 0.019289350137114525,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1562.0,
+                "position_error": 1.9161986112594604,
+                "orientation_error": 179.99888610839844,
+                "trials": 3
+            },
+            "query": {
+                "z": 592.2303501363274,
+                "y": -26,
+                "x": -236
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "z": 494,
+                "y": -26,
+                "x": -191
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5981365442276001,
+                "volume": 0.020091144368052483,
+                "force_closure": true
+            },
+            "others": {
+                "time": 330.0,
+                "position_error": 1.732718586921692,
+                "orientation_error": 179.9979705810547,
+                "trials": 1
+            },
+            "query": {
+                "x": -236,
+                "y": -26,
+                "z": 589.7315771683261
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.3418674170970917,
+                "volume": 0.006009635515511036,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1066.0,
+                "position_error": 1.8423917293548584,
+                "orientation_error": 0.0124664306640625,
+                "trials": 1
+            },
+            "query": {
+                "x": -236,
+                "y": -51.75648690573271,
+                "z": 504.3441098620627
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "y": -26,
+                "z": 590.2136964172429,
+                "x": -234.48472846135718
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 3.717821428494972e-08,
+                "volume": 8.071154109017109e-30,
+                "force_closure": false
+            },
+            "others": {
+                "time": 2473.0,
+                "position_error": 1.7161363363265991,
+                "orientation_error": 0.004913330078125,
+                "trials": 1
+            },
+            "query": {
+                "y": -26,
+                "x": -235.80590058368315,
+                "z": 693
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "y": -37.38223328177021,
+                "x": -236,
+                "z": 494
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5810124278068542,
+                "volume": 0.01846465840935707,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1619.0,
+                "position_error": 1.951430320739746,
+                "orientation_error": 0.0152130126953125,
+                "trials": 2
+            },
+            "query": {
+                "y": -26,
+                "z": 580.043614852176,
+                "x": -235.86275006022152
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.32501474022865295,
+                "volume": 0.005863459315150976,
+                "force_closure": true
+            },
+            "others": {
+                "time": 959.0,
+                "position_error": 1.9774583578109741,
+                "orientation_error": 0.0013580322265625,
+                "trials": 1
+            },
+            "query": {
+                "y": -43.21639902591715,
+                "z": 593.7327474633676,
+                "x": -236
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "y": -28.360801718435887,
+                "z": 497.62289881668414,
+                "x": -228.67724118243808
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5222153663635254,
+                "volume": 0.016412267461419106,
+                "force_closure": true
+            },
+            "others": {
+                "time": 971.0,
+                "position_error": 1.86953604221344,
+                "orientation_error": 179.9882354736328,
+                "trials": 1
+            },
+            "query": {
+                "y": -30.522007122211964,
+                "x": -235.7415639919594,
+                "z": 559.0775843445448
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5390080213546753,
+                "volume": 0.018912047147750854,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1117.0,
+                "position_error": 1.6958613395690918,
+                "orientation_error": 179.99874877929688,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.72389188920863,
+                "z": 541.4284068085285,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.37912100553512573,
+                "volume": 0.009230525232851505,
+                "force_closure": true
+            },
+            "others": {
+                "time": 587.0,
+                "position_error": 1.4053975343704224,
+                "orientation_error": 0.0019073486328125,
+                "trials": 1
+            },
+            "query": {
+                "x": -229.86300331034653,
+                "y": -35.13182574291981,
+                "z": 536.029697097688
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.3779059052467346,
+                "volume": 0.006184765603393316,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1884.0,
+                "position_error": 1.9552251100540161,
+                "orientation_error": 0.00128173828125,
+                "trials": 1
+            },
+            "query": {
+                "x": -228.84401686421654,
+                "y": -43.61668926292072,
+                "z": 551.7094690785493
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.3443317115306854,
+                "volume": 0.005904613062739372,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1092.0,
+                "position_error": 1.917015790939331,
+                "orientation_error": 0.01068115234375,
+                "trials": 1
+            },
+            "query": {
+                "x": -229.41265365687863,
+                "z": 519.9326848799941,
+                "y": -42.126379654371874
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5171699523925781,
+                "volume": 0.015579448081552982,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1103.0,
+                "position_error": 1.8161135911941528,
+                "orientation_error": 179.99900817871094,
+                "trials": 1
+            },
+            "query": {
+                "z": 560.2099510724873,
+                "x": -229.52962844015306,
+                "y": -28.797431348642476
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.39556455612182617,
+                "volume": 0.010119996033608913,
+                "force_closure": true
+            },
+            "others": {
+                "time": 877.0,
+                "position_error": 1.9343820810317993,
+                "orientation_error": 0.0019683837890625,
+                "trials": 1
+            },
+            "query": {
+                "z": 567.6952739623028,
+                "x": -229.3074917227524,
+                "y": -33.97054904846608
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5268044471740723,
+                "volume": 0.015929028391838074,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1056.0,
+                "position_error": 1.9710890054702759,
+                "orientation_error": 179.9980926513672,
+                "trials": 3
+            },
+            "query": {
+                "y": -26,
+                "x": -229.72162332456904,
+                "z": 544.219172793839
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "x": -235.72879154104007,
+                "y": -57.07037459708585,
+                "z": 553.9205116039593
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "x": -229.9379803430113,
+                "z": 583.0006765849472,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5195266604423523,
+                "volume": 0.01589106395840645,
+                "force_closure": true
+            },
+            "others": {
+                "time": 850.0,
+                "position_error": 1.8080624341964722,
+                "orientation_error": 179.99923706054688,
+                "trials": 1
+            },
+            "query": {
+                "z": 540.5798058997777,
+                "y": -26.13929698702379,
+                "x": -229.45986253207138
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.3792807459831238,
+                "volume": 0.007902484387159348,
+                "force_closure": true
+            },
+            "others": {
+                "time": 423.0,
+                "position_error": 1.9722963571548462,
+                "orientation_error": 0.0019989013671875,
+                "trials": 1
+            },
+            "query": {
+                "y": -35.30785228846637,
+                "x": -229.52707097378,
+                "z": 543.4026113601685
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.6170735955238342,
+                "volume": 0.02027335949242115,
+                "force_closure": true
+            },
+            "others": {
+                "time": 2138.0,
+                "position_error": 1.9683949947357178,
+                "orientation_error": 179.9986572265625,
+                "trials": 3
+            },
+            "query": {
+                "y": -26,
+                "x": -235.82973543863312,
+                "z": 591.4373831098067
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.3229767084121704,
+                "volume": 0.005155730061233044,
+                "force_closure": true
+            },
+            "others": {
+                "time": 366.0,
+                "position_error": 1.86727774143219,
+                "orientation_error": 0.0007781982421875,
+                "trials": 1
+            },
+            "query": {
+                "z": 610.928260713807,
+                "y": -40.65466388548173,
+                "x": -225.58189882426012
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5192290544509888,
+                "volume": 0.015961041674017906,
+                "force_closure": true
+            },
+            "others": {
+                "time": 2118.0,
+                "position_error": 1.9636428356170654,
+                "orientation_error": 0.000518798828125,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.7902807402901,
+                "z": 589.8843418108073,
+                "y": -29.69849468094567
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.33396342396736145,
+                "volume": 0.005183234345167875,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1429.0,
+                "position_error": 1.918484091758728,
+                "orientation_error": 0.0015411376953125,
+                "trials": 1
+            },
+            "query": {
+                "x": -224.77005044604297,
+                "z": 608.2622542506649,
+                "y": -40.83278295368964
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5675843358039856,
+                "volume": 0.01556010078638792,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1005.0,
+                "position_error": 1.9444024562835693,
+                "orientation_error": 0.0015716552734375,
+                "trials": 2
+            },
+            "query": {
+                "y": -26,
+                "z": 600.0309003520912,
+                "x": -235.63960935793807
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "z": 560.4552266743041,
+                "y": -26,
+                "x": -229.0526898104588
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.49839556217193604,
+                "volume": 0.015213744714856148,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1364.0,
+                "position_error": 1.916010856628418,
+                "orientation_error": 0.0011749267578125,
+                "trials": 1
+            },
+            "query": {
+                "z": 515.3733217776853,
+                "y": -26,
+                "x": -229.73263256937585
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5045581459999084,
+                "volume": 0.014999816194176674,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1757.0,
+                "position_error": 1.8638049364089966,
+                "orientation_error": 0.00115966796875,
+                "trials": 1
+            },
+            "query": {
+                "y": -29.3037286402458,
+                "x": -229.62407817108533,
+                "z": 542.6934958778176
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.6118175387382507,
+                "volume": 0.01757895201444626,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1903.0,
+                "position_error": 1.8869434595108032,
+                "orientation_error": 0.00152587890625,
+                "trials": 1
+            },
+            "query": {
+                "y": -26,
+                "x": -235.83752592084952,
+                "z": 598.8709436126126
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "z": 579.6436097819555,
+                "x": -235.50848922053237,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5783071517944336,
+                "volume": 0.01893049106001854,
+                "force_closure": true
+            },
+            "others": {
+                "time": 569.0,
+                "position_error": 1.9815460443496704,
+                "orientation_error": 179.99832153320312,
+                "trials": 2
+            },
+            "query": {
+                "x": -235.71996515704888,
+                "z": 586.0281345420535,
+                "y": -26.05963912674857
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5240380167961121,
+                "volume": 0.01464723888784647,
+                "force_closure": true
+            },
+            "others": {
+                "time": 2902.0,
+                "position_error": 1.6010361909866333,
+                "orientation_error": 0.00909423828125,
+                "trials": 1
+            },
+            "query": {
+                "z": 606.7565770740696,
+                "y": -26,
+                "x": -235.7136157685438
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "z": 576.7862492282167,
+                "y": -26,
+                "x": -235.64070667958055
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5306603908538818,
+                "volume": 0.01679294928908348,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1618.0,
+                "position_error": 1.8077105283737183,
+                "orientation_error": 0.00140380859375,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.85573683088862,
+                "z": 550.0391468093643,
+                "y": -28.04513107712923
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.49572545289993286,
+                "volume": 0.017003191635012627,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1449.0,
+                "position_error": 1.9030922651290894,
+                "orientation_error": 0.010528564453125,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.65465352176247,
+                "z": 527.2874604662074,
+                "y": -28.36900635789181
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "x": -235.89708430730136,
+                "z": 584.3887192632241,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.6030484437942505,
+                "volume": 0.01811293140053749,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1469.0,
+                "position_error": 1.8565750122070312,
+                "orientation_error": 0.0011444091796875,
+                "trials": 1
+            },
+            "query": {
+                "z": 603.1421791350512,
+                "x": -235.62881066444544,
+                "y": -27.054198313282996
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.49521011114120483,
+                "volume": 0.012461135163903236,
+                "force_closure": true
+            },
+            "others": {
+                "time": 647.0,
+                "position_error": 1.7565637826919556,
+                "orientation_error": 179.99908447265625,
+                "trials": 1
+            },
+            "query": {
+                "y": -32.393783657091724,
+                "x": -235.8059841886976,
+                "z": 600.0220983227061
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.6194798946380615,
+                "volume": 0.021079009398818016,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1038.0,
+                "position_error": 1.986415147781372,
+                "orientation_error": 179.99900817871094,
+                "trials": 1
+            },
+            "query": {
+                "y": -26,
+                "z": 591.0605782442967,
+                "x": -236
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "y": -26,
+                "x": -235.91311773515235,
+                "z": 591.0464217894454
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5727725625038147,
+                "volume": 0.019724199548363686,
+                "force_closure": true
+            },
+            "others": {
+                "time": 3954.0,
+                "position_error": 1.6522802114486694,
+                "orientation_error": 179.99853515625,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.752853483168,
+                "y": -26,
+                "z": 592.3647252345019
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5529112815856934,
+                "volume": 0.016912341117858887,
+                "force_closure": true
+            },
+            "others": {
+                "time": 250.0,
+                "position_error": 1.9173078536987305,
+                "orientation_error": 179.99887084960938,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.7807870606379,
+                "y": -26.60841818885971,
+                "z": 598.6507161707215
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "z": 576.8878011750618,
+                "x": -235.84028164230205,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.609650194644928,
+                "volume": 0.021383797749876976,
+                "force_closure": true
+            },
+            "others": {
+                "time": 720.0,
+                "position_error": 1.854923129081726,
+                "orientation_error": 179.99205017089844,
+                "trials": 2
+            },
+            "query": {
+                "z": 586.3896578879802,
+                "y": -26,
+                "x": -235.78110975874364
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5857611894607544,
+                "volume": 0.01804281212389469,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1955.0,
+                "position_error": 1.8281772136688232,
+                "orientation_error": 0.001190185546875,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.71165974635778,
+                "y": -28.72815049721184,
+                "z": 591.3344391536076
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "z": 591.6868497183294,
+                "y": -26,
+                "x": -235.81011803773777
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "x": -236,
+                "y": -26,
+                "z": 591.3927101485764
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "y": -26,
+                "z": 593.2748518695022,
+                "x": -235.70594496502218
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5840656161308289,
+                "volume": 0.019627172499895096,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1570.0,
+                "position_error": 1.9836087226867676,
+                "orientation_error": 179.99879455566406,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.78024173223054,
+                "y": -26.46943428358047,
+                "z": 591.2352644939868
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "z": 590.8190652042489,
+                "y": -26.05073311303196,
+                "x": -236
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.59926438331604,
+                "volume": 0.019371502101421356,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1547.0,
+                "position_error": 1.967109203338623,
+                "orientation_error": 0.0012359619140625,
+                "trials": 2
+            },
+            "query": {
+                "y": -26,
+                "x": -236,
+                "z": 592.5342233971526
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.583686351776123,
+                "volume": 0.018421953544020653,
+                "force_closure": true
+            },
+            "others": {
+                "time": 889.0,
+                "position_error": 1.9727777242660522,
+                "orientation_error": 0.00048828125,
+                "trials": 1
+            },
+            "query": {
+                "y": -27.41777005227205,
+                "z": 589.5144773332804,
+                "x": -235.92998915623207
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5914410948753357,
+                "volume": 0.017220353707671165,
+                "force_closure": true
+            },
+            "others": {
+                "time": 829.0,
+                "position_error": 1.4577817916870117,
+                "orientation_error": 0.00054931640625,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.77872172942708,
+                "z": 599.1892328569661,
+                "y": -27.23956554488486
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.31605440378189087,
+                "volume": 0.005778426770120859,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1702.0,
+                "position_error": 1.9565887451171875,
+                "orientation_error": 0.001190185546875,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.73377974338626,
+                "z": 586.3353948783619,
+                "y": -46.64599074680923
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "y": -26,
+                "x": -235.8264534803662,
+                "z": 586.1132281104915
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.3174267113208771,
+                "volume": 0.005869744345545769,
+                "force_closure": true
+            },
+            "others": {
+                "time": 604.0,
+                "position_error": 1.9779938459396362,
+                "orientation_error": 0.000518798828125,
+                "trials": 1
+            },
+            "query": {
+                "y": -40.271158518178574,
+                "z": 589.4358561454467,
+                "x": -236
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5894160866737366,
+                "volume": 0.016777142882347107,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1239.0,
+                "position_error": 1.9790219068527222,
+                "orientation_error": 0.0005645751953125,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.70054461307504,
+                "y": -26,
+                "z": 599.6421252971484
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5547348260879517,
+                "volume": 0.01944872736930847,
+                "force_closure": true
+            },
+            "others": {
+                "time": 412.0,
+                "position_error": 1.8964087963104248,
+                "orientation_error": 179.982666015625,
+                "trials": 1
+            },
+            "query": {
+                "z": 589.7262936415175,
+                "x": -235.88016539122546,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.3293427526950836,
+                "volume": 0.00492852134630084,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1355.0,
+                "position_error": 1.4146732091903687,
+                "orientation_error": 179.99948120117188,
+                "trials": 1
+            },
+            "query": {
+                "z": 599.0137538945195,
+                "y": -49.823854613455055,
+                "x": -235.821887732089
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.32609042525291443,
+                "volume": 0.005582762882113457,
+                "force_closure": true
+            },
+            "others": {
+                "time": 710.0,
+                "position_error": 1.7639927864074707,
+                "orientation_error": 179.99806213378906,
+                "trials": 1
+            },
+            "query": {
+                "x": -236,
+                "z": 592.4097642262664,
+                "y": -46.998445172417675
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "x": -235.60627201140213,
+                "z": 586.1102385389806,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.4849230945110321,
+                "volume": 0.01076221652328968,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1209.0,
+                "position_error": 1.4500057697296143,
+                "orientation_error": 0.0009765625,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.64663502672346,
+                "z": 591.1046155134849,
+                "y": -34.40203839816426
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5933340191841125,
+                "volume": 0.017121359705924988,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1187.0,
+                "position_error": 1.9978361129760742,
+                "orientation_error": 0.0005645751953125,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.68729519018655,
+                "z": 599.1048348761815,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "y": -26,
+                "x": -235.777327528596,
+                "z": 586.6662964872139
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.32508397102355957,
+                "volume": 0.005518996622413397,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1679.0,
+                "position_error": 1.8587162494659424,
+                "orientation_error": 0.0007171630859375,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.6906698314875,
+                "z": 599.9011443455751,
+                "y": -48.54465064388342
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.6109724044799805,
+                "volume": 0.018196439370512962,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1397.0,
+                "position_error": 1.9329304695129395,
+                "orientation_error": 0.0005645751953125,
+                "trials": 1
+            },
+            "query": {
+                "z": 599.6090255184978,
+                "y": -26,
+                "x": -235.5841129537584
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.6296846270561218,
+                "volume": 0.01871124468743801,
+                "force_closure": true
+            },
+            "others": {
+                "time": 513.0,
+                "position_error": 1.9323207139968872,
+                "orientation_error": 0.0005950927734375,
+                "trials": 1
+            },
+            "query": {
+                "y": -26,
+                "z": 599.8960287575245,
+                "x": -235.92976119225645
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5593790411949158,
+                "volume": 0.015770472586154938,
+                "force_closure": true
+            },
+            "others": {
+                "time": 544.0,
+                "position_error": 1.9406708478927612,
+                "orientation_error": 0.0006256103515625,
+                "trials": 1
+            },
+            "query": {
+                "y": -26,
+                "x": -235.56364261748584,
+                "z": 603.3054738092914
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.32471132278442383,
+                "volume": 0.005115868989378214,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1018.0,
+                "position_error": 1.4669153690338135,
+                "orientation_error": 0.000946044921875,
+                "trials": 1
+            },
+            "query": {
+                "z": 603.0754701110263,
+                "x": -235.5841129537584,
+                "y": -47.027172691763205
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.6094473004341125,
+                "volume": 0.018074309453368187,
+                "force_closure": true
+            },
+            "others": {
+                "time": 970.0,
+                "position_error": 1.9903385639190674,
+                "orientation_error": 0.0006103515625,
+                "trials": 1
+            },
+            "query": {
+                "z": 599.4906512228144,
+                "y": -26,
+                "x": -235.87807589254993
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.4042481482028961,
+                "volume": 0.006584669463336468,
+                "force_closure": true
+            },
+            "others": {
+                "time": 2208.0,
+                "position_error": 1.9234956502914429,
+                "orientation_error": 0.001434326171875,
+                "trials": 1
+            },
+            "query": {
+                "y": -36.03747717306374,
+                "z": 599.8581144132354,
+                "x": -236
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.6299789547920227,
+                "volume": 0.018607812002301216,
+                "force_closure": true
+            },
+            "others": {
+                "time": 699.0,
+                "position_error": 1.9618996381759644,
+                "orientation_error": 0.0006256103515625,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.9034437492792,
+                "z": 600.1700356250618,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5590289831161499,
+                "volume": 0.015415038913488388,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1082.0,
+                "position_error": 1.9005284309387207,
+                "orientation_error": 0.0010986328125,
+                "trials": 1
+            },
+            "query": {
+                "z": 603.5520460202306,
+                "x": -235.63834664504128,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5949459671974182,
+                "volume": 0.017522314563393593,
+                "force_closure": true
+            },
+            "others": {
+                "time": 794.0,
+                "position_error": 1.9598867893218994,
+                "orientation_error": 0.002227783203125,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.8298971703173,
+                "y": -26.7615717024686,
+                "z": 599.6316634444901
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5949316620826721,
+                "volume": 0.017762960866093636,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1148.0,
+                "position_error": 1.8833657503128052,
+                "orientation_error": 0.0004730224609375,
+                "trials": 1
+            },
+            "query": {
+                "z": 598.7301817500518,
+                "x": -235.70138622214105,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5592531561851501,
+                "volume": 0.01601746678352356,
+                "force_closure": true
+            },
+            "others": {
+                "time": 672.0,
+                "position_error": 1.9131383895874023,
+                "orientation_error": 0.0006256103515625,
+                "trials": 1
+            },
+            "query": {
+                "z": 603.3090411788414,
+                "y": -26,
+                "x": -235.71618920638224
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.3418838083744049,
+                "volume": 0.006294426042586565,
+                "force_closure": true
+            },
+            "others": {
+                "time": 898.0,
+                "position_error": 1.9810553789138794,
+                "orientation_error": 0.0040283203125,
+                "trials": 1
+            },
+            "query": {
+                "y": -42.86340399536628,
+                "x": -235.9034437492792,
+                "z": 580.1466335259778
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5307652354240417,
+                "volume": 0.014377773739397526,
+                "force_closure": true
+            },
+            "others": {
+                "time": 548.0,
+                "position_error": 1.5924689769744873,
+                "orientation_error": 0.000823974609375,
+                "trials": 1
+            },
+            "query": {
+                "z": 600.5334960505203,
+                "y": -28.832062139428224,
+                "x": -235.92275499942338
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.591169536113739,
+                "volume": 0.01715216413140297,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1529.0,
+                "position_error": 1.6999655961990356,
+                "orientation_error": 0.0013580322265625,
+                "trials": 3
+            },
+            "query": {
+                "x": -235.66508409817618,
+                "z": 599.4026676350452,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.2541627585887909,
+                "volume": 0.002713038818910718,
+                "force_closure": false
+            },
+            "others": {
+                "time": 2258.0,
+                "position_error": 1.8196830749511719,
+                "orientation_error": 0.002899169921875,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.01431557102322,
+                "z": 539.1603999963336,
+                "y": -73.34944398188121
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "y": -26,
+                "z": 580.3056459079642,
+                "x": -235.84993607888742
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.27314600348472595,
+                "volume": 0.0034803347662091255,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1143.0,
+                "position_error": 1.4241952896118164,
+                "orientation_error": 0.00189208984375,
+                "trials": 1
+            },
+            "query": {
+                "y": -60.83326081254748,
+                "x": -235.65962062415602,
+                "z": 606.9663073258197
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.6135026812553406,
+                "volume": 0.02167259342968464,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1426.0,
+                "position_error": 1.8143908977508545,
+                "orientation_error": 179.99427795410156,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.87124559885606,
+                "y": -26,
+                "z": 579.6314814826292
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "y": -26,
+                "x": -235.8730277022587,
+                "z": 579.7452963551309
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.6110661029815674,
+                "volume": 0.01782318949699402,
+                "force_closure": true
+            },
+            "others": {
+                "time": 2015.0,
+                "position_error": 1.9787927865982056,
+                "orientation_error": 0.000885009765625,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.56237898727827,
+                "y": -26,
+                "z": 599.1717002096643
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.626754879951477,
+                "volume": 0.023080112412571907,
+                "force_closure": true
+            },
+            "others": {
+                "time": 688.0,
+                "position_error": 1.9404853582382202,
+                "orientation_error": 179.99609375,
+                "trials": 2
+            },
+            "query": {
+                "y": -26.08824787239268,
+                "x": -235.85977769076476,
+                "z": 579.3636063560976
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5226054191589355,
+                "volume": 0.015620272606611252,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1445.0,
+                "position_error": 1.916818380355835,
+                "orientation_error": 0.009185791015625,
+                "trials": 1
+            },
+            "query": {
+                "z": 543.9590535215768,
+                "y": -28.07938769913646,
+                "x": -230.06936195709008
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5859782695770264,
+                "volume": 0.01657717302441597,
+                "force_closure": true
+            },
+            "others": {
+                "time": 980.0,
+                "position_error": 1.6990773677825928,
+                "orientation_error": 0.00054931640625,
+                "trials": 1
+            },
+            "query": {
+                "y": -26,
+                "x": -235.48002525331455,
+                "z": 600.0051573966531
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5203765630722046,
+                "volume": 0.015471239574253559,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1097.0,
+                "position_error": 1.8868179321289062,
+                "orientation_error": 179.99891662597656,
+                "trials": 2
+            },
+            "query": {
+                "z": 543.6659574993961,
+                "x": -229.7526840648871,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5142572522163391,
+                "volume": 0.015281744301319122,
+                "force_closure": true
+            },
+            "others": {
+                "time": 200.0,
+                "position_error": 1.7944697141647339,
+                "orientation_error": 0.009918212890625,
+                "trials": 1
+            },
+            "query": {
+                "y": -28.02566392332118,
+                "x": -229.8880584332057,
+                "z": 543.9929123921131
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5689929127693176,
+                "volume": 0.018118109554052353,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1552.0,
+                "position_error": 1.988450288772583,
+                "orientation_error": 0.000823974609375,
+                "trials": 1
+            },
+            "query": {
+                "y": -26.888847623968203,
+                "z": 579.6002295149382,
+                "x": -235.7786093737405
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5234128832817078,
+                "volume": 0.015820836648344994,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1167.0,
+                "position_error": 1.4945725202560425,
+                "orientation_error": 179.9989471435547,
+                "trials": 1
+            },
+            "query": {
+                "x": -229.96672507704122,
+                "z": 543.4255101235022,
+                "y": -27.349317499691107
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.6341075301170349,
+                "volume": 0.01896917074918747,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1008.0,
+                "position_error": 1.9603582620620728,
+                "orientation_error": 179.9990692138672,
+                "trials": 1
+            },
+            "query": {
+                "y": -26,
+                "x": -235.39874356906554,
+                "z": 599.4557854391089
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "y": -26,
+                "z": 589.4607933116532,
+                "x": -235.68089736391858
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.33314988017082214,
+                "volume": 0.005188431590795517,
+                "force_closure": true
+            },
+            "others": {
+                "time": 506.0,
+                "position_error": 1.8078192472457886,
+                "orientation_error": 0.0012054443359375,
+                "trials": 3
+            },
+            "query": {
+                "y": -54.52240680277747,
+                "z": 560.0291737035146,
+                "x": -235.62877831284263
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.26863229274749756,
+                "volume": 0.0038410539273172617,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1686.0,
+                "position_error": 1.5118130445480347,
+                "orientation_error": 179.99703979492188,
+                "trials": 1
+            },
+            "query": {
+                "z": 599.2376242418932,
+                "y": -62.38115420433179,
+                "x": -235.42342256419727
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.16275577247142792,
+                "volume": 0.000932134862523526,
+                "force_closure": false
+            },
+            "others": {
+                "time": 788.0,
+                "position_error": 1.9849752187728882,
+                "orientation_error": 0.00115966796875,
+                "trials": 1
+            },
+            "query": {
+                "y": -74.9656624801088,
+                "x": -229.91453706354238,
+                "z": 543.6399431686651
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.6064978241920471,
+                "volume": 0.019757473841309547,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1211.0,
+                "position_error": 1.8862826824188232,
+                "orientation_error": 0.0005950927734375,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.83696444319992,
+                "z": 579.6073470941366,
+                "y": -26.52430134677116
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5790642499923706,
+                "volume": 0.01628350466489792,
+                "force_closure": true
+            },
+            "others": {
+                "time": 921.0,
+                "position_error": 1.7419928312301636,
+                "orientation_error": 179.99911499023438,
+                "trials": 1
+            },
+            "query": {
+                "z": 599.7985303113559,
+                "x": -235.3169825294212,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "y": -26,
+                "z": 555.7261225139316,
+                "x": -236
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "z": 527.6331365291288,
+                "y": -56.11905201287767,
+                "x": -235.7762236686425
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "y": -26,
+                "x": -236,
+                "z": 554.7766648070725
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5943133234977722,
+                "volume": 0.019799457862973213,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1635.0,
+                "position_error": 1.6927152872085571,
+                "orientation_error": 0.000701904296875,
+                "trials": 1
+            },
+            "query": {
+                "x": -236,
+                "y": -26,
+                "z": 528.4119591836594
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5900336503982544,
+                "volume": 0.016651291400194168,
+                "force_closure": true
+            },
+            "others": {
+                "time": 734.0,
+                "position_error": 1.996644377708435,
+                "orientation_error": 0.000579833984375,
+                "trials": 1
+            },
+            "query": {
+                "y": -26,
+                "z": 599.7203056519904,
+                "x": -235.4392976840081
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5923165082931519,
+                "volume": 0.01707141101360321,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1309.0,
+                "position_error": 1.6681257486343384,
+                "orientation_error": 0.0015411376953125,
+                "trials": 1
+            },
+            "query": {
+                "x": -236,
+                "z": 598.7674325541525,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "y": -64.50512794214988,
+                "z": 528.2289312054328,
+                "x": -236
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.3370264172554016,
+                "volume": 0.005768682342022657,
+                "force_closure": true
+            },
+            "others": {
+                "time": 899.0,
+                "position_error": 1.7555683851242065,
+                "orientation_error": 0.001220703125,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.36077119067312,
+                "z": 601.0179006692217,
+                "y": -44.90954345779281
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "x": -235.86165489761004,
+                "y": -26,
+                "z": 592.5310006482151
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.6217716336250305,
+                "volume": 0.021137839183211327,
+                "force_closure": true
+            },
+            "others": {
+                "time": 657.0,
+                "position_error": 1.926565170288086,
+                "orientation_error": 0.0011444091796875,
+                "trials": 1
+            },
+            "query": {
+                "y": -26,
+                "z": 528.539459738209,
+                "x": -235.85055737759487
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.599869966506958,
+                "volume": 0.018032601103186607,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1416.0,
+                "position_error": 1.8529775142669678,
+                "orientation_error": 0.0027313232421875,
+                "trials": 1
+            },
+            "query": {
+                "z": 599.134059370853,
+                "y": -26,
+                "x": -236
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "x": -235.6365324652673,
+                "y": -26,
+                "z": 592.372309476974
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5111624002456665,
+                "volume": 0.017711911350488663,
+                "force_closure": true
+            },
+            "others": {
+                "time": 582.0,
+                "position_error": 1.5239278078079224,
+                "orientation_error": 179.99729919433594,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.95703250273408,
+                "y": -26,
+                "z": 528.8256502294
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5772594809532166,
+                "volume": 0.01582041196525097,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1113.0,
+                "position_error": 1.9620518684387207,
+                "orientation_error": 0.0008087158203125,
+                "trials": 1
+            },
+            "query": {
+                "y": -26,
+                "z": 600.5001123562538,
+                "x": -235.5613240389822
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5199758410453796,
+                "volume": 0.015763966366648674,
+                "force_closure": true
+            },
+            "others": {
+                "time": 783.0,
+                "position_error": 1.84540855884552,
+                "orientation_error": 179.99853515625,
+                "trials": 1
+            },
+            "query": {
+                "y": -26,
+                "z": 543.0375197317762,
+                "x": -229.78356804232743
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5883392691612244,
+                "volume": 0.01690860092639923,
+                "force_closure": true
+            },
+            "others": {
+                "time": 2848.0,
+                "position_error": 1.899834156036377,
+                "orientation_error": 0.00048828125,
+                "trials": 1
+            },
+            "query": {
+                "y": -26,
+                "x": -235.23821167516886,
+                "z": 599.3825728206386
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5660009384155273,
+                "volume": 0.016359353438019753,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1668.0,
+                "position_error": 1.8489675521850586,
+                "orientation_error": 179.99810791015625,
+                "trials": 1
+            },
+            "query": {
+                "z": 600.3715876172585,
+                "x": -235.38382753668304,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.6210694909095764,
+                "volume": 0.018164437264204025,
+                "force_closure": true
+            },
+            "others": {
+                "time": 967.0,
+                "position_error": 1.8739466667175293,
+                "orientation_error": 0.0008697509765625,
+                "trials": 1
+            },
+            "query": {
+                "z": 600.6410011543816,
+                "x": -235.70266805232725,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "y": -26,
+                "x": -230.12690025904917,
+                "z": 543.4740301196687
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.6081419587135315,
+                "volume": 0.018511487171053886,
+                "force_closure": true
+            },
+            "others": {
+                "time": 240.0,
+                "position_error": 1.8696948289871216,
+                "orientation_error": 0.00091552734375,
+                "trials": 2
+            },
+            "query": {
+                "y": -26,
+                "z": 598.6673271768674,
+                "x": -235.54011955197169
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5938736200332642,
+                "volume": 0.01941947266459465,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1500.0,
+                "position_error": 1.6802985668182373,
+                "orientation_error": 0.0007781982421875,
+                "trials": 1
+            },
+            "query": {
+                "y": -26,
+                "x": -235.53455049336955,
+                "z": 526.9628816495582
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5321519374847412,
+                "volume": 0.015187198296189308,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1405.0,
+                "position_error": 1.8377161026000977,
+                "orientation_error": 0.0017242431640625,
+                "trials": 3
+            },
+            "query": {
+                "y": -26,
+                "x": -230.01226736549737,
+                "z": 544.4235489625631
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.41357168555259705,
+                "volume": 0.009843279607594013,
+                "force_closure": true
+            },
+            "others": {
+                "time": 857.0,
+                "position_error": 1.8233579397201538,
+                "orientation_error": 0.0089111328125,
+                "trials": 1
+            },
+            "query": {
+                "z": 541.0636078400299,
+                "x": -235.61939539561456,
+                "y": -35.54783220052696
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5761428475379944,
+                "volume": 0.016230029985308647,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1811.0,
+                "position_error": 1.62577223777771,
+                "orientation_error": 0.0016021728515625,
+                "trials": 1
+            },
+            "query": {
+                "y": -26,
+                "z": 601.0172084355502,
+                "x": -235.63791771092647
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5057867765426636,
+                "volume": 0.01690364070236683,
+                "force_closure": true
+            },
+            "others": {
+                "time": 629.0,
+                "position_error": 1.9826322793960571,
+                "orientation_error": 179.99818420410156,
+                "trials": 1
+            },
+            "query": {
+                "z": 527.3575232967897,
+                "x": -235.49489577314245,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5129949450492859,
+                "volume": 0.01728132553398609,
+                "force_closure": true
+            },
+            "others": {
+                "time": 363.0,
+                "position_error": 1.9074535369873047,
+                "orientation_error": 179.9986114501953,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.63509043529476,
+                "y": -26,
+                "z": 526.8133702912168
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.29036739468574524,
+                "volume": 0.0031040410976856947,
+                "force_closure": false
+            },
+            "others": {
+                "time": 1466.0,
+                "position_error": 1.832070231437683,
+                "orientation_error": 0.000762939453125,
+                "trials": 1
+            },
+            "query": {
+                "y": -63.38074330969884,
+                "z": 607.907495922858,
+                "x": -224.50814311464399
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5979141592979431,
+                "volume": 0.01691053993999958,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1398.0,
+                "position_error": 1.9081578254699707,
+                "orientation_error": 0.000579833984375,
+                "trials": 1
+            },
+            "query": {
+                "z": 601.0101574616649,
+                "y": -26,
+                "x": -235.78378792433296
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.253162682056427,
+                "volume": 0.00291888858191669,
+                "force_closure": false
+            },
+            "others": {
+                "time": 1324.0,
+                "position_error": 1.7578771114349365,
+                "orientation_error": 179.99920654296875,
+                "trials": 1
+            },
+            "query": {
+                "z": 600.7966419261393,
+                "y": -65.11808830458992,
+                "x": -235.653352081886
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.36484792828559875,
+                "volume": 0.006401450373232365,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1137.0,
+                "position_error": 1.9574416875839233,
+                "orientation_error": 0.001678466796875,
+                "trials": 1
+            },
+            "query": {
+                "y": -39.9129231121896,
+                "z": 540.6831213090258,
+                "x": -235.03241246430747
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5431715250015259,
+                "volume": 0.01649581268429756,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1149.0,
+                "position_error": 1.9498732089996338,
+                "orientation_error": 179.9884033203125,
+                "trials": 2
+            },
+            "query": {
+                "z": 544.6171622499451,
+                "x": -229.83775230453455,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.57522052526474,
+                "volume": 0.017015188932418823,
+                "force_closure": true
+            },
+            "others": {
+                "time": 668.0,
+                "position_error": 1.7960153818130493,
+                "orientation_error": 179.99749755859375,
+                "trials": 3
+            },
+            "query": {
+                "x": -235.61725497771295,
+                "z": 598.2841580118579,
+                "y": -26
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5377514362335205,
+                "volume": 0.016449393704533577,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1296.0,
+                "position_error": 1.9962477684020996,
+                "orientation_error": 179.99832153320312,
+                "trials": 1
+            },
+            "query": {
+                "y": -26,
+                "x": -230.14729618153888,
+                "z": 544.398087016272
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.0,
+                "volume": 0.0,
+                "force_closure": false
+            },
+            "others": {
+                "time": -1.0,
+                "position_error": -1.0,
+                "orientation_error": -1.0,
+                "trials": 3
+            },
+            "error": "ik_fail",
+            "query": {
+                "z": 527.0280657765838,
+                "x": -235.54671363653998,
+                "y": -68.53397143167822
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.2877231240272522,
+                "volume": 0.0032301144674420357,
+                "force_closure": false
+            },
+            "others": {
+                "time": 990.0,
+                "position_error": 1.8846876621246338,
+                "orientation_error": 0.000732421875,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.3509434398437,
+                "y": -69.470517188274,
+                "z": 600.153918019783
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.3049643039703369,
+                "volume": 0.0041811903938651085,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1424.0,
+                "position_error": 1.8905881643295288,
+                "orientation_error": 0.000701904296875,
+                "trials": 1
+            },
+            "query": {
+                "z": 598.5062663719664,
+                "x": -235.59806861556785,
+                "y": -61.13826060408926
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.5889967083930969,
+                "volume": 0.017255442216992378,
+                "force_closure": true
+            },
+            "others": {
+                "time": 1264.0,
+                "position_error": 1.672280192375183,
+                "orientation_error": 0.0012359619140625,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.3675513491048,
+                "y": -26,
+                "z": 598.8752003530277
+            }
+        },
+        {
+            "metrics": {
+                "outcome": 0.3416708707809448,
+                "volume": 0.006143974140286446,
+                "force_closure": true
+            },
+            "others": {
+                "time": 814.0,
+                "position_error": 1.9911844730377197,
+                "orientation_error": 0.000946044921875,
+                "trials": 1
+            },
+            "query": {
+                "x": -235.61685153881666,
+                "z": 541.7455236368187,
+                "y": -43.278477025976535
+            }
+        }
+    ]
+}
