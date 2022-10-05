@@ -1,6 +1,6 @@
 # Active Grasping
 
-With the results obtained, the paper [Optimización bayesiana multisolución para la exploración eficiente de agarres robóticos](http://hdl.handle.net/2183/31496) was published at the XLIII Jornadas Automaticas 2022.
+With the results obtained, the paper [Optimización bayesiana multisolución para la exploración eficiente de agarres robóticos](http://hdl.handle.net/2183/31496) was published at XLIII Jornadas Automaticas 2022.
 
 Cite: Herrera Seara, I., García-Lechuz Sierra, J., García Barcos, J., Martínez-Cantín, R. (2022) Optimización bayesiana multisolución para la exploración eficiente de agarres robóticos. XLIII Jornadas de Automática: libro de actas, pp. 714-720.
 
